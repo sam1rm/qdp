@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<head>
+      <link href="http://fonts.googleapis.com/css?family=Abel|Open+Sans:400,600" rel="stylesheet" />
+
+    <style>
+
+        /* http://css-tricks.com/perfect-full-page-background-image/ */
+        html {
+            background: url({{ url_for('static', filename='img/isurvey_photo.jpg') }}) no-repeat center center fixed; 
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+
+        body {
+            padding-top: 20px;
+            font-size: 16px;
+            background: transparent;
+        }
+
+        /* Override B3 .panel adding a subtly transparent background */
+        .panel {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .margin-base-vertical {
+            margin: 40px 0;
+        }
+
+    </style>
+
+
+</head>
+    <div class="container">
+    	<div class="row">
+    		<div class="col-lg-6 col-lg-offset-3 panel">
+    			<h1 style="text-align: center" class="margin-base-vertical">Welcome to iSurvey!</h1>
+
+                <p style="text-align:center; font-weight:bold">
+                    We provide the only mobile platform for creating, sending, and taking surveys.
+                </p>
+                
+
+                <form class="margin-base-vertical">
+                    <p class="input-group">
+                        <span class="input-group-addon"><span class=".glyphicon .glyphicon-collapse-down"></span></span>
+                        <input type="text" class="form-control input-large" name="email" placeholder="yourname@gmail.com" />
+                    </p>
+                    <p class="help-block text-center"><small>Subscribe now for early beta access</small></p>
+                    <p class="text-center">
+                        <button type="submit" class="btn btn-success btn-xlarge">Subscribe</button>
+                    </p>
+                    </span>
+                </form>
+
+                
+
+    		</div>
+    	</div>
+    </div>
+
+
+
+ 
+
+
+{% endblock %}
