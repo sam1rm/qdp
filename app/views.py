@@ -8,7 +8,3 @@ def index():
 @app.route('/example/')
 def example():
 	return render_template('example.html', active="example")
-
-@app.route('/facebook/')
-def facebook():
-	return render_template('facebook.html', active="facebook")
