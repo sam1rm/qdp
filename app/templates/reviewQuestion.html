@@ -1,0 +1,93 @@
+{% extends "layout.html" %} {% block content %} 
+        <h2 class="text-center">
+            Review Question for {{ the_class }} 
+        </h2>
+        <table style="width:100%; height:100%;">
+	<tr>
+		<td> 
+		<form class="well span6">
+			<div class="control-group">
+				<label class="control-label" for="quiz"> Quiz: </label> 
+				<select class="controls" id="quiz">
+					<option> 1 </option>
+					<option> 2 </option>
+					<option> 3 </option>
+					<option> 4 </option>
+					<option> 5 </option>
+					<option> 6 </option>
+				</select>
+			</div>
+			<div class="span6">
+				<label class="control-label" for="code"> Section: </label> 
+				<input type="text" class="controls" id="section" placeholder="<section>">
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="instructions"> Instructions: </label> 
+				<textarea class="controls" rows="3" id="instructions"></textarea>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="question"> Question: </label> 
+				<textarea class="controls" rows="3" id="question"></textarea>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="examples"> Examples: </label> 
+				<textarea class="controls" rows="3" id="examples"></textarea>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="hints"> Hints/Cautions/etc.: </label> 
+				<textarea class="controls" rows="3" id="hints"></textarea>
+			</div>
+			<div class="control-group">
+				<label class="control-label" for="answer"> Answer: </label> 
+				<textarea class="controls" rows="3" id="answer"></textarea>
+			</div>
+			<div class="control-group">
+				<button type="submit" class="btn btn-primary center"> Submit </button> 
+			</div>
+		</form>
+		</td>
+		<td style="vertical-align:top;"> 
+		<h3>
+			Existing Questions 
+		</h3>
+		<div class="tabbable">
+			<ul class="nav nav-tabs">
+				<li class="active"> <a href="#tab1" data-toggle="tab">#1</a> </li>
+				<li><a href="#tab2" data-toggle="tab">#2</a></li>
+				<li><a href="#tab3" data-toggle="tab">#3</a></li>
+				<li><a href="#tab4" data-toggle="tab">#4</a></li>
+				<li><a href="#tab5" data-toggle="tab">#5</a></li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane active" id="tab1">
+					<p>
+						Question #1 
+					</p>
+				</div>
+				<div class="tab-pane" id="tab2">
+					<p>
+						Question #2
+					</p>
+				</div>
+				<div class="tab-pane" id="tab3">
+					<p>
+						Question #3
+					</p>
+				</div>
+				<div class="tab-pane" id="tab4">
+					<p>
+						Question #4
+					</p>
+				</div>
+				<div class="tab-pane" id="tab5">
+					<p>
+						Question #5
+					</p>
+				</div>
+			</div>
+		</div>
+		</td>
+	</tr>
+</table>
+
+{% endblock %}

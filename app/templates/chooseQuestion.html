@@ -1,0 +1,21 @@
+{% extends "layout.html" %} {% block content %} 
+<h2 class="text-center">
+	Edit Question for {{ the_class }} 
+</h2>
+<table class="table table-striped table-bordered">
+<thead>
+<tr>
+<td>Question ID</td>
+<td>Quiz #</td>
+<td>Section</td>
+<td>Question</td>
+{% for question in questions %}
+    <tr>
+        <td><a href="writeQuestion?qid={{question.id}}">{{question.id}}</a></td>
+        <td>{{question.quiz}}</td>
+        <td>{{question.section}}</td>
+        <td>{{question.shortenQuestion()}}</td>
+    <tr>
+{% endfor %}
+</table> 
+{% endblock %}
