@@ -1,10 +1,8 @@
-import os
 from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
-from config import basedir
 from flask.ext.security import Security, SQLAlchemyUserDatastore, \
     UserMixin, RoleMixin, login_required
+from flask.ext.sqlalchemy import SQLAlchemy
 from itsdangerous import URLSafeTimedSerializer
 
 app = Flask(__name__)

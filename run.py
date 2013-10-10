@@ -11,4 +11,4 @@ if __name__ == '__main__':
     debugFlag = ("-debug" in sys.argv)
     if (debugFlag or DEBUG):
         toolbar = DebugToolbarExtension(app)
-    app.run(debug=(debugFlag or DEBUG))  # host='0.0.0.0'
+    app.run(debug=(debugFlag or DEBUG),use_debugger=False,use_reloader=False)  # host='0.0.0.0'
