@@ -22,8 +22,8 @@ login_serializer = URLSafeTimedSerializer(app.secret_key)
 from app import models
 
 # Setup Flask-Security
-from models import User, Role
-from forms import ExtendedConfirmRegisterForm, CustomRegisterForm
+from app.models import User, Role
+from app.forms import ExtendedConfirmRegisterForm, CustomRegisterForm
 #app.logger.debug("Setup Flask-Security")
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore, \

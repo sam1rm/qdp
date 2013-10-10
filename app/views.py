@@ -1,10 +1,10 @@
 from app import app, db, lm
-from flask import render_template, flash, redirect, session, url_for, request, g, abort
+from flask import render_template, flash, redirect, session, url_for, request, g
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from flask.ext.principal import Principal, Permission, RoleNeed
 from flask.ext.security import Security, SQLAlchemyUserDatastore
-from forms import ExtendedLoginForm, QuestionForm
-from models import User, Role, Question, getAdmins, getUnverifiedUsers
+from app.forms import QuestionForm
+from app.models import User, Role, Question, getAdmins, getUnverifiedUsers
 
 # Create a permission with a single Need, in this case a RoleNeed.
 admin_permission = Permission(RoleNeed('admin'))

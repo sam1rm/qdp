@@ -9,10 +9,12 @@
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>
 <pydev_pathproperty name="org.python.pydev.PROJECT_EXTERNAL_SOURCE_PATH">
 <path>/Library/Python/2.7/site-packages/Flask-0.10.1-py2.7.egg</path>
-<path>/Library/Python/2.7/site-packages/flask_login.py</path>
 <path>/Library/Python/2.7/site-packages/flask_debugtoolbar</path>
 <path>/Library/Python/2.7/site-packages/flask_wtf</path>
 <path>/Library/Python/2.7/site-packages/Flask_SQLAlchemy-2.0_dev_20130928-py2.7.egg</path>
 <path>/Library/Python/2.7/site-packages/flask_security</path>
+<path>/Library/Python/2.7/site-packages</path>
+<path>/Library/Python/2.7/site-packages/itsdangerous-0.23-py2.7.egg</path>
+<path>/Library/Python/2.7/site-packages/flask_login.py</path>
 </pydev_pathproperty>
 </pydev_project>
