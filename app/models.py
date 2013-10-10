@@ -83,7 +83,7 @@ class Question(db.Model):
 
     @staticmethod
     def get(id):
-        return db.session.query(Question).filter_by(id=id).one()
+        return Question.query.filter_by(id=id).one()
 
     def __str__(self):
         print "Question #%d: %s" % (self.id, self.question)

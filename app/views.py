@@ -65,7 +65,7 @@ def writeQuestion():
         form.answer.data = question.answer
         ''' Query the database for questions that have the same quiz and section.
             TODO: Make this live-update when the section has changed in the form ''' 
-        for instance in db.session.query(Question).filter(Question.quiz == question.quiz, Question.section == question.section).order_by(Question.id):
+        for instance in Question.query.filter(Question.quiz == question.quiz, Question.section == question.section).order_by(Question.id):
             existing.append(instance) 
     return render_template('writeQuestion.html', the_class=session['the_class'], form=form,   \
                            title="Write Question for "+session['the_class'], existing=existing )
@@ -76,7 +76,7 @@ def editQuestion():
     ''' Primary point for editing a question which begins with choosing questions that 
         exist for a previously chosen class. '''
     questions=[]
-    for instance in db.session.query(Question).filter(Question.for_class == session['the_class']).order_by(Question.id): 
+    for instance in Question.query.filter(Question.for_class == session['the_class']).order_by(Question.id): 
         questions.append(instance)
 #     the_class = request.args.get('the_class')
     assert(request.args.get('the_class')==session['the_class'])
@@ -87,8 +87,8 @@ def editQuestion():
 def reviewQuestion():
     ''' Retrieve a question that's been least reviewed for a chosen class.
         Least reviewed = sorted by reviewed count and first one chosen. '''
-    if (db.session.query(Question).filter(Question.for_class == session['the_class']).count()>0):
-        return redirect(url_for('writeQuestion')+"?qid="+str(db.session.query(Question).filter(Question.for_class == session['the_class']).order_by(Question.num_reviews).first().id))
+    if (Question.query.filter(Question.for_class == session['the_class']).count()>0):
+        return redirect(url_for('writeQuestion')+"?qid="+str(Question.query.filter(Question.for_class == session['the_class']).order_by(Question.num_reviews).first().id))
     else:
         flash('There are no questions to review for class: '+session['the_class'])
         return redirect(url_for('chooseClass')+"?mode="+session['mode'])
@@ -162,43 +162,6 @@ def choseClass():
     else:
         raise Exception("Unknown mode choice: %s" %(session['mode']))
 
-# @app.route('/login', methods = ['GET', 'POST'])
-# def login():
-#     ''' Place to handle the login '''
-#     if g.user is not None and g.user.is_authenticated():
-#         return redirect(url_for('index'))
-#     form = ExtendedLoginForm()
-#     if form.validate_on_submit():
-#         flash(u'Successfully logged in as %s' % form.user.username)
-#         user = User.query.filter_by(email = resp.email).first()
-#         if user is None:
-#     #         app.logger.debug("user is None: %s" % (resp.email))
-#             user = User(created = datetime.datetime.now(), last_access = datetime.datetime.now(),   \
-#                         email = resp.email, fullname = resp.fullname,                               \
-#                         verified=0) 
-#             db.session.add(user)
-#         else:
-#             user.last_access = datetime.datetime.now()
-#             db.session.merge(user)
-#         try:
-#             db.session.commit()
-#         except Exception as e:
-#             #flash(str(e))
-#             return redirect(url_for('security.login'))
-#         session['user_id'] = form.user.id
-#         if 'remember_me' in session:
-#             remember_me = session['remember_me']
-#             session.pop('remember_me', None)
-#         login_user(user, remember = remember_me)
-#         return redirect(request.args.get("next") or url_for("index"))
-#     return render_template(url_for('security/login'), 
-#         title = 'Sign In',
-#         form = form)
-#     
-# @app.route('/logout')
-# def logout():
-#     logout_user()
-#     return redirect(url_for('index'))
 
 @lm.user_loader
 def load_user(id):
@@ -210,19 +173,11 @@ def before_request():
     
 from app import security
 
-# This processor is added to only the register view
-@security.register_context_processor
-def security_register_processor():
-    app.logger.debug("security_register_processor")
+# # This processor is added to only the register view
+# @security.register_context_processor
+# def security_register_processor():
+#     app.logger.debug("security_register_processor")
 
-# @app.before_request
-# def csrf_protect():
-#     #app.logger.debug("csrf_protect")
-#     if request.method == "POST":
-#         token = session.pop('_csrf_token', None)
-#         if not token or token != request.form.get('_csrf_token'):
-#             abort(403)
-#             
 def generate_csrf_token():
     app.logger.debug("generate_csrf_token")
     if '_csrf_token' not in session:

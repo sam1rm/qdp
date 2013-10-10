@@ -20,8 +20,13 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span>
-<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">render_template</span></pre></div>
+      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">lm</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">flash</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">g</span>
+<span class="kn">from</span> <span class="nn">flask.ext.login</span> <span class="kn">import</span> <span class="n">login_user</span><span class="p">,</span> <span class="n">logout_user</span><span class="p">,</span> <span class="n">current_user</span><span class="p">,</span> <span class="n">login_required</span>
+<span class="kn">from</span> <span class="nn">flask.ext.principal</span> <span class="kn">import</span> <span class="n">Principal</span><span class="p">,</span> <span class="n">Permission</span><span class="p">,</span> <span class="n">RoleNeed</span>
+<span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">Security</span><span class="p">,</span> <span class="n">SQLAlchemyUserDatastore</span>
+<span class="kn">from</span> <span class="nn">app.forms</span> <span class="kn">import</span> <span class="n">QuestionForm</span>
+<span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">Question</span><span class="p">,</span> <span class="n">getAdmins</span><span class="p">,</span> <span class="n">getUnverifiedUsers</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -30,10 +35,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
-      <p>import flask.ext.login</p>
+      <p>Create a permission with a single Need, in this case a RoleNeed.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">request</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">flash</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span></pre></div>
+      <div class="highlight"><pre><span class="n">admin_permission</span> <span class="o">=</span> <span class="n">Permission</span><span class="p">(</span><span class="n">RoleNeed</span><span class="p">(</span><span class="s">&#39;admin&#39;</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -46,36 +51,390 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
 <span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;main.html&#39;</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="s">&quot;home&quot;</span><span class="p">)</span>
-
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/login&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;GET&#39;</span><span class="p">,</span> <span class="s">&#39;POST&#39;</span><span class="p">])</span>
-<span class="k">def</span> <span class="nf">login</span><span class="p">():</span>
-    <span class="n">error</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;username&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;USERNAME&#39;</span><span class="p">]:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="s">&#39;Invalid username&#39;</span>
-        <span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;password&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;PASSWORD&#39;</span><span class="p">]:</span>
-            <span class="n">error</span> <span class="o">=</span> <span class="s">&#39;Invalid password&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">session</span><span class="p">[</span><span class="s">&#39;logged_in&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&#39;You were logged in&#39;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;index&#39;</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;login.html&#39;</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
-
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/logout&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">logout</span><span class="p">():</span>
-    <span class="n">session</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;logged_in&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
-    <span class="n">flash</span><span class="p">(</span><span class="s">&#39;You were logged out&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;login&#39;</span><span class="p">))</span>
+    <span class="sd">&#39;&#39;&#39; Top level location &#39;&#39;&#39;</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span>
+    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">():</span>
+        <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">()):</span>
+            <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">getUnverifiedUsers</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;index.html&#39;</span><span class="p">,</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">user</span><span class="p">,</span>
+            <span class="n">superuserAndUnverifiedUsers</span> <span class="o">=</span> <span class="n">unverifiedUsers</span><span class="p">,</span>
+            <span class="n">helpfileurl</span><span class="o">=</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;helpMain&#39;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;unverifiedUser&#39;</span><span class="p">))</span>
         
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/main/help&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">mainHelp</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;main.help.html&#39;</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="s">&quot;main.help&quot;</span><span class="p">)</span>
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/helpMain&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">helpMain</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39; Help page associated with the main page.</span>
+<span class="sd">        TODO: Make help dynamic (e.g. __page__Help.html)&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;helpMain.html&#39;</span><span class="p">)</span>
 
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/example/&#39;</span><span class="p">)</span>
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/writeQuestion&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">,</span> <span class="s">&#39;GET&#39;</span><span class="p">])</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">writeQuestion</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39; Primary location for writing a new or editing an existing question.&#39;&#39;&#39;</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">QuestionForm</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <pre><code>form.element(name='section')['_onchange']='window.alert("Section!")'
+</code></pre>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&quot;POST&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">validate_on_submit</span><span class="p">()):</span>
+            <span class="kn">import</span> <span class="nn">datetime</span>
+            <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">created</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span>                \
+                                <span class="n">for_class</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">],</span>                                                       \
+                                <span class="n">quiz</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">quiz</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">section</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>                                       \
+                                <span class="n">instructions</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">instructions</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">question</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>                     \
+                                <span class="n">examples</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">hints</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">hints</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">answer</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">answer</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>          \
+                                <span class="n">num_reviews</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user_id&#39;</span><span class="p">])</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s">&#39;Question saved.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s">&#39;There was a problem validating the Question form.&#39;</span><span class="p">)</span>
+    <span class="n">existing</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">editQuestionID</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;qid&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">editQuestionID</span><span class="p">:</span>
+        <span class="sd">&#39;&#39;&#39; Fill in form with an existing question &#39;&#39;&#39;</span>
+        <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">editQuestionID</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">quiz</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">quiz</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">section</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">section</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">instructions</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">instructions</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">question</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">question</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">examples</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">examples</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">hints</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">hints</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">answer</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">answer</span>
+        <span class="sd">&#39;&#39;&#39; Query the database for questions that have the same quiz and section.</span>
+<span class="sd">            TODO: Make this live-update when the section has changed in the form &#39;&#39;&#39;</span> 
+        <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">quiz</span> <span class="o">==</span> <span class="n">question</span><span class="o">.</span><span class="n">quiz</span><span class="p">,</span> <span class="n">Question</span><span class="o">.</span><span class="n">section</span> <span class="o">==</span> <span class="n">question</span><span class="o">.</span><span class="n">section</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+            <span class="n">existing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span> 
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;writeQuestion.html&#39;</span><span class="p">,</span> <span class="n">the_class</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">],</span> <span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">,</span>   \
+                           <span class="n">title</span><span class="o">=</span><span class="s">&quot;Write Question for &quot;</span><span class="o">+</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">],</span> <span class="n">existing</span><span class="o">=</span><span class="n">existing</span> <span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/editQuestion&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">editQuestion</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39; Primary point for editing a question which begins with choosing questions that </span>
+<span class="sd">        exist for a previously chosen class. &#39;&#39;&#39;</span>
+    <span class="n">questions</span><span class="o">=</span><span class="p">[]</span>
+    <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">for_class</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">id</span><span class="p">):</span> 
+        <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <pre><code>the_class = request.args.get('the_class')
+</code></pre>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">assert</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;the_class&#39;</span><span class="p">)</span><span class="o">==</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;chooseQuestion.html&#39;</span><span class="p">,</span> <span class="n">the_class</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">],</span> <span class="n">questions</span><span class="o">=</span><span class="n">questions</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/reviewQuestion&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">reviewQuestion</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39; Retrieve a question that&#39;s been least reviewed for a chosen class.</span>
+<span class="sd">        Least reviewed = sorted by reviewed count and first one chosen. &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">for_class</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;writeQuestion&#39;</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;?qid=&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">for_class</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">num_reviews</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s">&#39;There are no questions to review for class: &#39;</span><span class="o">+</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseClass&#39;</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;?mode=&quot;</span><span class="o">+</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">])</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/generateQuizOrExam&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">generateQuizOrExam</span><span class="p">():</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>the_class = request.args.get('the_class')</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">assert</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;the_class&#39;</span><span class="p">)</span><span class="o">==</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generateQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">the_class</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/choseRetrieve&quot;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">choseRetrieve</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;retrieveQuizOrExam.html&#39;</span><span class="p">)</span> 
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/verifyUsers&quot;</span><span class="p">)</span>
+<span class="nd">@admin_permission.require</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">verifyUsers</span><span class="p">():</span>
+    <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">getUnverifiedUsers</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;verifyUsers.html&#39;</span><span class="p">,</span> <span class="n">unverifiedUsers</span><span class="o">=</span><span class="n">unverifiedUsers</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/verifyingUser&quot;</span><span class="p">)</span>
+<span class="nd">@admin_permission.require</span><span class="p">()</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">verifyingUser</span><span class="p">():</span>
+    <span class="n">userToVerify</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">))</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">userToVerify</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span><span class="p">):</span>
+            <span class="n">user_datastore</span> <span class="o">=</span> <span class="n">SQLAlchemyUserDatastore</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">)</span>
+            <span class="n">default_role</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">find_or_create_role</span><span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">)</span>
+            <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;User ID </span><span class="si">%d</span><span class="s"> is already verified?&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">userToVerify</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t find User ID </span><span class="si">%d</span><span class="s"> to verify?&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">userToVerify</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;verifyUsers&#39;</span><span class="p">))</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/unverifiedUser&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">unverifiedUser</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;unverifiedUser.html&#39;</span><span class="p">,</span>
+        <span class="n">admins</span> <span class="o">=</span> <span class="n">getAdmins</span><span class="p">())</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/chooseClass&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">chooseClass</span><span class="p">():</span>
+     <span class="sd">&#39;&#39;&#39; &quot;Funneling&quot; location to chose a class for a specific mode (write, edit, review) &#39;&#39;&#39;</span>
+     <span class="n">argMode</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;mode&#39;</span><span class="p">)</span>
+     <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">argMode</span>
+     <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;chooseClass.html&#39;</span><span class="p">,</span> <span class="n">fromMode</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s">&quot;Choose Class&quot;</span> <span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/choseClass&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="k">def</span> <span class="nf">choseClass</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39; Once a class is chosen (above), redirect to the mode&#39;s page (etc. &#39;write&#39;-&gt;writeQuestion()) &#39;&#39;&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <pre><code>assert(request.args.get('mode')==session['mode']),"request.args 'mode' (%s) != session['mode'] (%s)"    \
+    %(request.args.get('mode'),session['mode'])
+</code></pre>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">argForClass</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;the_class&#39;</span><span class="p">)</span>
+    <span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">argForClass</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;write&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;writeQuestion&#39;</span><span class="p">,</span> <span class="n">the_class</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">]))</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;edit&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;editQuestion&#39;</span><span class="p">,</span> <span class="n">the_class</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">]))</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;review&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;reviewQuestion&#39;</span><span class="p">,</span> <span class="n">the_class</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">]))</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;generate&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;generateQuizOrExam&#39;</span><span class="p">,</span> <span class="n">the_class</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;the_class&#39;</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unknown mode choice: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nd">@lm.user_loader</span>
+<span class="k">def</span> <span class="nf">load_user</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
+ 
+<span class="nd">@app.before_request</span>
+<span class="k">def</span> <span class="nf">before_request</span><span class="p">():</span>
+    <span class="n">g</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span>
+    
+<span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">security</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <h1>This processor is added to only the register view</h1>
+<p>@security.register_context_processor
+def security_register_processor():
+    app.logger.debug("security_register_processor")</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">generate_csrf_token</span><span class="p">():</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;generate_csrf_token&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s">&#39;_csrf_token&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
+        <span class="n">session</span><span class="p">[</span><span class="s">&#39;_csrf_token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;SECRET_KEY&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;_csrf_token&#39;</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>Flask-Login token_loader callback. 
+The token_loader function asks this function to take the token that was 
+stored on the users computer process it to check if its valid and then 
+return a User Object if its valid or None if its not valid.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nd">@lm.token_loader</span>
+<span class="k">def</span> <span class="nf">load_token</span><span class="p">(</span><span class="n">token</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>The Token itself was generated by User.get_auth_token.  So it is up to 
+us to known the format of the token data itself.  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <p>The Token was encrypted using itsdangerous.URLSafeTimedSerializer which 
+allows us to have a max_age on the token itself.  When the cookie is stored
+on the users computer it also has a exipry date, but could be changed by
+the user, so this feature allows us to enforce the exipry date of the token
+server side and not rely on the users cookie to exipre. </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">max_age</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;REMEMBER_COOKIE_DURATION&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>Decrypt the Security Token, data = [username, hashpass]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">data</span> <span class="o">=</span> <span class="n">login_serializer</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="n">max_age</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>Find the User</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+      <p>Check Password and return user or None</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">user</span>
+    <span class="k">return</span> <span class="bp">None</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p>app.jinja_env.globals['csrf_token'] = generate_csrf_token </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/example&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">example</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;example.html&#39;</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="s">&quot;example&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;example.html&#39;</span><span class="p">)</span>
 
 </pre></div>
     </div>

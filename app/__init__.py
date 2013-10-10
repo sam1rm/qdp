@@ -32,3 +32,5 @@ security = Security(app, user_datastore, \
 # Setup Flask-Security Mail
 from flask_mail import Mail
 mail = Mail(app)
+
+from app import views

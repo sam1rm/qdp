@@ -23,7 +23,7 @@ user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 with app.app_context():
-    password = encrypt_password('password')
+    password = encrypt_password('shouldnotbepassword')
     print password
 
 default_role = user_datastore.create_role(name='user', description='Generic user role')
@@ -42,11 +42,15 @@ user = user_datastore.create_user(password=password, email = "user@gmail.com", c
 
 user_datastore.add_role_to_user(user, default_role)
 
+user = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")
+
+user_datastore.add_role_to_user(user, default_role)
+
 user = user_datastore.create_user(password=password, email = "unverified@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Unverified User")
 
 user = user_datastore.create_user(password=password, email = "hack666@gmail.com", fullname = "Joe Hacker")
 
-question = Question(created = datetime.datetime.now(), for_class = "9F", quiz = 1, section="Operator expressions",  \
+question = Question(created = datetime.datetime.now(), for_class = "9f", quiz = 1, section="Operator expressions",  \
     instructions="Circle the correct expression. Assume default meanings for each operator.",                       \
     question = "cin >> x or cin << x\ncout << \"value for n?\" or cout << \'value for n?\'",                        \
     examples = None, hints = None, answer = "cin >> x\ncout << \"value for n?\"", num_reviews = 0, user_id = 1 )
