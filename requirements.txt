@@ -6,6 +6,6 @@ flask-login==0.2.7
 sqlite3==3.7.12
 flask-debugtoolbar==0.8.0
 flask-sqlalchemy==0.7.10
-flask-openid==1.1.1
+Flask-Security==1.6.9
 Flask-WTF==1.0.5
 PyCrypto=2.6

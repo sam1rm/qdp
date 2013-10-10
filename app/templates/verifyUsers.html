@@ -9,13 +9,13 @@
 <td>Full Name</td>
 <td>Nickname</td>
 <td>Email Address</td>
-{% if unapprovedUsers %}
-    {% for unapprovedUser in unapprovedUsers %}
+{% if unverifiedUsers %}
+    {% for unverifiedUser in unverifiedUsers %}
         <tr>
-            <td><a href="approvingUser?id={{unapprovedUser.id}}">{{unapprovedUser.id}}</a></td>
-            <td>{{unapprovedUser.nickname}}</td>
-            <td>{{unapprovedUser.fullname}}</td>
-            <td>{{unapprovedUser.email}}</td>
+            <td><a href="verifyingUser?id={{unverifiedUser.id}}">{{unverifiedUser.id}}</a></td>
+            <td>{{unverifiedUser.nickname}}</td>
+            <td>{{unverifiedUser.fullname}}</td>
+            <td>{{unverifiedUser.email}}</td>
         <tr>
     {% endfor %}
 {% endif %}

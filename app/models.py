@@ -1,15 +1,42 @@
-from app import db
+from app import db, login_serializer
+from flask.ext.security import Security, SQLAlchemyUserDatastore, \
+    UserMixin, RoleMixin, login_required
+from werkzeug import generate_password_hash, check_password_hash
+  
+roles_users = db.Table('roles_users',
+        db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+        db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
-class User(db.Model):
+class Role(db.Model, RoleMixin):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
+
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(255))
+    fullname = db.Column(db.String(255), index = True, unique = True)
+    active = db.Column(db.Boolean())
     created = db.Column(db.DateTime)
-    last_access = db.Column(db.DateTime)
-    nickname = db.Column(db.String(120), index = True, unique = True)
-    fullname = db.Column(db.String(120), index = True, unique = True)
-    email = db.Column(db.String(120), index = True, unique = True)
-    approved = db.Column(db.Integer)
+    # Flask-Security Fields
+    confirmed_at = db.Column(db.DateTime())
+    last_login_at = db.Column(db.DateTime)
+    current_login_at = db.Column(db.DateTime)
+    last_login_ip = db.Column(db.String(100))
+    current_login_ip = db.Column(db.String(100))
+    login_count = db.Column(db.Integer)
+    roles = db.relationship('Role', secondary=roles_users,
+                            backref=db.backref('users', lazy='dynamic'))
     questions = db.relationship('Question', backref = 'author', lazy = 'dynamic')
- 
+
+    def get_auth_token(self):
+        """
+        Encode a secure token for cookie
+        """
+        data = [str(self.id), self.password]
+        return login_serializer.dumps(data)
+     
     def is_authenticated(self):
         return True
  
@@ -22,14 +49,22 @@ class User(db.Model):
     def get_id(self):
         return unicode(self.id)
     
-    def is_approved(self):
-        return (self.approved>0)
+    def is_verified(self):
+        from app import app
+        return ('user' in self.roles or 'admin' in self.roles)
     
-    def is_superuser_approved(self):
-        return (self.approved>1)
+    def is_admin(self):
+        from app import app
+        return ('admin' in self.roles)
  
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+   
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
     def __repr__(self):
-        return '<User %r>' % (self.username)
+        return '<User #%d: %r>' % (self.id, self.email)
  
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -62,14 +97,25 @@ class Question(db.Model):
         else:
             return self.question.strip()[0:38]+"..."+self.question.strip()[-38:]
     
-def getUnapprovedUsers():
-    unapprovedUsers = None
-    for user in db.session.query(User).filter(User.approved == False).order_by(User.id): 
-        if unapprovedUsers:
-            unapprovedUsers.append(user)
-        else:
-            unapprovedUsers=[user]
-    return unapprovedUsers
+def getAdmins():
+    admins = None
+    for user in User.query.order_by(User.id):
+        if (user.is_admin()):
+            if admins:
+                admins.append(user)
+            else:
+                admins=[user]
+    return admins
+
+def getUnverifiedUsers():
+    unverifiedUsers = None
+    for user in User.query.order_by(User.id):
+        if (user.is_verified() == False):
+            if unverifiedUsers:
+                unverifiedUsers.append(user)
+            else:
+                unverifiedUsers=[user]
+    return unverifiedUsers
 
 def encrypt(message):
     obj = AES.new(SECRET_KEY, AES.MODE_CBC, IV)

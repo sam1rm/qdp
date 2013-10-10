@@ -1,27 +1,29 @@
-import datetime
-
+from app import app, db, lm
 from flask import render_template, flash, redirect, session, url_for, request, g, abort
 from flask.ext.login import login_user, logout_user, current_user, login_required
-from app import app, db, lm, oid
-from forms import LoginForm, QuestionForm
-from models import User, Question, getUnapprovedUsers
+from flask.ext.principal import Principal, Permission, RoleNeed
+from flask.ext.security import Security, SQLAlchemyUserDatastore
+from forms import ExtendedLoginForm, QuestionForm
+from models import User, Role, Question, getAdmins, getUnverifiedUsers
+
+# Create a permission with a single Need, in this case a RoleNeed.
+admin_permission = Permission(RoleNeed('admin'))
 
 @app.route('/')
 @login_required
 def index():
     ''' Top level location '''
     user = g.user
-    if user.is_approved():
-        ''' Look for unverified users IF the current user is a "superuser." '''
-        unapprovedUsers = None
-        if (user.is_superuser_approved()):
-            unapprovedUsers = getUnapprovedUsers()
+    if user.is_verified():
+        unverifiedUsers = None
+        if (user.is_admin()):
+            unverifiedUsers = getUnverifiedUsers()
         return render_template('index.html',
             user = user,
-            superuserAndUnapprovedUsers = unapprovedUsers,
+            superuserAndUnverifiedUsers = unverifiedUsers,
             helpfileurl=url_for('helpMain'))
     else:
-        return redirect(url_for('unapprovedUser'))
+        return redirect(url_for('unverifiedUser'))
         
 @app.route('/helpMain')
 def helpMain():
@@ -37,6 +39,7 @@ def writeQuestion():
 #     form.element(name='section')['_onchange']='window.alert("Section!")'
     if (request.method == "POST"):
         if (form.validate_on_submit()):
+            import datetime
             question = Question(created = datetime.datetime.now(), modified = datetime.datetime.now(),                \
                                 for_class=session['the_class'],                                                       \
                                 quiz=form.quiz.data, section=form.section.data,                                       \
@@ -102,37 +105,35 @@ def generateQuizOrExam():
 def choseRetrieve():
     return render_template('retrieveQuizOrExam.html') 
 
-@app.route("/approveUsers")
-@login_required
-def approveUsers():
-    unapprovedUsers = getUnapprovedUsers()
-    return render_template('approveUsers.html', unapprovedUsers=unapprovedUsers)
+@app.route("/verifyUsers")
+@admin_permission.require()
+def verifyUsers():
+    unverifiedUsers = getUnverifiedUsers()
+    return render_template('verifyUsers.html', unverifiedUsers=unverifiedUsers)
 
-@app.route("/approvingUser")
+@app.route("/verifyingUser")
+@admin_permission.require()
 @login_required
-def approvingUser():
-    if g.user.is_superuser_approved():
-        userToApprove = int(request.args.get('id'))
-        user = db.session.query(User).filter(User.id == userToApprove).first()
-        if user:
-            if (user.is_approved() == False):
-                user.approved = 1
-                db.session.merge(user)
-                db.session.commit()
-            else:
-                flash("User ID %d is already approved?" % (userToApprove))
+def verifyingUser():
+    userToVerify = int(request.args.get('id'))
+    user = User.query.filter(User.id == userToVerify).first()
+    if user:
+        if (user.is_verified() == False):
+            user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+            default_role = user_datastore.find_or_create_role('user')
+            user_datastore.add_role_to_user(user, default_role)
+            db.session.merge(user)
+            db.session.commit()
         else:
-            flash("Couldn't find User ID %d to approve?" % (userToApprove))
-        return redirect(url_for('approveUsers'))
+            flash("User ID %d is already verified?" % (userToVerify))
     else:
-        flash("UNAUTHORIZED APPROVAL")
-        return redirect(url_for('index'))
+        flash("Couldn't find User ID %d to verify?" % (userToVerify))
+    return redirect(url_for('verifyUsers'))
 
-@app.route("/unapprovedUser")
-def unapprovedUser():
-    superusers = db.session.query(User).filter(User.approved == 0)
-    return render_template('unapprovedUser.html',
-        superusers = superusers)
+@app.route("/unverifiedUser")
+def unverifiedUser():
+    return render_template('unverifiedUser.html',
+        admins = getAdmins())
 
 @app.route('/chooseClass')
 @login_required
@@ -161,63 +162,59 @@ def choseClass():
     else:
         raise Exception("Unknown mode choice: %s" %(session['mode']))
 
-@app.route('/login', methods = ['GET', 'POST'])
-@oid.loginhandler
-def login():
-    if g.user is not None and g.user.is_authenticated():
-        return redirect(url_for('index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        session['remember_me'] = form.remember_me.data
-        return oid.try_login(form.openid.data, ask_for = ['email', 'fullname', 'nickname'])
-    return render_template('login.html', 
-        title = 'Sign In',
-        form = form,
-        providers = app.config['OPENID_PROVIDERS'])
-
-@oid.after_login
-def after_login(resp):
-    if resp.email is None or resp.email == "":
-        flash('Invalid login. Please try again.')
-        return redirect(url_for('login'))
-    user = User.query.filter_by(email = resp.email).first()
-    if user is None:
-#         app.logger.debug("user is None: %s" % (resp.email))
-        nickname = resp.nickname
-        if nickname is None or nickname == "":
-            nickname = resp.email.split('@')[0]
-        user = User(created = datetime.datetime.now(), last_access = datetime.datetime.now(),   \
-                    nickname = nickname, email = resp.email, fullname = resp.fullname,          \
-                    approved=0) 
-        db.session.add(user)
-    else:
-        user.last_access = datetime.datetime.now()
-        db.session.merge(user)
-    try:
-        db.session.commit()
-    except Exception as e:
-        #flash(str(e))
-        return redirect(url_for('login'))
-    remember_me = False
-    if 'remember_me' in session:
-        remember_me = session['remember_me']
-        session.pop('remember_me', None)
-    login_user(user, remember = remember_me)
-    return redirect(request.args.get('next') or url_for('index'))
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
+# @app.route('/login', methods = ['GET', 'POST'])
+# def login():
+#     ''' Place to handle the login '''
+#     if g.user is not None and g.user.is_authenticated():
+#         return redirect(url_for('index'))
+#     form = ExtendedLoginForm()
+#     if form.validate_on_submit():
+#         flash(u'Successfully logged in as %s' % form.user.username)
+#         user = User.query.filter_by(email = resp.email).first()
+#         if user is None:
+#     #         app.logger.debug("user is None: %s" % (resp.email))
+#             user = User(created = datetime.datetime.now(), last_access = datetime.datetime.now(),   \
+#                         email = resp.email, fullname = resp.fullname,                               \
+#                         verified=0) 
+#             db.session.add(user)
+#         else:
+#             user.last_access = datetime.datetime.now()
+#             db.session.merge(user)
+#         try:
+#             db.session.commit()
+#         except Exception as e:
+#             #flash(str(e))
+#             return redirect(url_for('security.login'))
+#         session['user_id'] = form.user.id
+#         if 'remember_me' in session:
+#             remember_me = session['remember_me']
+#             session.pop('remember_me', None)
+#         login_user(user, remember = remember_me)
+#         return redirect(request.args.get("next") or url_for("index"))
+#     return render_template(url_for('security/login'), 
+#         title = 'Sign In',
+#         form = form)
+#     
+# @app.route('/logout')
+# def logout():
+#     logout_user()
+#     return redirect(url_for('index'))
 
 @lm.user_loader
 def load_user(id):
     return User.query.get(int(id))
-
+ 
 @app.before_request
 def before_request():
     g.user = current_user
     
+from app import security
+
+# This processor is added to only the register view
+@security.register_context_processor
+def security_register_processor():
+    app.logger.debug("security_register_processor")
+
 # @app.before_request
 # def csrf_protect():
 #     #app.logger.debug("csrf_protect")
@@ -232,6 +229,36 @@ def generate_csrf_token():
         session['_csrf_token'] = app.config['SECRET_KEY']
     return session['_csrf_token']
 
+@lm.token_loader
+def load_token(token):
+    """
+    Flask-Login token_loader callback. 
+    The token_loader function asks this function to take the token that was 
+    stored on the users computer process it to check if its valid and then 
+    return a User Object if its valid or None if its not valid.
+    """
+ 
+    #The Token itself was generated by User.get_auth_token.  So it is up to 
+    #us to known the format of the token data itself.  
+ 
+    #The Token was encrypted using itsdangerous.URLSafeTimedSerializer which 
+    #allows us to have a max_age on the token itself.  When the cookie is stored
+    #on the users computer it also has a exipry date, but could be changed by
+    #the user, so this feature allows us to enforce the exipry date of the token
+    #server side and not rely on the users cookie to exipre. 
+    max_age = app.config["REMEMBER_COOKIE_DURATION"].total_seconds()
+ 
+    #Decrypt the Security Token, data = [username, hashpass]
+    data = login_serializer.loads(token, max_age=max_age)
+ 
+    #Find the User
+    user = User.get(data[0])
+ 
+    #Check Password and return user or None
+    if user and data[1] == user.password:
+        return user
+    return None
+ 
 #app.jinja_env.globals['csrf_token'] = generate_csrf_token 
 @app.route('/example')
 def example():

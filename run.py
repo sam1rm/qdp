@@ -9,5 +9,6 @@ from config import DEBUG
 
 if __name__ == '__main__':
     debugFlag = ("-debug" in sys.argv)
-    toolbar = DebugToolbarExtension(app)
+    if (debugFlag or DEBUG):
+        toolbar = DebugToolbarExtension(app)
     app.run(debug=(debugFlag or DEBUG))  # host='0.0.0.0'

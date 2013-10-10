@@ -55,10 +55,10 @@
 			</div>
 		</div>
 		</td>
-		{% if superuserAndUnapprovedUsers %}
+		{% if superuserAndUnverifiedUsers %}
 		<td style="vertical-align:center;">
     		<div class="row-fluid">
-                <a href="{{ url_for('approveUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
+                <a href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
                     <i class="icon-white icon-file"></i>
                     Approve Users
                 </a>

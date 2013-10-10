@@ -11,7 +11,7 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 
 arie = User.query.filter_by(email = "arie.coach@gmail.com").first()
-arie.approved = 2
+arie.role = "User"
 db.session.merge(arie)
 db.session.commit()
 
