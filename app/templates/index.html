@@ -1,70 +1,58 @@
 {% extends "layout.html" %} {% block content %} 
 <table>
-<tr>
-<td>
-<div class="container-fluid">
-	<h2>
-		Questions 
-	</h2>
-	<br /> 
-	<div class="row-fluid">
-		<a href="{{ url_for('chooseClass', mode='write') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
-			<i class="icon-white icon-plus">
-			</i>
-			Write 
-		</a>
-	</div>
-	<br> 
-		<div class="row-fluid">
-			<a href="{{ url_for('chooseClass', mode='edit') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+	<tr>
+		<td>
+			<h2>
+				Questions 
+			</h2>
+			<br /> 
+			<a href="{{ url_for('chooseClass', mode='Write') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+				<i class="icon-white icon-plus">
+				</i>
+				Write 
+			</a>
+			<br /> 
+			<br /> 
+			<a href="{{ url_for('chooseClass', mode='Edit') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 				<i class="icon-white icon-pencil">
 				</i>
 				Edit 
 			</a>
-		</div>
-		<br> 
-			<div class="row-fluid">
-				<a href="{{ url_for('chooseClass', mode='review') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
-					<i class="icon-white icon-ok">
-					</i>
-					Review 
-				</a>
-			</div> 
 			<br /> 
-		</div>
-	</div>
-</div>
-<div class="container-fluid">
-	<h2>
-		Quizzes &amp; Exams 
-	</h2>
-	<br> 
-		<div class="row-fluid">
-			<a href="{{ url_for('chooseClass', mode='generate') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+			<br /> 
+			<a href="{{ url_for('chooseClass', mode='Review') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+				<i class="icon-white icon-ok">
+				</i>
+				Review 
+			</a>
+			<br /> 
+			<br /> 
+			<h2>
+				Quizzes &amp; Exams 
+			</h2>
+			<br /> 
+			<a href="{{ url_for('chooseClass', mode='Generate') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 				<i class="icon-white icon-print">
 				</i>
 				Generate 
 			</a>
-		</div>
-		<br> 
-			<div class="row-fluid">
-				<a href="{{ url_for('choseRetrieve') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
-					<i class="icon-white icon-file"></i>
-					Retrieve 
-				</a>
-			</div>
-		</div>
+			<br /> 
+			<br /> 
+			<a href="{{ url_for('retrieveQuizOrExam') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+				<i class="icon-white icon-file">
+				</i>
+				Retrieve 
+			</a>
 		</td>
-		{% if superuserAndUnverifiedUsers %}
+		{% if superuserAndUnverifiedUsers %} 
 		<td style="vertical-align:center;">
-    		<div class="row-fluid">
-                <a href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
-                    <i class="icon-white icon-file"></i>
-                    Approve Users
-                </a>
-            </div>
-        </td>
-		{% endif %}
-		</tr>
-		</table>
-		{% endblock %}
+			<a href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
+				<i class="icon-white icon-file">
+				</i>
+				Approve Users 
+			</a>
+		</td>
+		{% endif %} 
+	</tr>
+</table>
+{% endblock %}

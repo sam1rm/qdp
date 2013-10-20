@@ -1,10 +1,11 @@
 <!doctype html>
-<title>
-	QDP 
-</title>
-<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Abel|Open+Sans:400,600" /> <link rel="stylesheet" media="screen" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}"> <script src="{{ url_for('static', filename='js/jquery.js') }}"></script> 
-<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script> 
-<style>
+<head>
+	<title>QDP</title>
+	<!--link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Abel|Open+Sans:400,600" /-->
+	<link rel="stylesheet" media="screen" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+	<script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+	<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+	<style type="text/css">
 		/* http://css-tricks.com/perfect-full-page-background-image/ */
         html {
             // background: url({{ url_for('static', filename='img/c_programming_w1.jpeg') }}) no-repeat center center fixed; 
@@ -14,12 +15,13 @@
             background-size: cover;
         }
         body {
-            padding-top: 20px;
+            padding-top: 128px;
             padding-left: 20px;
             font-size: 16px;
             background: transparent;
             height=100%;
             min-height:100%;
+            font-family: Consolas, Lucida Console, monospace;
         }
         /* Override B3 .panel adding a subtly transparent background */
         .panel {
@@ -28,38 +30,43 @@
         .margin-base-vertical {
             margin: 40px 0;
         }
-        .lowleft{width:100%;height:16px;position:absolute;bottom:0;left:0;}
-        .upright{position:absolute;top:0px;right:5px;margin:0;padding:0px 0px;}
-</style> 
+        .upcenter{position:absolute;top:10px;left:30%;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .upleft1{position:absolute;top:10px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .upleft2{position:absolute;top:42px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .upright1{position:absolute;top:10px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .upright2{position:absolute;top:42px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .upright3{position:absolute;top:58px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .lowleft{position:absolute;bottom:10px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .lowright{position:absolute;bottom:10px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+	</style>
+</head>
+<body>
 <div class="page">
-	<h1 class="text-left">
+	<h1 class="upleft1">
 		QDP 
 	</h1>
-		<h2 class="text-center">
-			{{ title }} 
-		</h2>
-<div class="upright">
-{% if current_user.is_authenticated() %}
-  {{ current_user.fullname }}<br />
-  <a href="{{ url_for('security.logout') }}">Logout</a>
-{% else %}
-  <a href="{{ url_for('security.login') }}">Login</a><br />
-  <a href="{{ url_for('security.register') }}">Register</a>
-{% endif %}
+	<h2 class="upcenter">
+		{{ title }} 
+	</h2>
+	<div class="upright1">
+		{% if current_user.is_authenticated() %} 
+		  {{ current_user.fullname }}<br />
+		<a href="{{ url_for('security.logout') }}">Logout</a>
+		{% else %}
+		  <a href="{{ url_for('security.login') }}">Login</a><br />
+		  <a href="{{ url_for('security.register') }}">Register</a>
+		{% endif %} 
+	</div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+	{% if helpfileurl %} <a href="{{ helpfileurl }}" class="lowright"> <img src="{{ url_for('static', filename='img/126194-simple-black-square-icon-alphanumeric-icon_091.png') }}"> </a> {% endif %} {% block content %}{% endblock %} 
 </div>
-{% with messages = get_flashed_messages() %} {% if messages %} 
-<ul>
-	{% for message in messages %} 
-	<li>
-		{{ message }} 
-	</li>
-	{% endfor %} 
-</ul>
-{% endif %} {% endwith %} 
-{% if helpfileurl %}
-<a href="{{ helpfileurl }}" class="lowleft">
-	<img src="{{ url_for('static', filename='img/126194-simple-black-square-icon-alphanumeric-icon_091.png') }}"> 
-</a>
-{% endif %}
-{% block content %}{% endblock %} 
-</div>
+</body>
+</html>

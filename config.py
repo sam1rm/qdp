@@ -1,4 +1,6 @@
+from datetime import timedelta
 import os
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 DEBUG = True
@@ -7,6 +9,9 @@ DEBUG_TB_INTERCEPT_REDIRECTS = False
 CSRF_ENABLED = True
 SECRET_KEY = '6FxLM4DBMHbkgqKty2YRCyfS'
 IV='\xb2\xc6\xa2\x06\x81\xc9^\xf1{\x19\xb9q\xe1\x00\x18\xd4'
+PADDING = "0123456789abcdef"
+
+REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
@@ -23,3 +28,7 @@ MAIL_PORT = 465
 MAIL_USE_SSL = True
 MAIL_USERNAME = 'headcrash@berkeley.edu'
 MAIL_PASSWORD = 'DDVhd,(gC^54'
+
+# QDP Specific
+
+REVIEWS_BEFORE_OK_TO_USE = 3

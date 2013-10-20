@@ -24,7 +24,6 @@ from app import models
 # Setup Flask-Security
 from app.models import User, Role
 from app.forms import ExtendedConfirmRegisterForm, CustomRegisterForm
-#app.logger.debug("Setup Flask-Security")
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore, \
                     confirm_register_form=CustomRegisterForm)#, login_form=ExtendedLoginForm)

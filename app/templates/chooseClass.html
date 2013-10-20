@@ -1,34 +1,33 @@
 {% extends "layout.html" %} {% block content %} 
-<div class="container-fluid">
 	<table>
 		<tr>
-			<td width="80%">
-				<a href="{{ url_for('choseClass', mode=fromMode, the_class='9a') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+			<td>
+				<a href="{{ url_for('choseClass', mode=fromMode, classAbbr='9A') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 					9A (Matlab) 
 				</a>
 				<br /> 
 				<br /> 
-				<a href="{{ url_for('choseClass', mode=fromMode, the_class='9c') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+				<a href="{{ url_for('choseClass', mode=fromMode, classAbbr='9C') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 					9C (C) 
 				</a>
 				<br /> 
 				<br /> 
-				<a href="{{ url_for('choseClass', mode=fromMode, the_class='9e') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+				<a href="{{ url_for('choseClass', mode=fromMode, classAbbr='9E') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 					9E (Unix) 
 				</a>
 				<br /> 
 				<br /> 
-				<a href="{{ url_for('choseClass', mode=fromMode, the_class='9f') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+				<a href="{{ url_for('choseClass', mode=fromMode, classAbbr='9F') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 					9F (C++) 
 				</a>
 				<br /> 
 				<br /> 
-				<a href="{{ url_for('choseClass', mode=fromMode, the_class='9g') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+				<a href="{{ url_for('choseClass', mode=fromMode, classAbbr='9G') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 					9G (Java) 
 				</a>
 				<br /> 
 				<br /> 
-				<a href="{{ url_for('choseClass', mode=fromMode, the_class='9h') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+				<a href="{{ url_for('choseClass', mode=fromMode, classAbbr='9H') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 					9H (Python) 
 				</a>
 			</td>
@@ -40,5 +39,4 @@
 				</td>
 			</tr>
 		</table>
-	</div>
 {% endblock %}

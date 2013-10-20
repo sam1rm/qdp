@@ -1,7 +1,7 @@
 flask-debugtoolbar==0.8.0
 flask-login==0.2.7
 Flask-Security==1.6.9
-flask-sqlalchemy==1.0
+flask-sqlalchemy==0.7.9
 Flask-WTF==0.9.3
 Flask==0.10.1
 gunicorn==0.17.2
