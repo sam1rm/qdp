@@ -3,9 +3,9 @@ from app.forms import QuestionForm, ReviewQuestionForm
 from app.models import User, Role, ClassInfo, Question
 import datetime
 from flask import render_template, flash, redirect, session, url_for, request, g
-from flask.ext.login import login_user, logout_user, current_user, login_required
-from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, identity_loaded
-from flask.ext.security import Security, SQLAlchemyUserDatastore
+from flask.ext.login import current_user, login_required
+from flask.ext.principal import Permission, RoleNeed, UserNeed, identity_loaded
+from flask.ext.security import SQLAlchemyUserDatastore
 import random
 
 # Create a permission with a single Need, in this case a RoleNeed.
@@ -16,15 +16,14 @@ admin_permission = Permission(RoleNeed('admin'))
 @login_required
 @user_permission.require()
 def index():
-    ''' Top level location '''
+    ''' Top level site location. Displays additional buttons for admin: Verify users (if there
+        are any), and provide additional administration. '''
     user = g.user
     if user.is_verified():
-        unverifiedUsers = None
-        if (user.is_admin()):
-            unverifiedUsers = User.getAllUnverified()
         return render_template('index.html',
             user = user,
-            superuserAndUnverifiedUsers = unverifiedUsers,
+            isAdmin = user.is_admin(),
+            hasUnverifiedUsers = (user.is_admin() and User.hasUnverifiedUsers()),    # redundant on purpose
             helpfileurl=url_for('helpMain'))
     else:
         return redirect(url_for('unverifiedUser'))
@@ -45,10 +44,10 @@ def helpMain():
 @login_required
 @user_permission.require()
 def chooseClass():
-     ''' "Funneling" location to chose a class for a specific mode (write, edit, review) '''
-     argMode = request.args.get('mode')
-     session['mode']=argMode
-     return render_template('chooseClass.html', title=session['mode'] + ": Choose Class" )
+    ''' "Funneling" location to chose a class for a specific mode (write, edit, review) '''
+    argMode = request.args.get('mode')
+    session['mode']=argMode
+    return render_template('chooseClass.html', title=session['mode'] + ": Choose Class" )
 
 @app.route('/chooseQuestionToEdit')
 @login_required
@@ -78,7 +77,7 @@ def chooseQuiz():
     quizzesFound = set()
     cachedQuestions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
     for question in cachedQuestions:
-         quizzesFound.add(question.quiz)
+        quizzesFound.add(question.quiz)
     return render_template('chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = (len(quizzesFound) > 0), title="Choose Quiz For "+session['classAbbr'] +" (" + session['classInfo'].longName +")" )
 
 #############
@@ -182,7 +181,7 @@ def requestReviewQuestion():
                 numTimesReviewed = len(questionToReview.reviewers)
                 if (numTimesReviewed == leastReviewed):
                     leastReviewedQuestionsToReview.append(questionToReview)
-                ''' We have a list of least reviewed questions, pick one at random. '''
+                # We have a list of least reviewed questions, pick one at random.
             questionToReview = random.choice(leastReviewedQuestionsToReview)
             return redirect(url_for('reviewQuestion',questionID=questionToReview.classID))
         flash('There are no questions to review for class: '+session['classInfo'].longName)
@@ -198,7 +197,7 @@ def reviewQuestion():
         uneditable and includes comment sections.
         TODO: Show/hide comment sections''' 
     if ( session['classAbbr'] and session['classInfo'] ):
-        ''' Handle a question review form '''
+        # Handle a question review form
         reviewQuestionID = int(request.args.get('questionID'))
         assert(reviewQuestionID),"reviewQuestionID (%d) wasn't passed to reviewQuestion" % (reviewQuestionID)
         question = Question.get(reviewQuestionID)
@@ -237,7 +236,7 @@ def generateQuiz():
         if cachedQuestions:
             quizNumber = request.args.get('quizID')
             assert quizNumber, "Generate quiz without a quiz number??"
-            generatedQuiz, generatedID = Question.generateQuiz(session['classAbbr'], session['classInfo'], int(quizNumber), cachedQuestions)
+            generatedQuiz, generatedID = Question.generateQuiz(session['classInfo'], int(quizNumber), cachedQuestions)
             return render_template('generatedQuizOrExam.html', quizNumberToDisplay = quizNumber, generatedIDToDisplay = generatedID, \
                                generatedQuestionsToDisplay = generatedQuiz)
         else:
@@ -256,7 +255,7 @@ def generateExam():
         if cachedQuestions:
             assert(session['classAbbr']), "Generate final exam without a class??"
             assert session['classInfo'],"Couldn't find previous class info for class: %s??" % session['classAbbr']
-            generatedExam, generatedID = Question.generateFinalExam(session['classAbbr'], session['classInfo'], cachedQuestions)
+            generatedExam, generatedID = Question.generateFinalExam(session['classInfo'], cachedQuestions)
             return render_template('generatedQuizOrExam.html', generatedIDToDisplay = generatedID, generatedQuestionsToDisplay = generatedExam)
         else:
             flash("Please select a quiz first.")
@@ -330,8 +329,8 @@ def unverifiedUser():
         admins = getAdmins())
 
 @lm.user_loader
-def load_user(id):
-    return User.get(int(id))
+def load_user(uid):
+    return User.get(int(uid))
  
 @app.before_request
 def before_request():
@@ -352,8 +351,6 @@ def on_identity_loaded(sender, identity):
         for role in current_user.roles:
             identity.provides.add(RoleNeed(role.name))
     
-from app import security
-
 # # This processor is added to only the register view
 # @security.register_context_processor
 # def security_register_processor():

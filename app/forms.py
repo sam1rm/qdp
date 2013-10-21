@@ -1,5 +1,5 @@
 from flask.ext.wtf import Form
-from wtforms import TextField, BooleanField, SelectField, TextAreaField, HiddenField
+from wtforms import TextField, SelectField, TextAreaField, HiddenField
 from wtforms.validators import Required
 from flask_security.forms import RegisterForm, ConfirmRegisterForm
 # from models import User

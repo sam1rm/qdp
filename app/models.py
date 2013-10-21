@@ -3,8 +3,7 @@ import copy
 
 from app import db, login_serializer
 from flask import flash
-from flask.ext.security import Security, SQLAlchemyUserDatastore, \
-    UserMixin, RoleMixin, login_required
+from flask.ext.security import UserMixin, RoleMixin
 from werkzeug import generate_password_hash, check_password_hash
   
 roles_users = db.Table('roles_users',
@@ -39,8 +38,8 @@ class User(db.Model, UserMixin):
     questions = db.relationship('Question', secondary = users_questions, backref = db.backref('author', lazy = 'dynamic'))
 
     @staticmethod
-    def get(id):
-        return User.query.filter_by(id=id).one()
+    def get(uid):
+        return User.query.filter_by(id=uid).one()
 
     def __repr__(self):
         return '<User #%d: %r>' % (self.id, self.email)
@@ -65,11 +64,9 @@ class User(db.Model, UserMixin):
         return unicode(self.id)
     
     def is_verified(self):
-        from app import app
         return ('user' in self.roles or 'admin' in self.roles)
     
     def is_admin(self):
-        from app import app
         return ('admin' in self.roles)
  
     def set_password(self, password):
@@ -90,7 +87,14 @@ class User(db.Model, UserMixin):
         return admins
     
     @staticmethod
-    def getAllUnverified():
+    def hasUnverifiedUsers():
+        for user in User.query.order_by(User.id):
+            if (user.is_verified() == False):
+                return True
+        return False
+
+    @staticmethod
+    def getAllUnverifiedUsers():
         unverifiedUsers = None
         for user in User.query.order_by(User.id):
             if (user.is_verified() == False):
@@ -299,7 +303,7 @@ class Question(db.Model):
 #         return result
     
     @staticmethod
-    def generateQuiz(classAbbr, classInfo, quizNumber, cachedQuestions):
+    def generateQuiz(classInfo, quizNumber, cachedQuestions):
         ''' Generate quiz # for a class, using previously cached questions (caller is responsible for these). 
             TODO: Find questions with: most reviews, then different tags'''
         quizQuestions = []
@@ -313,7 +317,7 @@ class Question(db.Model):
         return quizQuestions, Question.IDFromQuestions(classInfo, quizQuestions)
     
     @staticmethod
-    def generateFinalExam(classAbbr, classInfo, cachedQuestions):
+    def generateFinalExam(classInfo, cachedQuestions):
         ''' Generate final exam # for a class, using previously cached questions (caller is responsible for these) 
             TODO: Find questions with: most reviews, then different tags'''
         examQuestions = []
@@ -334,8 +338,8 @@ class Question(db.Model):
         idSymbols = classInfo.classAbbr
         for question in questions:
             idSymbols += '.'
-            id = question.number(classInfo)
-            if (id > numIDSymbols):
+            qid = question.number(classInfo)
+            if (qid > numIDSymbols):
                 idSymbols += validIDSymbols[id/numIDSymbols]
             idSymbols += validIDSymbols[id%numIDSymbols]
         return idSymbols

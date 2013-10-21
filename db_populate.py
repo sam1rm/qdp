@@ -8,7 +8,6 @@ from flask.ext.security import Security, SQLAlchemyUserDatastore
 from flask.ext.security.utils import encrypt_password
 
 from app import db
-from app import models
 from app.models import User, Role, Question, ClassInfo, encrypt
 
 app = Flask(__name__)
