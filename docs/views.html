@@ -170,46 +170,27 @@
 <span class="nd">@login_required</span>
 <span class="nd">@user_permission.require</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">choseClass</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; Once a class is chosen (above), redirect to the mode&#39;s page (etc. &#39;write&#39;-&gt;editQuestion()) &#39;&#39;&#39;</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-7'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
-      </div>
-      <pre><code>assert(request.args.get('mode')==session['mode']),"request.args 'mode' (%s) != session['mode'] (%s)"    \
-    %(request.args.get('mode'),session['mode'])
-</code></pre>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    <span class="n">argForClass</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;classAbbr&#39;</span><span class="p">)</span>
-    <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">argForClass</span>
-    <span class="n">session</span><span class="p">[</span><span class="s">&#39;classInfo&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
-    <span class="k">assert</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classInfo&#39;</span><span class="p">],</span><span class="s">&quot;Couldn&#39;t find class info for class: </span><span class="si">%s</span><span class="s">??&quot;</span> <span class="o">%</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Write&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;writeQuestion&#39;</span><span class="p">))</span>
-    <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Edit&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseQuestionToEdit&#39;</span><span class="p">))</span>
-    <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Review&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;requestReviewQuestion&#39;</span><span class="p">))</span>
-    <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Generate&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseQuiz&#39;</span><span class="p">))</span>
+    <span class="sd">&#39;&#39;&#39; Once a class is chosen (above), redirect to the mode&#39;s page (etc. &#39;write&#39;-&gt;editQuestion()) &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="s">&#39;mode&#39;</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
+        <span class="n">argForClass</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;classAbbr&#39;</span><span class="p">)</span>
+        <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">argForClass</span>
+        <span class="n">session</span><span class="p">[</span><span class="s">&#39;classInfo&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classInfo&#39;</span><span class="p">],</span><span class="s">&quot;Couldn&#39;t find class info for class: </span><span class="si">%s</span><span class="s">??&quot;</span> <span class="o">%</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Write&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;writeQuestion&#39;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Edit&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseQuestionToEdit&#39;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Review&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;requestReviewQuestion&#39;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Generate&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseQuiz&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unknown mode choice: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unknown mode choice: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-8'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/writeQuestion&#39;</span><span class="p">)</span>
+        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please choose a task (e.g., &#39;review&#39;) first.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span>
+    
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/writeQuestion&#39;</span><span class="p">)</span>
 <span class="nd">@login_required</span>
 <span class="nd">@user_permission.require</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">writeQuestion</span><span class="p">():</span>
@@ -238,10 +219,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-7'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-7'>#</a>
       </div>
       <p>TODO: Add confirmation!</p>
     </div>
@@ -274,10 +255,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-10'>
+  <div class='section' id='section-8'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-10'>#</a>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
       
     </div>
@@ -402,10 +383,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-11'>
+  <div class='section' id='section-9'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-11'>#</a>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <h6></h6>
 <p>UTILITES #</p>
@@ -416,10 +397,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-12'>
+  <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-12'>#</a>
+        <a class='octothorpe' href='#section-10'>#</a>
       </div>
       
     </div>
@@ -434,10 +415,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-13'>
+  <div class='section' id='section-11'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-13'>#</a>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <h6></h6>
 <p>SECURITY #</p>
@@ -448,10 +429,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-14'>
+  <div class='section' id='section-12'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
+        <a class='octothorpe' href='#section-12'>#</a>
       </div>
       
     </div>
@@ -502,10 +483,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-15'>
+  <div class='section' id='section-13'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
+        <a class='octothorpe' href='#section-13'>#</a>
       </div>
       <p>Set the identity user object</p>
     </div>
@@ -514,10 +495,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-16'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <p>Add the UserNeed to the identity</p>
     </div>
@@ -527,10 +508,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
+  <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <p>Assuming the User model has a list of roles, update the
 identity with the roles that the user provides</p>
@@ -544,10 +525,10 @@ identity with the roles that the user provides</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-18'>
+  <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-16'>#</a>
       </div>
       <h1>This processor is added to only the register view</h1>
 <p>@security.register_context_processor
@@ -559,10 +540,10 @@ def security_register_processor():
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-19'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       
     </div>
@@ -575,10 +556,10 @@ def security_register_processor():
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-20'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-20'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       <p>Flask-Login token_loader callback. 
 The token_loader function asks this function to take the token that was 
@@ -591,10 +572,10 @@ return a User Object if its valid or None if its not valid.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-21'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-21'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       
     </div>
@@ -603,10 +584,10 @@ return a User Object if its valid or None if its not valid.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-22'>
+  <div class='section' id='section-20'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-22'>#</a>
+        <a class='octothorpe' href='#section-20'>#</a>
       </div>
       <p>The Token itself was generated by User.get_auth_token.  So it is up to 
 us to known the format of the token data itself.  </p>
@@ -616,10 +597,10 @@ us to known the format of the token data itself.  </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-23'>
+  <div class='section' id='section-21'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-23'>#</a>
+        <a class='octothorpe' href='#section-21'>#</a>
       </div>
       <p>The Token was encrypted using itsdangerous.URLSafeTimedSerializer which 
 allows us to have a max_age on the token itself.  When the cookie is stored
@@ -632,10 +613,10 @@ server side and not rely on the users cookie to exipre. </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-24'>
+  <div class='section' id='section-22'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-24'>#</a>
+        <a class='octothorpe' href='#section-22'>#</a>
       </div>
       <p>Decrypt the Security Token, data = [username, hashpass]</p>
     </div>
@@ -644,10 +625,10 @@ server side and not rely on the users cookie to exipre. </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-23'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-23'>#</a>
       </div>
       <p>Find the User</p>
     </div>
@@ -656,10 +637,10 @@ server side and not rely on the users cookie to exipre. </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-24'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-24'>#</a>
       </div>
       <p>Check Password and return user or None</p>
     </div>
