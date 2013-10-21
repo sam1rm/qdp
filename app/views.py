@@ -90,22 +90,24 @@ def chooseQuiz():
 @user_permission.require()
 def choseClass():
     ''' Once a class is chosen (above), redirect to the mode's page (etc. 'write'->editQuestion()) '''
-#     assert(request.args.get('mode')==session['mode']),"request.args 'mode' (%s) != session['mode'] (%s)"    \
-#         %(request.args.get('mode'),session['mode'])
-    argForClass = request.args.get('classAbbr')
-    session['classAbbr']=argForClass
-    session['classInfo']=ClassInfo.get(session['classAbbr'])
-    assert session['classInfo'],"Couldn't find class info for class: %s??" % session['classAbbr']
-    if (session['mode'] == "Write"):
-        return redirect(url_for('writeQuestion'))
-    elif (session['mode'] == "Edit"):
-        return redirect(url_for('chooseQuestionToEdit'))
-    elif (session['mode'] == "Review"):
-        return redirect(url_for('requestReviewQuestion'))
-    elif (session['mode'] == "Generate"):
-        return redirect(url_for('chooseQuiz'))
+    if 'mode' in session:
+        argForClass = request.args.get('classAbbr')
+        session['classAbbr']=argForClass
+        session['classInfo']=ClassInfo.get(session['classAbbr'])
+        assert session['classInfo'],"Couldn't find class info for class: %s??" % session['classAbbr']
+        if (session['mode'] == "Write"):
+            return redirect(url_for('writeQuestion'))
+        elif (session['mode'] == "Edit"):
+            return redirect(url_for('chooseQuestionToEdit'))
+        elif (session['mode'] == "Review"):
+            return redirect(url_for('requestReviewQuestion'))
+        elif (session['mode'] == "Generate"):
+            return redirect(url_for('chooseQuiz'))
+        else:
+            raise Exception("Unknown mode choice: %s" %(session['mode']))
     else:
-        raise Exception("Unknown mode choice: %s" %(session['mode']))
+        flash("Please choose a task (e.g., 'review') first.")
+        return redirect(url_for('/'))
     
 @app.route('/writeQuestion')
 @login_required
