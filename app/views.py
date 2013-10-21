@@ -125,7 +125,7 @@ def writeQuestion():
 @user_permission.require()
 def editQuestion():
     if ( session['classAbbr'] and session['classInfo'] ):
-        editQuestionID = request.args.get('questionID')
+        editQuestionID = int(request.args.get('questionID'))
         assert(editQuestionID),"editQuestionID (%d) wasn't passed to editQuestion??" % (editQuestionID)
         question = Question.get(editQuestionID)
         similarQuestions = question.getSimilarQuestions()
@@ -197,7 +197,7 @@ def reviewQuestion():
         TODO: Show/hide comment sections''' 
     if ( session['classAbbr'] and session['classInfo'] ):
         ''' Handle a question review form '''
-        reviewQuestionID = request.args.get('questionID')
+        reviewQuestionID = int(request.args.get('questionID'))
         assert(reviewQuestionID),"reviewQuestionID (%d) wasn't passed to reviewQuestion" % (reviewQuestionID)
         question = Question.get(reviewQuestionID)
         similarQuestions = question.getSimilarQuestions()

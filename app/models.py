@@ -142,7 +142,9 @@ class Question(db.Model):
 
     @staticmethod
     def get(classID):
-        return Question.query.filter_by(classID=classID).one()
+        questionsWithClassID = Question.query.filter_by(classID=classID)
+        assert(questionsWithClassID.count()==1), "len(questionsWithClassID (%d)) != 1 (it's %d)" % (classID,questionsWithClassID.count()) 
+        return questionsWithClassID.one()
 
     def __repr__(self):
         return '<Question %r>' % (self.id)

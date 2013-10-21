@@ -1,18 +1,53 @@
-{% extends "layout.html" %} {% block content %} 
-<table class="table table-striped table-bordered">
-<thead>
-<tr>
-<td>Question ID</td>
-<td>Quiz #</td>
-<td>Tags</td>
-<td>Question</td>
-{% for question in questions %}
-    <tr>
-        <td><a href="editQuestion?questionID={{question.id}}">{{question.id}}</a></td>
-        <td>{{question.quiz}}</td>
-        <td>{{question.shortenedDecryptedTags()}}</td>
-        <td>{{question.shortenedDecryptedQuestionWithMarkup()}}</td>
-    <tr>
-{% endfor %}
-</table> 
+{% extends "layout.html" %} 
+{% block head %}
+<style>
+    td {text-align:center;vertical-align:middle;}
+</style>
+<script type=text/javascript>>
+    $('.table-hover tr').click(function () { question = $(this).data("question"); window.location.href = {{url_for('editQuestion',questionID=question)}}; })
+</script>
+{% endblock %}
+{% block content %} 
+<table class="table table-striped table-bordered table-condensed table-hover">
+	<thead>
+		<tr>
+			<td>
+				Question ID
+			</td>
+			<td>
+				(class id)
+			</td>
+			<td>
+				Quiz #
+			</td>
+			<td>
+				Tags
+			</td>
+			<td>
+				Question
+			</td>
+	</thead>
+	<tbody>
+		{% for question in questions %} 
+		<tr data-question=question.classID>
+			<td>
+				{{question.id}}
+			</td>
+			<td>
+				{{question.classID}}
+				</a>
+			</td>
+			<td>
+				{{question.quiz}}
+			</td>
+			<td>
+				{{question.shortenedDecryptedTags()}}
+			</td>
+			<td style="text-align:left">
+				{{question.shortenedDecryptedQuestionWithMarkup()}}
+			</td>
+		<tr>
+			{% endfor %} 
+	</tbody>
+</table>
 {% endblock %}
