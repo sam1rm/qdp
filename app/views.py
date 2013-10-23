@@ -8,6 +8,8 @@ from flask.ext.principal import Permission, RoleNeed, UserNeed, identity_loaded
 from flask.ext.security import SQLAlchemyUserDatastore
 import random
 
+g_CachedQuestions=[]
+
 # Create a permission with a single Need, in this case a RoleNeed.
 user_permission = Permission(RoleNeed('user'))
 admin_permission = Permission(RoleNeed('admin'))
@@ -46,8 +48,12 @@ def helpMain():
 def chooseClass():
     ''' "Funneling" location to chose a class for a specific mode (write, edit, review) '''
     argMode = request.args.get('mode')
-    session['mode']=argMode
-    return render_template('chooseClass.html', title=session['mode'] + ": Choose Class" )
+    if argMode:
+        session['mode']=argMode
+        return render_template('chooseClass.html', title=session['mode'] + ": Choose Class" )
+    else:
+        flash("Please choose a task (e.g., 'review') first.")
+        return redirect(url_for('/'))
 
 @app.route('/chooseQuestionToEdit')
 @login_required
@@ -56,16 +62,19 @@ def chooseQuestionToEdit():
     ''' Primary point for editing a question which begins with choosing questions that 
         exist for a previously chosen class.
         TODO: Allow admins to edit _all_ questions. '''
-    assert session['classInfo'],"Couldn't find previous class info for class: %s??" % session['classAbbr']
-    questions=[]
-    for instance in Question.query.filter(Question.classAbbr == session['classAbbr']).order_by(Question.id): 
-        questions.append(instance)
-    if (len(questions)==0):
-        flash("%s, you don't have any questions to edit for class %s!"%(currentUserFirstName(),session['classInfo'].longName))
-    return render_template('chooseQuestion.html', questions=questions, \
-                           title="Choose Question to Edit for "+session['classAbbr'] +" (" + session['classInfo'].longName +")" )
-
-cachedQuestions=[]
+    if session['classAbbr']:
+        classInfo = ClassInfo.get(session['classAbbr'])
+        questions=[]
+        for instance in Question.query.filter(Question.classAbbr == session['classAbbr']).order_by(Question.id): 
+            questions.append(instance)
+        if (len(questions)>0):
+            return render_template('chooseQuestion.html', questions=questions, \
+                                   title="Choose Question to Edit for "+classInfo.classAbbr+"("+classInfo.longName+")")
+        else:
+            flash("%s, you don't have any questions to edit for %s!"%(currentUserFirstName(),classInfo))
+    else:
+        flash("Please choose a class first.")
+    return redirect(url_for("chooseClass",mode=session['mode']))
 
 @app.route('/chooseQuiz')
 @login_required
@@ -73,12 +82,14 @@ cachedQuestions=[]
 def chooseQuiz():
     ''' Choose from existing unique quiz numbers available
         TODO: Super-inefficient, but tries to cache questions for a generated quiz... '''
-    global cachedQuestions
+    assert session['classAbbr'],"Couldn't find previous classAbbr (ClassInfo)"
+    classInfo = ClassInfo.get(session['classAbbr'])
+    global g_CachedQuestions
     quizzesFound = set()
-    cachedQuestions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
-    for question in cachedQuestions:
+    g_CachedQuestions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
+    for question in g_CachedQuestions:
         quizzesFound.add(question.quiz)
-    return render_template('chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = (len(quizzesFound) > 0), title="Choose Quiz For "+session['classAbbr'] +" (" + session['classInfo'].longName +")" )
+    return render_template('chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = (len(quizzesFound) > 0), title="Choose Quiz For "+session['classAbbr'] +" (" + classInfo.longName +")" )
 
 #############
 # CHOSE-ERS # <-- Steps following choosers (above)
@@ -92,8 +103,6 @@ def choseClass():
     if 'mode' in session:
         argForClass = request.args.get('classAbbr')
         session['classAbbr']=argForClass
-        session['classInfo']=ClassInfo.get(session['classAbbr'])
-        assert session['classInfo'],"Couldn't find class info for class: %s??" % session['classAbbr']
         if (session['mode'] == "Write"):
             return redirect(url_for('writeQuestion'))
         elif (session['mode'] == "Edit"):
@@ -112,11 +121,14 @@ def choseClass():
 @login_required
 @user_permission.require()
 def writeQuestion():
-    if ( session['classAbbr'] and session['classInfo'] ):
-        question = Question(created = datetime.datetime.now(), classAbbr = session['classAbbr'], classID = session['classInfo'].currentID)
+    if session['classAbbr']:
+        classInfo = ClassInfo.get(session['classAbbr'])
+        question = Question(created = datetime.datetime.now(), classAbbr = session['classAbbr'], classID = classInfo.currentID)
         db.session.add(question)
+        classInfo.currentID = classInfo.currentID + 1
+        db.session.merge(classInfo)
         db.session.commit()
-        return redirect(url_for("editQuestion",questionID=Question.idFromNumber(question.id,session['classInfo'])))
+        return redirect(url_for("editQuestion",questionID=question.id))
     else:
         flash("Please choose a class first.")
     return redirect(url_for("chooseClass",mode=session['mode']))
@@ -125,38 +137,38 @@ def writeQuestion():
 @login_required
 @user_permission.require()
 def editQuestion():
-    if ( session['classAbbr'] and session['classInfo'] ):
-        editQuestionID = int(request.args.get('questionID'))
-        assert(editQuestionID),"editQuestionID (%d) wasn't passed to editQuestion??" % (editQuestionID)
-        question = Question.get(editQuestionID)
-        similarQuestions = question.getSimilarQuestions()
-        question.decryptQuestionText(questionOnly = True)
-        form = QuestionForm(request.form, question)
-        if request.method == 'POST':
-            if (request.form['button'] == 'delete'):
-                # TODO: Add confirmation!
-                db.session.delete(question)
-                if (question.classID == session['classInfo'].currentID):
-                    session['classInfo'].currentID = session['classInfo'].currentID - 1
-                    db.session.merge(session['classInfo'])
-                db.session.commit()
-                flash('Question #%d deleted.'% question.number()+1)
-                return redirect(url_for("chooseQuestionToEdit"))
-            elif form.validate():
-                form.populate_obj(question)
-                question.modified = datetime.datetime.now()
-                question.encryptQuestionText(questionOnly = True)
-                db.session.merge(question)
-                session['classInfo'].currentID = session['classInfo'].currentID + 1
-                db.session.merge(session['classInfo'])
-                db.session.commit()
-                flash('Question #%d saved.' % question.number(session['classInfo'])+1)
-                session['mode'] = 'Edit'
-                return redirect(url_for("editQuestion",questionID=Question.idFromNumber(question.id,session['classInfo'])))
-            else:
-                flash('There was a problem handling the form POST for Question ID:%d'%(question.id))
-        return render_template('editQuestion.html', form=form, similarQuestionsToDisplay=similarQuestions, questionToDisplay=question,   \
-                               title="%s Question #%d For %s"%(session['mode'], question.number(session['classInfo'])+1, session['classInfo'].longName) )
+    if session['classAbbr']:
+        classInfo = ClassInfo.get(session['classAbbr'])
+        assert classInfo,"classInfo wasn't passed to editQuestion??"
+        rawQuestionIDAsString = request.args.get('questionID')
+        assert rawQuestionIDAsString,"rawQuestionID wasn't passed to editQuestion??"
+        question = Question.get(int(rawQuestionIDAsString))
+        if question:    # Can be None if there was a problem retrieving this question
+            similarQuestions = question.findSimilarQuestions()
+            question.decryptQuestionText(questionOnly = True)
+            form = QuestionForm(request.form, question)
+            if request.method == 'POST':
+                if (request.form['button'] == 'delete'):
+                    # TODO: Add confirmation!
+                    db.session.delete(question)
+                    if ( ( question.classID + 1 ) == classInfo.currentID ):
+                        classInfo.currentID = classInfo.currentID - 1
+                        db.session.merge(classInfo)
+                    db.session.commit()
+                    flash('Question #%d deleted.' % ( question.offsetNumberFromClass(classInfo) + 1 ) )
+                    return redirect(url_for("/"))
+                elif form.validate():
+                    form.populate_obj(question)
+                    question.modified = datetime.datetime.now()
+                    question.encryptQuestionText(questionOnly = True)
+                    db.session.merge(question)
+                    flash('Question #%d saved.' % ( question.offsetNumberFromClass(classInfo) + 1 ) )
+                    session['mode'] = 'Edit'
+                    return redirect(url_for("editQuestion",questionID=question.id))
+                else:
+                    flash('There was a problem handling the form POST for Question ID:%d'%(question.id))
+            return render_template('editQuestion.html', form=form, similarQuestionsToDisplay=similarQuestions, questionToDisplay=question,   \
+                               title="%s Question #%d For %s"%(session['mode'], (question.offsetNumberFromClass(classInfo)+1), classInfo.longName) )
     else:
         flash("Please choose a class first.")
     return redirect(url_for("chooseClass",mode=session['mode']))
@@ -167,7 +179,8 @@ def editQuestion():
 def requestReviewQuestion():
     ''' Retrieve a question that's been least reviewed for a chosen class.
         Least reviewed is found by looking for 0, 1, 2, etc. up to 10 prior reviews.'''
-    if ( session['classAbbr'] and session['classInfo'] ):
+    if session['classAbbr']:
+        classInfo = ClassInfo.get(session['classAbbr'])
         if (Question.query.filter(Question.classAbbr == session['classAbbr']).count()>0):
             questionsToReview = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
             leastReviewed = app.config["REVIEWS_BEFORE_OK_TO_USE"]
@@ -183,8 +196,8 @@ def requestReviewQuestion():
                     leastReviewedQuestionsToReview.append(questionToReview)
                 # We have a list of least reviewed questions, pick one at random.
             questionToReview = random.choice(leastReviewedQuestionsToReview)
-            return redirect(url_for('reviewQuestion',questionID=questionToReview.classID))
-        flash('There are no questions to review for class: '+session['classInfo'].longName)
+            return redirect(url_for('reviewQuestion',questionID=questionToReview.id))
+        flash('There are no questions to review for class: '+classInfo.longName)
     else:
         flash("Please choose a class first.")
     return redirect(url_for('chooseClass',mode=session['mode']))
@@ -196,33 +209,37 @@ def reviewQuestion():
     ''' Handler for the "Review question" functionality. Redisplays the original question text as
         uneditable and includes comment sections.
         TODO: Show/hide comment sections''' 
-    if ( session['classAbbr'] and session['classInfo'] ):
+    if session['classAbbr']:
+        classInfo = ClassInfo.get(session['classAbbr'])
         # Handle a question review form
-        reviewQuestionID = int(request.args.get('questionID'))
-        assert(reviewQuestionID),"reviewQuestionID (%d) wasn't passed to reviewQuestion" % (reviewQuestionID)
-        question = Question.get(reviewQuestionID)
-        similarQuestions = question.getSimilarQuestions()
-        question.decryptQuestionText(commentsOnly = True)
-        form = ReviewQuestionForm(request.form, question)
-        if request.method == 'POST':
-            form.populate_obj(question)
-            if (g.user not in question.reviewers):
-                question.reviewers.append(g.user)
-            question.modified = datetime.datetime.now()
-            question.encryptQuestionText(commentsOnly = True)
-            if (request.form['button'] == 'needswork'):
-                db.session.commit()
-                return redirect(url_for("requestReviewQuestion"))
-            else:
-                if form.validate():            
-                    db.session.merge(question)
+        reviewQuestionIDAsString = request.args.get('questionID')
+        assert(reviewQuestionIDAsString),"reviewQuestionID (%d) wasn't passed to reviewQuestion" % (reviewQuestionID)
+        question = Question.get(int(reviewQuestionIDAsString))
+        if question:
+            similarQuestions = question.findSimilarQuestions()
+            question.decryptQuestionText(commentsOnly = True)
+            form = ReviewQuestionForm(request.form, question)
+            if request.method == 'POST':
+                form.populate_obj(question)
+                if (g.user not in question.reviewers):
+                    question.reviewers.append(g.user)
+                question.modified = datetime.datetime.now()
+                question.encryptQuestionText(commentsOnly = True)
+                if (request.form['button'] == 'needswork'):
                     db.session.commit()
                     return redirect(url_for("requestReviewQuestion"))
                 else:
-                    flash('There was a problem handling the form POST for Question ID:%d'%(question.id))
-        return render_template('reviewQuestion.html', form=form, similarQuestionsToDisplay = similarQuestions,                                                          \
-                               questionToDisplay=Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question, questionOnly=True)),  \
-                               title="%s Question #%d For %s (%s)"%(session['mode'],question.number(session['classInfo'])+1,session['classAbbr'],session['classInfo'].longName ))
+                    if form.validate():            
+                        db.session.merge(question)
+                        db.session.commit()
+                        return redirect(url_for("requestReviewQuestion"))
+                    else:
+                        flash('There was a problem handling the form POST for Question ID:%d'%(question.id))
+            return render_template('reviewQuestion.html', form=form, similarQuestionsToDisplay = similarQuestions,                                                          \
+                                   questionToDisplay=Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question, questionOnly=True)),  \
+                                   title="%s Question #%d For %s (%s)"%(session['mode'],(question.offsetNumberFromClass(classInfo)+1),session['classAbbr'],classInfo.longName ))
+        else:
+            flash("Couldn't find question ID: %s??"%reviewQuestionIDAsString)
     else:
         flash("Please choose a class first.")
     return redirect(url_for('chooseClass',mode=session['mode']))
@@ -231,12 +248,12 @@ def reviewQuestion():
 @login_required
 @admin_permission.require()
 def generateQuiz():
-    if ( session['classAbbr'] and session['classInfo'] ):
-        global cachedQuestions
-        if cachedQuestions:
+    if session['classAbbr']:
+        classInfo = ClassInfo.get(session['classAbbr'])
+        if g_CachedQuestions:
             quizNumber = request.args.get('quizID')
             assert quizNumber, "Generate quiz without a quiz number??"
-            generatedQuiz, generatedID = Question.generateQuiz(session['classInfo'], int(quizNumber), cachedQuestions)
+            generatedQuiz, generatedID = Question.generateQuiz(classInfo, int(quizNumber), g_CachedQuestions)
             return render_template('generatedQuizOrExam.html', quizNumberToDisplay = quizNumber, generatedIDToDisplay = generatedID, \
                                generatedQuestionsToDisplay = generatedQuiz)
         else:
@@ -250,12 +267,10 @@ def generateQuiz():
 @login_required
 @admin_permission.require()
 def generateExam():
-    if ( session['classAbbr'] and session['classInfo'] ):
-        global cachedQuestions
-        if cachedQuestions:
-            assert(session['classAbbr']), "Generate final exam without a class??"
-            assert session['classInfo'],"Couldn't find previous class info for class: %s??" % session['classAbbr']
-            generatedExam, generatedID = Question.generateFinalExam(session['classInfo'], cachedQuestions)
+    if session['classAbbr']:
+        classInfo = ClassInfo.get(session['classAbbr'])
+        if g_CachedQuestions:
+            generatedExam, generatedID = Question.generateFinalExam(classInfo, g_CachedQuestions)
             return render_template('generatedQuizOrExam.html', generatedIDToDisplay = generatedID, generatedQuestionsToDisplay = generatedExam)
         else:
             flash("Please select a quiz first.")
@@ -279,6 +294,28 @@ def retrieveQuizOrExam():
             return render_template('generatedQuizOrExam.html', generatedIDToDisplay = code, generatedQuestionsToDisplay = questions)
     return render_template('retrieveQuizOrExam.html')
 
+#########
+# ADMIN #
+#########
+        
+@app.route("/adminDatabaseReset")
+@login_required
+@admin_permission.require()
+def adminDatabaseReset():
+    messageList = []
+    for entry in Question.query.all():
+        messageList.append("Deleting Question id: %d (class id: %d) (%s)" % (entry.id, entry.classID, entry.shortenedDecryptedQuestionWithMarkup()))
+        db.session.delete(entry)
+    for entry in User.query.filter(User.fullname != "Glenn Sugden").all():
+        messageList.append("Deleting User id: %d (%s)" % (entry.id,entry.fullname))
+        db.session.delete(entry)
+    for entry in ClassInfo.query.all():
+        messageList.append("Resetting class ids for: %s (id: %d)" % (entry.longName, entry.id))
+        entry.currentID = entry.startingID
+    db.session.commit()
+    messageList.append("...done!")
+    return render_template('adminOutput.html',title="Admin. - Database Reset", messagestoDisplay = messageList)
+
 ############
 # UTILITES #
 ############
@@ -299,15 +336,16 @@ def currentUserFirstName():
 @login_required
 @admin_permission.require()
 def verifyUsers():
-    unverifiedUsers = User.getAllUnverified()
+    unverifiedUsers = User.getAllUnverifiedUsers()
     return render_template('verifyUsers.html', unverifiedUsers=unverifiedUsers)
 
 @app.route("/verifyingUser")
 @login_required
 @admin_permission.require()
 def verifyingUser():
-    userToVerify = int(request.args.get('id'))
-    user = User.query.filter(User.id == userToVerify).first()
+    idAsString = request.args.get('id')
+    assert idAsString, "ID wasn't passed to verifyingUser??"
+    user = User.query.filter(User.id == int(idAsString)).first()
     if user:
         if (user.is_verified() == False):
             user_datastore = SQLAlchemyUserDatastore(db, User, Role)
@@ -316,9 +354,9 @@ def verifyingUser():
             db.session.merge(user)
             db.session.commit()
         else:
-            flash("User ID %d is already verified?" % (userToVerify))
+            flash("User ID %s is already verified?" % (idAsString))
     else:
-        flash("Couldn't find User ID %d to verify?" % (userToVerify))
+        flash("Couldn't find User ID %s to verify?" % (idAsString))
     return redirect(url_for('verifyUsers'))
 
 @app.route("/unverifiedUser")

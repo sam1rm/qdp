@@ -18,6 +18,9 @@ class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     description = db.Column(db.String(255))
+    
+    def __repr__(self):
+        return '<Role %d>' % self.id
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
@@ -40,9 +43,6 @@ class User(db.Model, UserMixin):
     @staticmethod
     def get(uid):
         return User.query.filter_by(id=uid).one()
-
-    def __repr__(self):
-        return '<User #%d: %r>' % (self.id, self.email)
 
     def get_auth_token(self):
         """
@@ -103,6 +103,12 @@ class User(db.Model, UserMixin):
                 else:
                     unverifiedUsers=[user]
         return unverifiedUsers
+
+    def __repr__(self):
+        return '<User %d>' % self.id
+
+    def __str__(self):
+        return 'User #%d: %s' % (self.id, self.fullname)
  
 class ClassInfo(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
@@ -119,7 +125,7 @@ class ClassInfo(db.Model):
         return '<ClassInfo %r>' % self.id
 
     def __str__(self):
-        return 'ClassInfo %s: %s, startingID=%d, currentID=%d' % (self.classAbbr, self.longName, self.startingID, self.currentID)
+        return 'ClassInfo %s (%s): startingID=%d, currentID=%d' % (self.classAbbr, self.longName, self.startingID, self.currentID)
  
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -143,18 +149,27 @@ class Question(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     # Relationships with other models
     reviewers = db.relationship('User', secondary = users_questions, backref = db.backref('reviewers', lazy = 'dynamic'))
-
+    
     @staticmethod
-    def get(classID):
-        questionsWithClassID = Question.query.filter_by(classID=classID)
-        assert(questionsWithClassID.count()==1), "len(questionsWithClassID (%d)) != 1 (it's %d)" % (classID,questionsWithClassID.count()) 
-        return questionsWithClassID.one()
+    def get(id):
+        questions = None
+        questions = Question.query.filter_by(id=id)
+        if ((questions == None) or (questions.count()==0)):
+            flash("Couldn't find any questions in the database with (raw) ID: %d" % id)
+            return None
+        if (questions.count()>1):
+            flash("Found more than one question (%d) in the database with (raw) ID: %d" % (questions.count(),id))
+        return questions.one()    
 
-    def __repr__(self):
-        return '<Question %r>' % (self.id)
-
-    def __str__(self):
-        return "Question #%d: %s" % (self.id, self.decryptAndShortenQuestion())
+    def getUsingClassID(classID):
+        questions = None
+        questions = Question.query.filter_by(classID=classID)
+        if ((questions == None) or (questions.count()==0)):
+            flash("Couldn't find any questions in the database with (class) ID: %d" % classID)
+            return None
+        if (questions.count()>1):
+            flash("Found more than one question (%d) in the database with (class) ID: %d" % (questions.count(),classID))
+        return questions.one()    
     
     def tagsAsSet(self):
         result=set()
@@ -187,17 +202,21 @@ class Question(db.Model):
         else:
             return "?? NO TAGS ??"
         
-    def number(self,classInfo):
-        return ( self.classID - classInfo.startingID )
+    def offsetNumberFromClass(self, classInfo):
+        assert (type(self.classID)==type(1)), "self.classID (%r) != int??" % self.classID
+        assert (type(classInfo.startingID)==type(1)), "classInfo.startingID (%r) != int??" % classInfo.startingID
+        offsetNumber = ( self.classID - classInfo.startingID )
+        assert (type(offsetNumber)==type(1)), "offsetNumber (%r) != int??" % offsetNumber
+        return offsetNumber
     
-    @staticmethod
-    def idFromNumber(number,classInfo):
-        return ( classInfo.startingID + number )
+    def classIDFromOffsetNumber(self, classInfo):
+        assert (type(self.classID)==type(1)), "self.classID (%s) != int??" % self.classID
+        assert (type(classInfo.startingID)==type(1)), "classInfo.startingID (%s) != int??" % classInfo.startingID
+        classID = ( self.classID + classInfo.startingID )
+        assert (type(classID)==type(1)), "classID (%r) != int??" % classID
+        return classID
     
-    def getAllReviewers(self):
-        return self.reviewers
-
-    def getSimilarQuestions(self):
+    def findSimilarQuestions(self):
         ''' Find questions "similar" to this one. Uses quiz # and tags.
             TODO: Union questions with the same tag(s) - right now it's looking for equal tags. '''
         existing=[]
@@ -290,18 +309,7 @@ class Question(db.Model):
             self.examplesComments = encrypt(self.examplesComments)
             self.hintsComments = encrypt(self.hintsComments)
             self.answerComments = encrypt(self.answerComments)
-               
-#     @staticmethod 
-#     def convertFromHTML(text):
-#         import flask
-#         result = ""
-#         if text:
-#             for line in text.split('<br />'):
-#                 line = flask.Markup(line)
-#                 result += line.unescape() + '\n'
-#             result = result[:-1]
-#         return result
-    
+                  
     @staticmethod
     def generateQuiz(classInfo, quizNumber, cachedQuestions):
         ''' Generate quiz # for a class, using previously cached questions (caller is responsible for these). 
@@ -330,7 +338,7 @@ class Question(db.Model):
         return examQuestions, Question.IDFromQuestions(classInfo, examQuestions)
     
     @staticmethod
-    def IDFromQuestions(classInfo, questions):
+    def generateIDFromQuestions(classInfo, questions):
         ''' Generate an ID from quiz question ids.
             1024 questions per quiz possible '''
         validIDSymbols="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -338,14 +346,14 @@ class Question(db.Model):
         idSymbols = classInfo.classAbbr
         for question in questions:
             idSymbols += '.'
-            qid = question.number(classInfo)
+            qid = question.offsetNumberFromClass(classInfo)
             if (qid > numIDSymbols):
                 idSymbols += validIDSymbols[id/numIDSymbols]
             idSymbols += validIDSymbols[id%numIDSymbols]
         return idSymbols
 
     @staticmethod
-    def questionsFromID(idSymbols):
+    def getQuestionsFromID(idSymbols):
         ''' Retrieve quiz question from an ID.'''
         validIDSymbols="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len(validIDSymbols)
@@ -364,25 +372,54 @@ class Question(db.Model):
                 else:
                     symbol = questionNumbers[index][0]
                     if symbol in validIDSymbols:
-                        rawClassNumber = validIDSymbols.find(symbol)
+                        questionNumber = validIDSymbols.find(symbol)
                         if (len(questionNumbers[index])>1):
                             symbol = questionNumbers[index][1]
                             if symbol in validIDSymbols:
-                                rawClassNumber = rawClassNumber * numIDSymbols + validIDSymbols.find(symbol)
+                                questionNumber = questionNumber * numIDSymbols + validIDSymbols.find(symbol)
                             else:
                                 flash("ID '%s' is invalid in code: %s"%(questionNumbers[index],idSymbols), category="warning")
                                 continue
                     else:
                         flash("ID '%s' is invalid in code: %s"%(questionNumbers[index],idSymbols), category="warning")
                         continue
-                    questionID = Question.idFromNumber(rawClassNumber, classInfo)
+                    questionClassID = Question.classIDFromOffsetNumber(questionNumber, classInfo)
                     try:
-                        question = Question.get(questionID)
+                        question = Question.getUsingClassID(questionClassID)
                         questions.append(Question.detachAndDecryptQuestionText(question,questionOnly=True))
                     except Exception as ex:
                         flash ("ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % (questionNumbers[index], questionID, questionNumbers[index], idSymbols), category="warning")
                         continue
         return questions
+
+    def __repr__(self):
+        return '<Question %r>' % (self.id)
+
+    def __str__(self):
+        return "Question #%d (classID: %d): %s" % (self.id, self.classID, self.decryptAndShortenQuestion())
+    
+class Image(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    data = db.Column(db.LargeBinary(4096), unique=True)
+    
+    @staticmethod
+    def getByName(filename):
+        images = None
+        images = Question.query.filter_by(name=filename)
+        if ((images == None) or (images.count()==0)):
+            flash("Couldn't find any images in the database with filename: %s" % filename)
+            return None
+        if (images.count()>1):
+            flash("Found more than one image (%d) in the database with filename: %s" % filename)
+        return images.one()    
+  
+    def __repr__(self):
+        return '<Image %r>' % (self.id)
+
+    def __str__(self):
+        return "Image #%d (size=%d): %s" % (self.id, len(self.data), self.name)
+    
 
 def convertToHTML(text):
     import flask

@@ -24,14 +24,14 @@
                         Tags: 
                     </label>
                     {{questionToDisplay.tags}} 
-                    {{form.tagsComments(rows=1,cols=100)}}
+                    {{form.tagsComments(rows=1,cols=100,placeholder="Comments on Tags")}}
                 </div>
                 <div class="control-group">
                     <label class="control-label" for="instructions">
                         Instructions: 
                     </label>
                     {{questionToDisplay.instructions}} 
-                    {{form.instructionsComments(rows=2,cols=100)}}
+                    {{form.instructionsComments(rows=2,cols=100,placeholder="Comments on Instructions")}}
                     <br />
                 </div>
                 <div class="control-group">
@@ -39,7 +39,7 @@
                         Question: 
                     </label>
                     {{questionToDisplay.question}} 
-                    {{form.questionComments(rows=2,cols=100)}}
+                    {{form.questionComments(rows=2,cols=100,placeholder="Comments on Questions")}}
                     <br />
                 </div>
                 <div class="control-group">
@@ -47,7 +47,7 @@
                         Examples: 
                     </label>
                     {{questionToDisplay.examples}} 
-                    {{form.examplesComments(rows=2,cols=100)}}
+                    {{form.examplesComments(rows=2,cols=100,placeholder="Comments on Examples")}}
                     <br />
                 </div>
                 <div class="control-group">
@@ -55,7 +55,7 @@
                         Hints/Cautions/etc.: 
                     </label>
                     {{questionToDisplay.hints}} 
-                    {{form.hintsComments(rows=2,cols=100)}}
+                    {{form.hintsComments(rows=2,cols=100,placeholder="Comments on Hints/Cautions/etc.")}}
                     <br />
                 </div>
                 <div class="control-group">
@@ -63,7 +63,7 @@
                         Answer: 
                     </label>
                     {{questionToDisplay.answer}} 
-                    {{form.answerComments(rows=2,cols=100)}}
+                    {{form.answerComments(rows=2,cols=100,placeholder="Comments on Answers")}}
                     <br />
                 </div>
                 <div class="control-group">

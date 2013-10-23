@@ -31,7 +31,7 @@
 		{% for question in questions %} 
 		<tr data-question=question.classID>
 			<td>
-				{{question.id}}
+				<a href={{url_for('editQuestion',questionID=question.id)}}>{{question.id}}</a>
 			</td>
 			<td>
 				{{question.classID}}

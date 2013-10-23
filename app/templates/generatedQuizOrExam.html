@@ -39,9 +39,9 @@
 	</h3>
 	<h3 class="upcenter strong">
 	{% if quizNumberToDisplay %} 
-		Quiz #{{quizNumberToDisplay}}<br />{{session['classAbbr']}} ({{session['classInfo'].longName}}) 
+		Quiz #{{quizNumberToDisplay}}<br />{{session['classAbbr']}} ({{classInfo.longName}}) 
 	{% else %}
-	    {{session['classAbbr']}} ({{session['classInfo'].longName}}) Final Exam 
+	    {{session['classAbbr']}} ({{classInfo.longName}}) Final Exam 
 	{% endif %}
 	{% for question in generatedQuestionsToDisplay %} 
 	</h3>
@@ -87,7 +87,7 @@
 	<div class="page-break">
 		<center>
 			<h3 class="strong">
-                {{session['classAbbr']}} ({{session['classInfo'].longName}})
+                {{session['classAbbr']}} ({{classInfo.longName}})
 				{% if quizNumberToDisplay %}
 				Quiz #{{quizNumberToDisplay}}
 				{% else %} Final Exam
