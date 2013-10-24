@@ -135,17 +135,29 @@ class Question(db.Model):
     classAbbr = db.Column(db.String(4))
     quiz = db.Column(db.Integer)
     tags = db.Column(db.String(256))
+    tagsIV=db.Column(db.String(16))
     tagsComments = db.Column(db.Text)
+    tagsCommentsIV=db.Column(db.String(16))
     instructions = db.Column(db.Text)
+    instructionsIV=db.Column(db.String(16))
     instructionsComments = db.Column(db.Text)
+    instructionsCommentsIV=db.Column(db.String(16))
     question = db.Column(db.Text)
+    questionIV=db.Column(db.String(16))
     questionComments = db.Column(db.Text)
+    questionCommentsIV=db.Column(db.String(16))
     examples = db.Column(db.Text)
+    examplesIV=db.Column(db.String(16))
     examplesComments = db.Column(db.Text)
+    examplesCommentsIV=db.Column(db.String(16))
     hints = db.Column(db.Text)
+    hintsIV=db.Column(db.String(16))
     hintsComments = db.Column(db.Text)
+    hintsCommentsIV=db.Column(db.String(16))
     answer = db.Column(db.Text)
+    answerIV=db.Column(db.String(16))
     answerComments = db.Column(db.Text)
+    answerCommentsIV=db.Column(db.String(16))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     # Relationships with other models
     reviewers = db.relationship('User', secondary = users_questions, backref = db.backref('reviewers', lazy = 'dynamic'))
@@ -182,7 +194,8 @@ class Question(db.Model):
         ''' Returned a short..ed version of the (unencrypted) question text with HTML markup '''
         encryptedQuestion = self.question
         if encryptedQuestion:
-            question = decrypt(encryptedQuestion).strip()
+            encryptedQuesionIV = self.questionIV 
+            question = decrypt(encryptedQuestion,encryptedQuesionIV).strip()
             if (len(question)<80):
                 return convertToHTML(question)
             else:
@@ -194,7 +207,8 @@ class Question(db.Model):
         ''' Returned a short..ed version of the (unencrypted) tags '''
         encryptedTags = self.tags
         if encryptedTags:
-            tags = decrypt(encryptedTags).strip()
+            encryptedTagsIV = self.tagsIV 
+            tags = decrypt(encryptedTags,encryptedTagsIV).strip()
             if (len(tags)<80):
                 return tags
             else:
@@ -231,30 +245,30 @@ class Question(db.Model):
     def decryptQuestionText(self, questionOnly = False, commentsOnly = False):
         if ((commentsOnly == None) or (commentsOnly == False)):
             if self.tags:
-                self.tags = decrypt(self.tags)
+                self.tags = decrypt(self.tags,self.tagsIV)
             if self.instructions:
-                self.instructions = decrypt(self.instructions)
+                self.instructions = decrypt(self.instructions,self.instructionsIV)
             if self.question:
-                self.question = decrypt(self.question)
+                self.question = decrypt(self.question,self.questionIV)
             if self.examples:
-                self.examples = decrypt(self.examples)
+                self.examples = decrypt(self.examples,self.examplesIV)
             if self.hints:
-                self.hints = decrypt(self.hints)
+                self.hints = decrypt(self.hints,self.hintsIV)
             if self.answer:
-                self.answer = decrypt(self.answer)
+                self.answer = decrypt(self.answer,self.answerIV)
         if ((questionOnly == None) or (questionOnly == False)):
             if self.tagsComments:
-                self.tagsComments = decrypt(self.tagsComments)
+                self.tagsComments = decrypt(self.tagsComments,self.tagsCommentsIV)
             if self.instructionsComments:
-                self.instructionsComments = decrypt(self.instructionsComments)
+                self.instructionsComments = decrypt(self.instructionsComments,self.instructionsCommentsIV)
             if self.questionComments:
-                self.questionComments = decrypt(self.questionComments)
+                self.questionComments = decrypt(self.questionComments,self.questionCommentsIV)
             if self.examplesComments:
-                self.examplesComments = decrypt(self.examplesComments)
+                self.examplesComments = decrypt(self.examplesComments,self.examplesIV)
             if self.hintsComments:
-                self.hintsComments = decrypt(self.hintsComments)
+                self.hintsComments = decrypt(self.hintsComments,self.hintsCommentsIV)
             if self.answerComments:
-                self.answerComments = decrypt(self.answerComments)
+                self.answerComments = decrypt(self.answerComments,self.answerCommentsIV)
                 
     @staticmethod
     def detachAndDecryptQuestionText(question, questionOnly = False, commentsOnly = False):
@@ -296,19 +310,19 @@ class Question(db.Model):
     def encryptQuestionText(self, questionOnly = False, commentsOnly = False):
         ''' Encrypt all of the question text, including tags and comments. '''
         if ((commentsOnly == None) or (commentsOnly == False)):
-            self.tags = encrypt(self.tags)
-            self.instructions = encrypt(self.instructions)
-            self.question = encrypt(self.question)
-            self.examples = encrypt(self.examples)
-            self.hints = encrypt(self.hints)
-            self.answer = encrypt(self.answer)
+            self.tags, self.tagsIV = encrypt(self.tags)
+            self.instructions, self.instructionsIV = encrypt(self.instructions)
+            self.question, self.questionIV = encrypt(self.question)
+            self.examples, self.examplesIV = encrypt(self.examples)
+            self.hints, self.hintsIV = encrypt(self.hints)
+            self.answer, self.answerIV = encrypt(self.answer)
         if ((questionOnly == None) or (questionOnly == False)):
-            self.tagsComments = encrypt(self.tagsComments)
-            self.instructionsComments = encrypt(self.instructionsComments)
-            self.questionComments = encrypt(self.questionComments)
-            self.examplesComments = encrypt(self.examplesComments)
-            self.hintsComments = encrypt(self.hintsComments)
-            self.answerComments = encrypt(self.answerComments)
+            self.tagsComments, self.tagsCommentsIV = encrypt(self.tagsComments)
+            self.instructionsComments, self.instructionsCommentsIV = encrypt(self.instructionsComments)
+            self.questionComments,self.questionCommentsIV = encrypt(self.questionComments)
+            self.examplesComments,self.examplesCommentsIV = encrypt(self.examplesComments)
+            self.hintsComments,self.hintsCommentsIV = encrypt(self.hintsComments)
+            self.answerComments,self.answerCommentsIV = encrypt(self.answerComments)
                   
     @staticmethod
     def generateQuiz(classInfo, quizNumber, cachedQuestions):
@@ -432,17 +446,25 @@ def convertToHTML(text):
 
 import config
 from Crypto.Cipher import AES
+from Crypto import Random
+
+import doctest
 
 def encrypt(message):
-    OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, config.IV)
+    ''' Encrypt a 16-byte, length-prefixed, padded message using AES.
+        Returned message is base64 encoded. ''' 
+    iv = Random.new().read(AES.block_size)
+    OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
     numToPad = 16 - ( len(message) + 4 ) % 16
     paddedMessage = "%04d%s%s" % (len(message),message,config.PADDING[:numToPad])
     encryptedMessage = OBJ.encrypt(paddedMessage)
-    b64Message = base64.b64encode(encryptedMessage)
-    return(b64Message)
+    return(base64.b64encode(encryptedMessage),base64.b64encode(iv))
 
-def decrypt(b64Message):
-    OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, config.IV)
+def decrypt(b64Message, IV):
+    ''' Decode a base64 message using AES. Returned is original message minus the padding,
+        which is checked for integrity (the length is also a prefix integrity checker)  '''
+    iv = base64.b64decode(IV)
+    OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
     message = base64.b64decode(b64Message)
     paddedMessage = OBJ.decrypt(message)
     messageLen = int(paddedMessage[:4])

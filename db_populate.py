@@ -97,14 +97,16 @@ db.session.add(image)
 # 9C : C #
 ##########
 
-encryptedTags = encrypt("Data Structures,Pointers")
-encryptedInstructions = encrypt("class ListNode {\npublic:\n    ListNode (const int k);\n    ListNode (const int k, const ListNode* ptr);\n    ...\nprivate:\n    int value;\n    ListNode *next;\n};\n\nSuppose that p, list1, and list2 are variables of type ListNode *, and that list1 and list2 point to the following structures.\n\t((list1 diagram))\n\t((list2 diagram))")
-encryptedQuestion = encrypt("Draw the diagram that results from executing the following code segment.\n\tp = list1->next;\n\tlist1->next->next = list2;\n\tp->next->next = list1;\n\tlist2->next->value = 5;")
-encryptedExample = encrypt("[[9c.3.1.gif]]")
-encryptedAnswer = encrypt("[[9c.3.1.answer.gif]]")
+encryptedTags, encryptedTagsIV = encrypt(u"Data Structures,Pointers")
+encryptedInstructions, encryptedInstructionsIV = encrypt(u"class ListNode {\npublic:\n    ListNode (const int k);\n    ListNode (const int k, const ListNode* ptr);\n    ...\nprivate:\n    int value;\n    ListNode *next;\n};\n\nSuppose that p, list1, and list2 are variables of type ListNode *, and that list1 and list2 point to the following structures.\n\t((list1 diagram))\n\t((list2 diagram))")
+encryptedQuestion, encryptedQuestionIV = encrypt(u"Draw the diagram that results from executing the following code segment.\n\tp = list1->next;\n\tlist1->next->next = list2;\n\tp->next->next = list1;\n\tlist2->next->value = 5;")
+encryptedExample, encryptedExampleIV = encrypt(u"[[9c.3.1.gif]]")
+encryptedAnswer, encryptedAnswerIV = encrypt(u"[[9c.3.1.answer.gif]]")
 
-question = Question(classID = classInfo9C.startingID, created = datetime.datetime.now(), classAbbr = classInfo9C.classAbbr, quiz = 3, tags=encryptedTags,  \
-    instructions=encryptedInstructions, question = encryptedQuestion, answer = encryptedAnswer, user_id = 1 )
+question = Question(classID = classInfo9C.startingID, created = datetime.datetime.now(), classAbbr = classInfo9C.classAbbr, quiz = 3,   \
+    tags=encryptedTags, instructions=encryptedInstructions, question = encryptedQuestion, answer = encryptedAnswer,                     \
+    tagsIV=encryptedTagsIV, instructionsIV=encryptedInstructionsIV, questionIV=encryptedQuestionIV, answerIV = encryptedAnswerIV,       \
+    user_id = 1  )
 
 db.session.add(question)
 
@@ -112,13 +114,15 @@ db.session.add(question)
 # 9F : C++ #
 ############
 
-encryptedTags = encrypt("Operators,Expressions")
-encryptedInstructions = encrypt("Circle the correct expression. Assume default meanings for each operator.")
-encryptedQuestion = encrypt("cin >> x or cin << x\ncout << \"value for n?\" or cout << \'value for n?\'")
-encryptedAnswer = encrypt("cin >> x\ncout << \"value for n?\"")
+encryptedTags, encryptedTagsIV = encrypt("uOperators,Expressions")
+encryptedInstructions, encryptedInstructionsIV = encrypt(u"Circle the correct expression. Assume default meanings for each operator.")
+encryptedQuestion, encryptedQuestionIV = encrypt(u"cin >> x or cin << x\ncout << \"value for n?\" or cout << \'value for n?\'")
+encryptedAnswer, encryptedAnswerIV = encrypt(u"cin >> x\ncout << \"value for n?\"")
 
-question = Question(classID = classInfo9F.startingID, created = datetime.datetime.now(), classAbbr = classInfo9F.classAbbr, quiz = 1, tags=encryptedTags,  \
-    instructions=encryptedInstructions, question = encryptedQuestion, answer = encryptedAnswer, user_id = 1 )
+question = Question(classID = classInfo9F.startingID, created = datetime.datetime.now(), classAbbr = classInfo9F.classAbbr, quiz = 1,   \
+    tags=encryptedTags, instructions=encryptedInstructions, question = encryptedQuestion, answer = encryptedAnswer,                     \
+    tagsIV=encryptedTagsIV, instructionsIV=encryptedInstructionsIV, questionIV=encryptedQuestionIV, answerIV = encryptedAnswerIV,       \
+    user_id = 1 )
 
 db.session.add(question)
 
