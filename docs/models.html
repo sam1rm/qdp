@@ -373,6 +373,7 @@
             <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Found more than one question (</span><span class="si">%d</span><span class="s">) in the database with (raw) ID: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span><span class="nb">id</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">questions</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>    
 
+    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">getUsingClassID</span><span class="p">(</span><span class="n">classID</span><span class="p">):</span>
         <span class="n">questions</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">questions</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">classID</span><span class="o">=</span><span class="n">classID</span><span class="p">)</span>
@@ -422,13 +423,6 @@
         <span class="n">offsetNumber</span> <span class="o">=</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span> <span class="o">-</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="p">)</span>
         <span class="k">assert</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">offsetNumber</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="s">&quot;offsetNumber (</span><span class="si">%r</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="n">offsetNumber</span>
         <span class="k">return</span> <span class="n">offsetNumber</span>
-    
-    <span class="k">def</span> <span class="nf">classIDFromOffsetNumber</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classInfo</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classID</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="s">&quot;self.classID (</span><span class="si">%s</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="s">&quot;classInfo.startingID (</span><span class="si">%s</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span>
-        <span class="n">classID</span> <span class="o">=</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span> <span class="o">+</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="p">)</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">classID</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="s">&quot;classID (</span><span class="si">%r</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="n">classID</span>
-        <span class="k">return</span> <span class="n">classID</span>
     
     <span class="k">def</span> <span class="nf">findSimilarQuestions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Find questions &quot;similar&quot; to this one. Uses quiz # and tags.</span>
@@ -546,7 +540,7 @@
                 <span class="n">quizQuestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">markedUpQuestion</span><span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">quizQuestions</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">5</span><span class="p">):</span>
                     <span class="k">break</span>
-        <span class="k">return</span> <span class="n">quizQuestions</span><span class="p">,</span> <span class="n">Question</span><span class="o">.</span><span class="n">IDFromQuestions</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="n">quizQuestions</span><span class="p">)</span></pre></div>
+        <span class="k">return</span> <span class="n">quizQuestions</span><span class="p">,</span> <span class="n">Question</span><span class="o">.</span><span class="n">generateIDFromQuestions</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="n">quizQuestions</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -579,7 +573,7 @@
             <span class="n">examQuestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">markedUpQuestion</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">examQuestions</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">5</span><span class="p">):</span>
                 <span class="k">break</span>
-        <span class="k">return</span> <span class="n">examQuestions</span><span class="p">,</span> <span class="n">Question</span><span class="o">.</span><span class="n">IDFromQuestions</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="n">examQuestions</span><span class="p">)</span></pre></div>
+        <span class="k">return</span> <span class="n">examQuestions</span><span class="p">,</span> <span class="n">Question</span><span class="o">.</span><span class="n">generateIDFromQuestions</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="n">examQuestions</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -594,21 +588,23 @@
       <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">generateIDFromQuestions</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="n">questions</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Generate an ID from quiz question ids.</span>
-<span class="sd">            1024 questions per quiz possible &#39;&#39;&#39;</span>
+<span class="sd">            1024 questions per quiz possible. Question IDs in the database</span>
+<span class="sd">            are offsets from the ClassInfo starting IDs. &#39;&#39;&#39;</span>
         <span class="n">validIDSymbols</span><span class="o">=</span><span class="s">&quot;ABCDEFGHJKLMNPQRSTUVWXYZ23456789&quot;</span>
         <span class="n">numIDSymbols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">validIDSymbols</span><span class="p">)</span>
         <span class="n">idSymbols</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">classAbbr</span>
         <span class="k">for</span> <span class="n">question</span> <span class="ow">in</span> <span class="n">questions</span><span class="p">:</span>
             <span class="n">idSymbols</span> <span class="o">+=</span> <span class="s">&#39;.&#39;</span>
-            <span class="n">qid</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span><span class="n">classInfo</span><span class="p">)</span>
+            <span class="n">qid</span> <span class="o">=</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">classID</span> <span class="o">-</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">qid</span> <span class="o">&gt;</span> <span class="n">numIDSymbols</span><span class="p">):</span>
                 <span class="n">idSymbols</span> <span class="o">+=</span> <span class="n">validIDSymbols</span><span class="p">[</span><span class="nb">id</span><span class="o">/</span><span class="n">numIDSymbols</span><span class="p">]</span>
-            <span class="n">idSymbols</span> <span class="o">+=</span> <span class="n">validIDSymbols</span><span class="p">[</span><span class="nb">id</span><span class="o">%</span><span class="n">numIDSymbols</span><span class="p">]</span>
+            <span class="n">idSymbols</span> <span class="o">+=</span> <span class="n">validIDSymbols</span><span class="p">[</span><span class="n">qid</span><span class="o">%</span><span class="n">numIDSymbols</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">idSymbols</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">getQuestionsFromID</span><span class="p">(</span><span class="n">idSymbols</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Retrieve quiz question from an ID.&#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">getQuestionsFromID</span><span class="p">(</span><span class="n">idSymbols</span><span class="p">,</span> <span class="n">addMarkupToQuestionTextToo</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Retrieve quiz question from an ID. Question IDs in the database</span>
+<span class="sd">            are offsets from the ClassInfo starting IDs. &#39;&#39;&#39;</span>
         <span class="n">validIDSymbols</span><span class="o">=</span><span class="s">&quot;ABCDEFGHJKLMNPQRSTUVWXYZ23456789&quot;</span>
         <span class="n">numIDSymbols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">validIDSymbols</span><span class="p">)</span>
         <span class="n">questions</span> <span class="o">=</span> <span class="p">[]</span>
@@ -637,12 +633,15 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">flash</span><span class="p">(</span><span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; is invalid in code: </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span><span class="n">idSymbols</span><span class="p">),</span> <span class="n">category</span><span class="o">=</span><span class="s">&quot;warning&quot;</span><span class="p">)</span>
                         <span class="k">continue</span>
-                    <span class="n">questionClassID</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">classIDFromOffsetNumber</span><span class="p">(</span><span class="n">questionNumber</span><span class="p">,</span> <span class="n">classInfo</span><span class="p">)</span>
+                    <span class="n">questionClassID</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="o">+</span> <span class="n">questionNumber</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">getUsingClassID</span><span class="p">(</span><span class="n">questionClassID</span><span class="p">)</span>
-                        <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">detachAndDecryptQuestionText</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+                        <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">detachAndDecryptQuestionText</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">addMarkupToQuestionTextToo</span><span class="p">:</span>
+                            <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">addMarkupToQuestionText</span><span class="p">(</span><span class="n">decryptedQuestion</span><span class="p">,</span> <span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decryptedQuestion</span><span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                        <span class="n">flash</span> <span class="p">(</span><span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; isn&#39;t a valid question [class] id (</span><span class="si">%d</span><span class="s">) for class: </span><span class="si">%s</span><span class="s"> in code: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">questionID</span><span class="p">,</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">idSymbols</span><span class="p">),</span> <span class="n">category</span><span class="o">=</span><span class="s">&quot;warning&quot;</span><span class="p">)</span>
+                        <span class="n">flash</span> <span class="p">(</span><span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; isn&#39;t a valid question [class] id (</span><span class="si">%d</span><span class="s">) for class: </span><span class="si">%s</span><span class="s"> in code: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">questionClassID</span><span class="p">,</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">idSymbols</span><span class="p">),</span> <span class="n">category</span><span class="o">=</span><span class="s">&quot;warning&quot;</span><span class="p">)</span>
                         <span class="k">continue</span>
         <span class="k">return</span> <span class="n">questions</span>
 

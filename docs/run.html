@@ -20,7 +20,8 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">doctest</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span>
 
@@ -32,6 +33,7 @@
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">debugFlag</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;-debug&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">debugFlag</span> <span class="ow">or</span> <span class="n">DEBUG</span><span class="p">):</span>
+        <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
         <span class="n">toolbar</span> <span class="o">=</span> <span class="n">DebugToolbarExtension</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
     <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="p">(</span><span class="n">debugFlag</span> <span class="ow">or</span> <span class="n">DEBUG</span><span class="p">),</span><span class="n">use_debugger</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">use_reloader</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># host=&#39;0.0.0.0&#39;</span>
 

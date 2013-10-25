@@ -63,11 +63,21 @@
 <span class="sd">        are any), and provide additional administration. &#39;&#39;&#39;</span>
     <span class="n">user</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span>
     <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">():</span>
+        <span class="kn">import</span> <span class="nn">os</span>
+        <span class="n">fref</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">,</span><span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">fref</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;foo!bar!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">flash</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+        <span class="n">fref</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;test.txt&quot;</span><span class="p">,</span><span class="s">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">fref</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">flash</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">imageFileURL</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;img/possibly47abc.png&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;index.html&#39;</span><span class="p">,</span>
             <span class="n">user</span> <span class="o">=</span> <span class="n">user</span><span class="p">,</span>
             <span class="n">isAdmin</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">(),</span>
             <span class="n">hasUnverifiedUsers</span> <span class="o">=</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">()</span> <span class="ow">and</span> <span class="n">User</span><span class="o">.</span><span class="n">hasUnverifiedUsers</span><span class="p">()),</span>    <span class="c"># redundant on purpose</span>
-            <span class="n">helpfileurl</span><span class="o">=</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;helpMain&#39;</span><span class="p">))</span>
+            <span class="n">help</span> <span class="o">=</span> <span class="s">&#39;helpMain&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;unverifiedUser&#39;</span><span class="p">))</span>
         
@@ -253,6 +263,7 @@
                     <span class="n">question</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
                     <span class="n">question</span><span class="o">.</span><span class="n">encryptQuestionText</span><span class="p">(</span><span class="n">questionOnly</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
                     <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
                     <span class="n">flash</span><span class="p">(</span><span class="s">&#39;Question #</span><span class="si">%d</span><span class="s"> saved.&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span><span class="n">classInfo</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span>
                     <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Edit&#39;</span>
                     <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&quot;editQuestion&quot;</span><span class="p">,</span><span class="n">questionID</span><span class="o">=</span><span class="n">question</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
@@ -396,7 +407,7 @@
             <span class="k">assert</span> <span class="n">quizNumber</span><span class="p">,</span> <span class="s">&quot;Generate quiz without a quiz number??&quot;</span>
             <span class="n">generatedQuiz</span><span class="p">,</span> <span class="n">generatedID</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">generateQuiz</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">quizNumber</span><span class="p">),</span> <span class="n">g_CachedQuestions</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generatedQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">quizNumberToDisplay</span> <span class="o">=</span> <span class="n">quizNumber</span><span class="p">,</span> <span class="n">generatedIDToDisplay</span> <span class="o">=</span> <span class="n">generatedID</span><span class="p">,</span> \
-                               <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">generatedQuiz</span><span class="p">)</span>
+                               <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">generatedQuiz</span><span class="p">,</span> <span class="n">classInfoToDisplay</span> <span class="o">=</span> <span class="n">classInfo</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please select a quiz first.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseQuiz&#39;</span><span class="p">))</span>
@@ -409,10 +420,11 @@
 <span class="nd">@admin_permission.require</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">generateExam</span><span class="p">():</span>
     <span class="k">if</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]:</span>
-        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">g_CachedQuestions</span><span class="p">:</span>
+            <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
             <span class="n">generatedExam</span><span class="p">,</span> <span class="n">generatedID</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">generateFinalExam</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="n">g_CachedQuestions</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generatedQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">generatedIDToDisplay</span> <span class="o">=</span> <span class="n">generatedID</span><span class="p">,</span> <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">generatedExam</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generatedQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">generatedIDToDisplay</span> <span class="o">=</span> <span class="n">generatedID</span><span class="p">,</span> \
+                                   <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">generatedExam</span><span class="p">,</span> <span class="n">classInfoToDisplay</span> <span class="o">=</span> <span class="n">classInfo</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please select a quiz first.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseQuiz&#39;</span><span class="p">))</span>
@@ -426,13 +438,16 @@
 <span class="k">def</span> <span class="nf">retrieveQuizOrExam</span><span class="p">():</span>
     <span class="kn">from</span> <span class="nn">flask.helpers</span> <span class="kn">import</span> <span class="n">get_flashed_messages</span>
     <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
         <span class="n">code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;code&#39;</span><span class="p">]</span>
-        <span class="n">questions</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">questionsFromID</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+        <span class="n">questions</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">getQuestionsFromID</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">addMarkupToQuestionTextToo</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">messages</span> <span class="o">=</span> <span class="n">get_flashed_messages</span><span class="p">()</span>
         <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">questions</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
                 <span class="n">flash</span> <span class="p">(</span><span class="s">&quot;No valid questions found for code: </span><span class="si">%s</span><span class="s">??&quot;</span><span class="o">%</span><span class="n">code</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generatedQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">generatedIDToDisplay</span> <span class="o">=</span> <span class="n">code</span><span class="p">,</span> <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">questions</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;retrieveQuizOrExam&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generatedQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">generatedIDToDisplay</span> <span class="o">=</span> <span class="n">code</span><span class="p">,</span> \
+           <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">questions</span><span class="p">,</span> <span class="n">classInfoToDisplay</span> <span class="o">=</span> <span class="n">classInfo</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;retrieveQuizOrExam.html&#39;</span><span class="p">)</span></pre></div>
     </div>
   </div>

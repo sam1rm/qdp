@@ -44,8 +44,9 @@
 <body>
 <div class="page">
 	<h1 class="upleft1">
-		QDP 
+		QDP <br />
 	</h1>
+	<span class="lowleft text-muted">Build: {{config['VERSION_NUMBER']}}</span>
 	<h2 class="upcenter">
 		{{ title }} 
 	</h2>
@@ -67,7 +68,7 @@
         </ul>
       {% endif %}
     {% endwith %}
-	{% if helpfileurl %} <a href="{{ helpfileurl }}" class="lowright"> <img src="{{ url_for('static', filename='img/126194-simple-black-square-icon-alphanumeric-icon_091.png') }}"> </a> {% endif %} {% block content %}{% endblock %} 
+	{% if help %} <a href="{{ url_for(help) }}" class="lowright"> <img src="{{ url_for('static', filename='img/126194-simple-black-square-icon-alphanumeric-icon_091.png') }}"> </a> {% endif %} {% block content %}{% endblock %} 
 </div>
 </body>
 </html>

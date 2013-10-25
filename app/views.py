@@ -22,11 +22,21 @@ def index():
         are any), and provide additional administration. '''
     user = g.user
     if user.is_verified():
+        import os
+        fref=open("test.txt","w")
+        fref.write("foo!bar!\n")
+        fref.close()
+        flash(os.getcwd())
+        fref=open("test.txt","r")
+        data=fref.read()
+        fref.close()
+        flash(data)
+        imageFileURL = url_for('static', filename='img/possibly47abc.png')
         return render_template('index.html',
             user = user,
             isAdmin = user.is_admin(),
             hasUnverifiedUsers = (user.is_admin() and User.hasUnverifiedUsers()),    # redundant on purpose
-            helpfileurl=url_for('helpMain'))
+            help = 'helpMain')
     else:
         return redirect(url_for('unverifiedUser'))
         
@@ -162,6 +172,7 @@ def editQuestion():
                     question.modified = datetime.datetime.now()
                     question.encryptQuestionText(questionOnly = True)
                     db.session.merge(question)
+                    db.session.commit()
                     flash('Question #%d saved.' % ( question.offsetNumberFromClass(classInfo) + 1 ) )
                     session['mode'] = 'Edit'
                     return redirect(url_for("editQuestion",questionID=question.id))
@@ -255,7 +266,7 @@ def generateQuiz():
             assert quizNumber, "Generate quiz without a quiz number??"
             generatedQuiz, generatedID = Question.generateQuiz(classInfo, int(quizNumber), g_CachedQuestions)
             return render_template('generatedQuizOrExam.html', quizNumberToDisplay = quizNumber, generatedIDToDisplay = generatedID, \
-                               generatedQuestionsToDisplay = generatedQuiz)
+                               generatedQuestionsToDisplay = generatedQuiz, classInfoToDisplay = classInfo)
         else:
             flash("Please select a quiz first.")
             return redirect(url_for('chooseQuiz'))
@@ -268,10 +279,11 @@ def generateQuiz():
 @admin_permission.require()
 def generateExam():
     if session['classAbbr']:
-        classInfo = ClassInfo.get(session['classAbbr'])
         if g_CachedQuestions:
+            classInfo = ClassInfo.get(session['classAbbr'])
             generatedExam, generatedID = Question.generateFinalExam(classInfo, g_CachedQuestions)
-            return render_template('generatedQuizOrExam.html', generatedIDToDisplay = generatedID, generatedQuestionsToDisplay = generatedExam)
+            return render_template('generatedQuizOrExam.html', generatedIDToDisplay = generatedID, \
+                                   generatedQuestionsToDisplay = generatedExam, classInfoToDisplay = classInfo)
         else:
             flash("Please select a quiz first.")
             return redirect(url_for('chooseQuiz'))
@@ -285,13 +297,16 @@ def generateExam():
 def retrieveQuizOrExam():
     from flask.helpers import get_flashed_messages
     if request.method == 'POST':
+        classInfo = ClassInfo.get(session['classAbbr'])
         code = request.form['code']
-        questions = Question.questionsFromID(code)
+        questions = Question.getQuestionsFromID(code, addMarkupToQuestionTextToo=True)
         messages = get_flashed_messages()
         if (len(messages)==0):
             if (len(questions)==0):
                 flash ("No valid questions found for code: %s??"%code)
-            return render_template('generatedQuizOrExam.html', generatedIDToDisplay = code, generatedQuestionsToDisplay = questions)
+                return redirect(url_for('retrieveQuizOrExam'))
+        return render_template('generatedQuizOrExam.html', generatedIDToDisplay = code, \
+           generatedQuestionsToDisplay = questions, classInfoToDisplay = classInfo)
     return render_template('retrieveQuizOrExam.html')
 
 #########

@@ -173,6 +173,7 @@ class Question(db.Model):
             flash("Found more than one question (%d) in the database with (raw) ID: %d" % (questions.count(),id))
         return questions.one()    
 
+    @staticmethod
     def getUsingClassID(classID):
         questions = None
         questions = Question.query.filter_by(classID=classID)
@@ -222,13 +223,6 @@ class Question(db.Model):
         offsetNumber = ( self.classID - classInfo.startingID )
         assert (type(offsetNumber)==type(1)), "offsetNumber (%r) != int??" % offsetNumber
         return offsetNumber
-    
-    def classIDFromOffsetNumber(self, classInfo):
-        assert (type(self.classID)==type(1)), "self.classID (%s) != int??" % self.classID
-        assert (type(classInfo.startingID)==type(1)), "classInfo.startingID (%s) != int??" % classInfo.startingID
-        classID = ( self.classID + classInfo.startingID )
-        assert (type(classID)==type(1)), "classID (%r) != int??" % classID
-        return classID
     
     def findSimilarQuestions(self):
         ''' Find questions "similar" to this one. Uses quiz # and tags.
@@ -336,7 +330,7 @@ class Question(db.Model):
                 quizQuestions.append(markedUpQuestion)
                 if (len(quizQuestions)>5):
                     break
-        return quizQuestions, Question.IDFromQuestions(classInfo, quizQuestions)
+        return quizQuestions, Question.generateIDFromQuestions(classInfo, quizQuestions)
     
     @staticmethod
     def generateFinalExam(classInfo, cachedQuestions):
@@ -349,26 +343,28 @@ class Question(db.Model):
             examQuestions.append(markedUpQuestion)
             if (len(examQuestions)>5):
                 break
-        return examQuestions, Question.IDFromQuestions(classInfo, examQuestions)
+        return examQuestions, Question.generateIDFromQuestions(classInfo, examQuestions)
     
     @staticmethod
     def generateIDFromQuestions(classInfo, questions):
         ''' Generate an ID from quiz question ids.
-            1024 questions per quiz possible '''
+            1024 questions per quiz possible. Question IDs in the database
+            are offsets from the ClassInfo starting IDs. '''
         validIDSymbols="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len(validIDSymbols)
         idSymbols = classInfo.classAbbr
         for question in questions:
             idSymbols += '.'
-            qid = question.offsetNumberFromClass(classInfo)
+            qid = ( question.classID - classInfo.startingID )
             if (qid > numIDSymbols):
                 idSymbols += validIDSymbols[id/numIDSymbols]
-            idSymbols += validIDSymbols[id%numIDSymbols]
+            idSymbols += validIDSymbols[qid%numIDSymbols]
         return idSymbols
 
     @staticmethod
-    def getQuestionsFromID(idSymbols):
-        ''' Retrieve quiz question from an ID.'''
+    def getQuestionsFromID(idSymbols, addMarkupToQuestionTextToo):
+        ''' Retrieve quiz question from an ID. Question IDs in the database
+            are offsets from the ClassInfo starting IDs. '''
         validIDSymbols="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len(validIDSymbols)
         questions = []
@@ -397,12 +393,15 @@ class Question(db.Model):
                     else:
                         flash("ID '%s' is invalid in code: %s"%(questionNumbers[index],idSymbols), category="warning")
                         continue
-                    questionClassID = Question.classIDFromOffsetNumber(questionNumber, classInfo)
+                    questionClassID = classInfo.startingID + questionNumber
                     try:
                         question = Question.getUsingClassID(questionClassID)
-                        questions.append(Question.detachAndDecryptQuestionText(question,questionOnly=True))
+                        decryptedQuestion = Question.detachAndDecryptQuestionText(question, questionOnly=True)
+                        if addMarkupToQuestionTextToo:
+                            decryptedQuestion = Question.addMarkupToQuestionText(decryptedQuestion, questionOnly=True)
+                        questions.append(decryptedQuestion)
                     except Exception as ex:
-                        flash ("ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % (questionNumbers[index], questionID, questionNumbers[index], idSymbols), category="warning")
+                        flash ("ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % (questionNumbers[index], questionClassID, questionNumbers[index], idSymbols), category="warning")
                         continue
         return questions
 

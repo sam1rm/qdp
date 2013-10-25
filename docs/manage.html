@@ -2,14 +2,14 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html;charset=utf-8">
-  <title>__init__.py</title>
+  <title>manage.py</title>
   <link rel="stylesheet" href="pycco.css">
 </head>
 <body>
 <div id="background"></div>
 <div id='container'>
   <div class='section'>
-    <div class='docs'><h1>__init__.py</h1></div>
+    <div class='docs'><h1>manage.py</h1></div>
   </div>
   <div class='clearall'>
   <div class='section' id='section-0'>
@@ -20,7 +20,10 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>
+      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">migrate.versioning.shell</span> <span class="kn">import</span> <span class="n">main</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
 
 </pre></div>
     </div>
