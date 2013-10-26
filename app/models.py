@@ -413,6 +413,7 @@ class Question(db.Model):
         return "Question #%d (classID: %d): %s" % (self.id, self.classID, self.decryptAndShortenQuestion())
     
 class Image(db.Model):
+    """ Class to encapsulate the storage and retrieval of images from the database. """ 
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(80), unique=True)
     data = db.Column(db.LargeBinary(4096), unique=True)
@@ -431,7 +432,10 @@ class Image(db.Model):
     @staticmethod
     def getAndCacheByName(filename):
         from utils import readTempFile, writeTempFile
-        data, path = readTempFile(filename)
+        try:
+            data, path = readTempFile(filename)
+        except IOError as ex:
+            data = None
         if (data == None):    
             image = Image.getByName(filename)
             assert image,"Couldn't find image: %s"%filename
