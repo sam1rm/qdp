@@ -22,13 +22,14 @@
     <div class='code'>
       <div class="highlight"><pre><span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">lm</span><span class="p">,</span> <span class="n">login_serializer</span>
 <span class="kn">from</span> <span class="nn">app.forms</span> <span class="kn">import</span> <span class="n">QuestionForm</span><span class="p">,</span> <span class="n">ReviewQuestionForm</span>
-<span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">ClassInfo</span><span class="p">,</span> <span class="n">Question</span>
+<span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">ClassInfo</span><span class="p">,</span> <span class="n">Question</span><span class="p">,</span> <span class="n">Image</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">flash</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">g</span>
 <span class="kn">from</span> <span class="nn">flask.ext.login</span> <span class="kn">import</span> <span class="n">current_user</span><span class="p">,</span> <span class="n">login_required</span>
 <span class="kn">from</span> <span class="nn">flask.ext.principal</span> <span class="kn">import</span> <span class="n">Permission</span><span class="p">,</span> <span class="n">RoleNeed</span><span class="p">,</span> <span class="n">UserNeed</span><span class="p">,</span> <span class="n">identity_loaded</span>
 <span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">SQLAlchemyUserDatastore</span>
 <span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">readTempFile</span><span class="p">,</span> <span class="n">writeTempFile</span>
 
 <span class="n">g_CachedQuestions</span><span class="o">=</span><span class="p">[]</span></pre></div>
     </div>
@@ -52,44 +53,13 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
       </div>
-      
+      <p>Top level site location. Displays additional buttons for admin: Verify users (if there</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
 <span class="nd">@login_required</span>
 <span class="nd">@user_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; Top level site location. Displays additional buttons for admin: Verify users (if there</span>
-<span class="sd">        are any), and provide additional administration. &#39;&#39;&#39;</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span>
-    <span class="k">if</span> <span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">():</span>
-        <span class="kn">import</span> <span class="nn">os</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s">&quot;tmp&quot;</span><span class="p">)</span>
-        <span class="n">flash</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&quot;tmp&quot;</span><span class="p">))</span>
-        <span class="n">fref</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;tmp/test.txt&quot;</span><span class="p">,</span><span class="s">&quot;w&quot;</span><span class="p">)</span>
-        <span class="n">fref</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;foo!bar!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-        <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="n">flash</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
-        <span class="n">fref</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;tmp/test.txt&quot;</span><span class="p">,</span><span class="s">&quot;r&quot;</span><span class="p">)</span>
-        <span class="n">data</span><span class="o">=</span><span class="n">fref</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-        <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="n">flash</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">imageFileURL</span> <span class="o">=</span> <span class="n">url_for</span><span class="p">(</span><span class="s">&#39;static&#39;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">&#39;img/possibly47abc.png&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;index.html&#39;</span><span class="p">,</span>
-            <span class="n">user</span> <span class="o">=</span> <span class="n">user</span><span class="p">,</span>
-            <span class="n">isAdmin</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">(),</span>
-            <span class="n">hasUnverifiedUsers</span> <span class="o">=</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">()</span> <span class="ow">and</span> <span class="n">User</span><span class="o">.</span><span class="n">hasUnverifiedUsers</span><span class="p">()),</span>    <span class="c"># redundant on purpose</span>
-            <span class="n">help</span> <span class="o">=</span> <span class="s">&#39;helpMain&#39;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;unverifiedUser&#39;</span><span class="p">))</span>
-        
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/helpMain&#39;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@user_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">helpMain</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; Help page associated with the main page.</span>
-<span class="sd">        TODO: Make help dynamic (e.g. __page__Help.html)&#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;helpMain.html&#39;</span><span class="p">)</span></pre></div>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -98,63 +68,49 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
-      <h6></h6>
-<p>CHOOSERS #</p>
-<h6></h6>
+      <p>are any), and provide additional administration. """
+ser = g.user
+f user.is_verified():
+   imageFileURL = url_for('static', filename='img/possibly47abc.png')
+   return render_template('index.html',
+       user = user,
+       isAdmin = user.is_admin(),
+       hasUnverifiedUsers = (user.is_admin() and User.hasUnverifiedUsers()),    # redundant on purpose
+       help = 'helpMain',
+       isDebugging = app.config['DEBUG'])
+lse:
+   return redirect(url_for('unverifiedUser'))</p>
+<p>route('/helpMain')
+n_required
+_permission.require()
+elpMain():
+Help page associated with the main page.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-4'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-4'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/chooseClass&#39;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@user_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">chooseClass</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; &quot;Funneling&quot; location to chose a class for a specific mode (write, edit, review) &#39;&#39;&#39;</span>
-    <span class="n">argMode</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;mode&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">argMode</span><span class="p">:</span>
-        <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">argMode</span>
-        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;chooseClass.html&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;: Choose Class&quot;</span> <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please choose a task (e.g., &#39;review&#39;) first.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span>
+      <div class="highlight"><pre>        <span class="n">TODO</span><span class="p">:</span> <span class="n">Make</span> <span class="n">help</span> <span class="n">dynamic</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">__page__Help</span><span class="o">.</span><span class="n">html</span><span class="p">)</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">    return render_template(&#39;helpMain.html&#39;)</span>
+<span class="s">#DIVIDER</span>
 
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/chooseQuestionToEdit&#39;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@user_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">chooseQuestionToEdit</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; Primary point for editing a question which begins with choosing questions that </span>
-<span class="sd">        exist for a previously chosen class.</span>
-<span class="sd">        TODO: Allow admins to edit _all_ questions. &#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]:</span>
-        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
-        <span class="n">questions</span><span class="o">=</span><span class="p">[]</span>
-        <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">classAbbr</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">id</span><span class="p">):</span> 
-            <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">questions</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;chooseQuestion.html&#39;</span><span class="p">,</span> <span class="n">questions</span><span class="o">=</span><span class="n">questions</span><span class="p">,</span> \
-                                   <span class="n">title</span><span class="o">=</span><span class="s">&quot;Choose Question to Edit for &quot;</span><span class="o">+</span><span class="n">classInfo</span><span class="o">.</span><span class="n">classAbbr</span><span class="o">+</span><span class="s">&quot;(&quot;</span><span class="o">+</span><span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span><span class="o">+</span><span class="s">&quot;)&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">, you don&#39;t have any questions to edit for </span><span class="si">%s</span><span class="s">!&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">currentUserFirstName</span><span class="p">(),</span><span class="n">classInfo</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please choose a class first.&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&quot;chooseClass&quot;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span>
-
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/chooseQuiz&#39;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">chooseQuiz</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; Choose from existing unique quiz numbers available</span>
-<span class="sd">        TODO: Super-inefficient, but tries to cache questions for a generated quiz... &#39;&#39;&#39;</span>
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route(&#39;/chooseClass&#39;)</span>
+<span class="s">@login_required</span>
+<span class="s">@user_permission.require()</span>
+<span class="s">def chooseClass():</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    argMode = request.args.get(&#39;mode&#39;)</span>
+<span class="s">    if argMode:</span>
+<span class="s">        session[&#39;mode&#39;]=argMode</span>
+<span class="s">        return render_template(&#39;chooseClass.html&#39;, title=session[&#39;mode&#39;] + &quot;: Choose Class&quot; )</span>
+<span class="s">    else:</span>
+<span class="s">        flash(&quot;Please choose a task (e.g., &#39;review&#39;) first.&quot;)</span>
+<span class="s">        return redirect(url_for(&#39;/&#39;))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route(&#39;/chooseQuestionToEdit&#39;)</span>
+<span class="s">@login_required</span>
+<span class="s">@user_permission.require()</span>
+<span class="s">def chooseQuestionToEdit():</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        TODO: Super-inefficient, but tries to cache questions for a generated quiz... &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">],</span><span class="s">&quot;Couldn&#39;t find previous classAbbr (ClassInfo)&quot;</span>
     <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
     <span class="k">global</span> <span class="n">g_CachedQuestions</span>
@@ -166,17 +122,32 @@
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <h6></h6>
+<p>CHOOSERS #</p>
+<h6></h6>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-5'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
-      <h6></h6>
-<p>CHOSE-ERS # &lt;-- Steps following choosers (above)</p>
-<h6></h6>
+      <p>"Funneling" location to chose a class for a specific mode (write, edit, review)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/choseClass&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="nd">@user_permission.require</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">choseClass</span><span class="p">():</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -188,12 +159,7 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/choseClass&#39;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@user_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">choseClass</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; Once a class is chosen (above), redirect to the mode&#39;s page (etc. &#39;write&#39;-&gt;editQuestion()) &#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="s">&#39;mode&#39;</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="s">&#39;mode&#39;</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
         <span class="n">argForClass</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;classAbbr&#39;</span><span class="p">)</span>
         <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">argForClass</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;Write&quot;</span><span class="p">):</span>
@@ -208,9 +174,19 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Unknown mode choice: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please choose a task (e.g., &#39;review&#39;) first.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span>
-    
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/writeQuestion&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>Primary point for editing a question which begins with choosing questions that</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/writeQuestion&#39;</span><span class="p">)</span>
 <span class="nd">@login_required</span>
 <span class="nd">@user_permission.require</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">writeQuestion</span><span class="p">():</span>
@@ -245,12 +221,31 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-7'>
+  <div class='section' id='section-8'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
-      <p>TODO: Add confirmation!</p>
+      <p>exist for a previously chosen class.
+   TODO: Allow admins to edit <em>all</em> questions. """
+f session['classAbbr']:
+   classInfo = ClassInfo.get(session['classAbbr'])
+   questions=[]
+   for instance in Question.query.filter(Question.classAbbr == session['classAbbr']).order_by(Question.id): 
+       questions.append(instance)
+   if (len(questions)&gt;0):
+       return render_template('chooseQuestion.html', questions=questions, \
+                              title="Choose Question to Edit for "+classInfo.classAbbr+"("+classInfo.longName+")")
+   else:
+       flash("%s, you don't have any questions to edit for %s!"%(currentUserFirstName(),classInfo))
+lse:
+   flash("Please choose a class first.")
+eturn redirect(url_for("chooseClass",mode=session['mode']))</p>
+<p>route('/chooseQuiz')
+n_required
+n_permission.require()
+hooseQuiz():
+Choose from existing unique quiz numbers available</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>                    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
@@ -279,52 +274,20 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-8'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/requestReviewQuestion&#39;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@user_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">requestReviewQuestion</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; Retrieve a question that&#39;s been least reviewed for a chosen class.</span>
-<span class="sd">        Least reviewed is found by looking for 0, 1, 2, etc. up to 10 prior reviews.&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]:</span>
-        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">classAbbr</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
-            <span class="n">questionsToReview</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">classAbbr</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-            <span class="n">leastReviewed</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;REVIEWS_BEFORE_OK_TO_USE&quot;</span><span class="p">]</span>
-            <span class="k">assert</span><span class="p">(</span><span class="n">leastReviewed</span><span class="o">&gt;-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">questionToReview</span> <span class="ow">in</span> <span class="n">questionsToReview</span><span class="p">:</span>
-                <span class="n">numTimesReviewed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">questionToReview</span><span class="o">.</span><span class="n">reviewers</span><span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span> <span class="n">numTimesReviewed</span> <span class="o">&lt;</span> <span class="n">leastReviewed</span><span class="p">):</span>
-                    <span class="n">leastReviewed</span> <span class="o">=</span> <span class="n">numTimesReviewed</span>
-            <span class="n">leastReviewedQuestionsToReview</span><span class="o">=</span><span class="p">[]</span>
-            <span class="k">for</span> <span class="n">questionToReview</span> <span class="ow">in</span> <span class="n">questionsToReview</span><span class="p">:</span>
-                <span class="n">numTimesReviewed</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">questionToReview</span><span class="o">.</span><span class="n">reviewers</span><span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">numTimesReviewed</span> <span class="o">==</span> <span class="n">leastReviewed</span><span class="p">):</span>
-                    <span class="n">leastReviewedQuestionsToReview</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">questionToReview</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
   <div class='section' id='section-9'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-9'>#</a>
       </div>
-      <p>We have a list of least reviewed questions, pick one at random.</p>
+      <h6></h6>
+<p>CHOSE-ERS # &lt;-- Steps following choosers (above)</p>
+<h6></h6>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="n">questionToReview</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">leastReviewedQuestionsToReview</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;reviewQuestion&#39;</span><span class="p">,</span><span class="n">questionID</span><span class="o">=</span><span class="n">questionToReview</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
-        <span class="n">flash</span><span class="p">(</span><span class="s">&#39;There are no questions to review for class: &#39;</span><span class="o">+</span><span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please choose a class first.&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseClass&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span></pre></div>
+      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/requestReviewQuestion&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="nd">@user_permission.require</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">requestReviewQuestion</span><span class="p">():</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -333,18 +296,226 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-10'>#</a>
       </div>
-      
+      <p>Once a class is chosen (above), redirect to the mode's page (etc. 'write'-&gt;editQuestion())</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/reviewQuestion&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">,</span> <span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<span class="nd">@login_required</span>
-<span class="nd">@user_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">reviewQuestion</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39; Handler for the &quot;Review question&quot; functionality. Redisplays the original question text as</span>
-<span class="sd">        uneditable and includes comment sections.</span>
-<span class="sd">        TODO: Show/hide comment sections&#39;&#39;&#39;</span> 
-    <span class="k">if</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]:</span>
-        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">uneditable</span> <span class="ow">and</span> <span class="n">includes</span> <span class="n">comment</span> <span class="n">sections</span><span class="o">.</span>
+        <span class="n">TODO</span><span class="p">:</span> <span class="n">Show</span><span class="o">/</span><span class="n">hide</span> <span class="n">comment</span> <span class="n">sections</span><span class="s">&quot;&quot;&quot; </span>
+<span class="s">    if session[&#39;classAbbr&#39;]:</span>
+<span class="s">        classInfo = ClassInfo.get(session[&#39;classAbbr&#39;])</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        reviewQuestionIDAsString = request.args.get(&#39;questionID&#39;)</span>
+<span class="s">        assert(reviewQuestionIDAsString),&quot;reviewQuestionID (</span><span class="si">%d</span><span class="s">) wasn&#39;t passed to reviewQuestion&quot; % (reviewQuestionID)</span>
+<span class="s">        question = Question.get(int(reviewQuestionIDAsString))</span>
+<span class="s">        if question:</span>
+<span class="s">            similarQuestions = question.findSimilarQuestions()</span>
+<span class="s">            question.decryptQuestionText(commentsOnly = True)</span>
+<span class="s">            form = ReviewQuestionForm(request.form, question)</span>
+<span class="s">            if request.method == &#39;POST&#39;:</span>
+<span class="s">                form.populate_obj(question)</span>
+<span class="s">                if (g.user not in question.reviewers):</span>
+<span class="s">                    question.reviewers.append(g.user)</span>
+<span class="s">                question.modified = datetime.datetime.now()</span>
+<span class="s">                question.encryptQuestionText(commentsOnly = True)</span>
+<span class="s">                if (request.form[&#39;button&#39;] == &#39;needswork&#39;):</span>
+<span class="s">                    db.session.commit()</span>
+<span class="s">                    return redirect(url_for(&quot;requestReviewQuestion&quot;))</span>
+<span class="s">                else:</span>
+<span class="s">                    if form.validate():            </span>
+<span class="s">                        db.session.merge(question)</span>
+<span class="s">                        db.session.commit()</span>
+<span class="s">                        return redirect(url_for(&quot;requestReviewQuestion&quot;))</span>
+<span class="s">                    else:</span>
+<span class="s">                        flash(&#39;There was a problem handling the form POST for Question ID:</span><span class="si">%d</span><span class="s">&#39;%(question.id))</span>
+<span class="s">            return render_template(&#39;reviewQuestion.html&#39;, form=form, similarQuestionsToDisplay = similarQuestions,                                                          </span><span class="se">\</span>
+<span class="s">                                   questionToDisplay=Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question, questionOnly=True)),  </span><span class="se">\</span>
+<span class="s">                                   title=&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;%(session[&#39;mode&#39;],(question.offsetNumberFromClass(classInfo)+1),session[&#39;classAbbr&#39;],classInfo.longName ))</span>
+<span class="s">        else:</span>
+<span class="s">            flash(&quot;Couldn&#39;t find question ID: </span><span class="si">%s</span><span class="s">??&quot;</span><span class="si">%r</span><span class="s">eviewQuestionIDAsString)</span>
+<span class="s">    else:</span>
+<span class="s">        flash(&quot;Please choose a class first.&quot;)</span>
+<span class="s">    return redirect(url_for(&#39;chooseClass&#39;,mode=session[&#39;mode&#39;]))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route(&#39;/generateQuiz&#39;)</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def generateQuiz():</span>
+<span class="s">    if session[&#39;classAbbr&#39;]:</span>
+<span class="s">        classInfo = ClassInfo.get(session[&#39;classAbbr&#39;])</span>
+<span class="s">        if g_CachedQuestions:</span>
+<span class="s">            quizNumber = request.args.get(&#39;quizID&#39;)</span>
+<span class="s">            assert quizNumber, &quot;Generate quiz without a quiz number??&quot;</span>
+<span class="s">            generatedQuiz, generatedID = Question.generateQuiz(classInfo, int(quizNumber), g_CachedQuestions)</span>
+<span class="s">            return render_template(&#39;generatedQuizOrExam.html&#39;, quizNumberToDisplay = quizNumber, generatedIDToDisplay = generatedID, </span><span class="se">\</span>
+<span class="s">                               generatedQuestionsToDisplay = generatedQuiz, classInfoToDisplay = classInfo)</span>
+<span class="s">        else:</span>
+<span class="s">            flash(&quot;Please select a quiz first.&quot;)</span>
+<span class="s">            return redirect(url_for(&#39;chooseQuiz&#39;))</span>
+<span class="s">    else:</span>
+<span class="s">        flash(&quot;Please choose a class first.&quot;)</span>
+<span class="s">    return redirect(url_for(&#39;chooseClass&#39;,mode=session[&#39;mode&#39;]))</span>
+
+<span class="s">@app.route(&#39;/generateExam&#39;)</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def generateExam():</span>
+<span class="s">    if session[&#39;classAbbr&#39;]:</span>
+<span class="s">        if g_CachedQuestions:</span>
+<span class="s">            classInfo = ClassInfo.get(session[&#39;classAbbr&#39;])</span>
+<span class="s">            generatedExam, generatedID = Question.generateFinalExam(classInfo, g_CachedQuestions)</span>
+<span class="s">            return render_template(&#39;generatedQuizOrExam.html&#39;, generatedIDToDisplay = generatedID, </span><span class="se">\</span>
+<span class="s">                                   generatedQuestionsToDisplay = generatedExam, classInfoToDisplay = classInfo)</span>
+<span class="s">        else:</span>
+<span class="s">            flash(&quot;Please select a quiz first.&quot;)</span>
+<span class="s">            return redirect(url_for(&#39;chooseQuiz&#39;))</span>
+<span class="s">    else:</span>
+<span class="s">        flash(&quot;Please choose a class first.&quot;)</span>
+<span class="s">    return redirect(url_for(&#39;chooseClass&#39;,mode=session[&#39;mode&#39;]))</span>
+
+<span class="s">@app.route(&quot;/retrieveQuizOrExam&quot;, methods=[&#39;POST&#39;, &#39;GET&#39;])</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def retrieveQuizOrExam():</span>
+<span class="s">    from flask.helpers import get_flashed_messages</span>
+<span class="s">    if request.method == &#39;POST&#39;:</span>
+<span class="s">        classInfo = ClassInfo.get(session[&#39;classAbbr&#39;])</span>
+<span class="s">        code = request.form[&#39;code&#39;]</span>
+<span class="s">        questions = Question.getQuestionsFromID(code, addMarkupToQuestionTextToo=True)</span>
+<span class="s">        messages = get_flashed_messages()</span>
+<span class="s">        if (len(messages)==0):</span>
+<span class="s">            if (len(questions)==0):</span>
+<span class="s">                flash (&quot;No valid questions found for code: </span><span class="si">%s</span><span class="s">??&quot;</span><span class="si">%c</span><span class="s">ode)</span>
+<span class="s">                return redirect(url_for(&#39;retrieveQuizOrExam&#39;))</span>
+<span class="s">        return render_template(&#39;generatedQuizOrExam.html&#39;, generatedIDToDisplay = code, </span><span class="se">\</span>
+<span class="s">           generatedQuestionsToDisplay = questions, classInfoToDisplay = classInfo)</span>
+<span class="s">    return render_template(&#39;retrieveQuizOrExam.html&#39;)</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route(&quot;/adminDatabaseReset&quot;)</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def adminDatabaseReset():</span>
+<span class="s">    messageList = []</span>
+<span class="s">    for entry in Question.query.all():</span>
+<span class="s">        messageList.append(&quot;Deleting Question id: </span><span class="si">%d</span><span class="s"> (class id: </span><span class="si">%d</span><span class="s">) (</span><span class="si">%s</span><span class="s">)&quot; % (entry.id, entry.classID, entry.shortenedDecryptedQuestionWithMarkup()))</span>
+<span class="s">        db.session.delete(entry)</span>
+<span class="s">    for entry in User.query.filter(User.fullname != &quot;Glenn Sugden&quot;).all():</span>
+<span class="s">        messageList.append(&quot;Deleting User id: </span><span class="si">%d</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot; % (entry.id,entry.fullname))</span>
+<span class="s">        db.session.delete(entry)</span>
+<span class="s">    for entry in ClassInfo.query.all():</span>
+<span class="s">        messageList.append(&quot;Resetting class ids for: </span><span class="si">%s</span><span class="s"> (id: </span><span class="si">%d</span><span class="s">)&quot; % (entry.longName, entry.id))</span>
+<span class="s">        entry.currentID = entry.startingID</span>
+<span class="s">    db.session.commit()</span>
+<span class="s">    messageList.append(&quot;...done!&quot;)</span>
+<span class="s">    return render_template(&#39;adminOutput.html&#39;,title=&quot;Admin. - Database Reset&quot;, messagestoDisplay = messageList)</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">def currentUserFirstName():</span>
+<span class="s">    if g.user:</span>
+<span class="s">        if g.user.fullname:</span>
+<span class="s">            return g.user.fullname.split(&quot; &quot;)[0]</span>
+<span class="s">        else:</span>
+<span class="s">            return &quot;?? anonymous ??&quot;</span>
+<span class="s">    return &quot;?? NO GLOBAL USER ??&quot;</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route(&quot;/testing&quot;)</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def testing():</span>
+<span class="s">    import os</span>
+<span class="s">    image = Image.getByName(&quot;9c.3.1.gif&quot;)</span>
+<span class="s">    assert image,&quot;Couldn&#39;t find image </span><span class="se">\&quot;</span><span class="s">9c.3.1.gif</span><span class="se">\&quot;</span><span class="s">??&quot;</span>
+<span class="s">    imageToDisplayPath = writeTempFile(&quot;9c.3.1.gif&quot;,image.data)</span>
+<span class="s">    app.logger.debug(imageToDisplayPath)</span>
+<span class="s">    assert os.path.exists(imageToDisplayPath), &quot;Path doesn&#39;t exist?? (</span><span class="si">%s</span><span class="s">)&quot; </span><span class="si">% i</span><span class="s">mageToDisplayPath</span>
+<span class="s">    return render_template(&quot;testing.html&quot;, imageToDisplay = imageToDisplayPath)</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route(&quot;/verifyUsers&quot;)</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def verifyUsers():</span>
+<span class="s">    unverifiedUsers = User.getAllUnverifiedUsers()</span>
+<span class="s">    return render_template(&#39;verifyUsers.html&#39;, unverifiedUsers=unverifiedUsers)</span>
+
+<span class="s">@app.route(&quot;/verifyingUser&quot;)</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def verifyingUser():</span>
+<span class="s">    idAsString = request.args.get(&#39;id&#39;)</span>
+<span class="s">    assert idAsString, &quot;ID wasn&#39;t passed to verifyingUser??&quot;</span>
+<span class="s">    user = User.query.filter(User.id == int(idAsString)).first()</span>
+<span class="s">    if user:</span>
+<span class="s">        if (user.is_verified() == False):</span>
+<span class="s">            user_datastore = SQLAlchemyUserDatastore(db, User, Role)</span>
+<span class="s">            default_role = user_datastore.find_or_create_role(&#39;user&#39;)</span>
+<span class="s">            user_datastore.add_role_to_user(user, default_role)</span>
+<span class="s">            db.session.merge(user)</span>
+<span class="s">            db.session.commit()</span>
+<span class="s">        else:</span>
+<span class="s">            flash(&quot;User ID </span><span class="si">%s</span><span class="s"> is already verified?&quot; % (idAsString))</span>
+<span class="s">    else:</span>
+<span class="s">        flash(&quot;Couldn&#39;t find User ID </span><span class="si">%s</span><span class="s"> to verify?&quot; % (idAsString))</span>
+<span class="s">    return redirect(url_for(&#39;verifyUsers&#39;))</span>
+
+<span class="s">@app.route(&quot;/unverifiedUser&quot;)</span>
+<span class="s">@login_required</span>
+<span class="s">@user_permission.require()</span>
+<span class="s">def unverifiedUser():</span>
+<span class="s">    return render_template(&#39;unverifiedUser.html&#39;,</span>
+<span class="s">        admins = getAdmins())</span>
+
+<span class="s">@lm.user_loader</span>
+<span class="s">def load_user(uid):</span>
+<span class="s">    return User.get(int(uid))</span>
+<span class="s"> </span>
+<span class="s">@app.before_request</span>
+<span class="s">def before_request():</span>
+<span class="s">    g.user = current_user</span>
+<span class="s">    </span>
+<span class="s">@identity_loaded.connect_via(app)</span>
+<span class="s">def on_identity_loaded(sender, identity):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    identity.user = current_user</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    if hasattr(current_user, &#39;id&#39;):</span>
+<span class="s">        identity.provides.add(UserNeed(current_user.id))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    if hasattr(current_user, &#39;roles&#39;):</span>
+<span class="s">        for role in current_user.roles:</span>
+<span class="s">            identity.provides.add(RoleNeed(role.name))</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">def generate_csrf_token():</span>
+<span class="s">    app.logger.debug(&quot;generate_csrf_token&quot;)</span>
+<span class="s">    if &#39;_csrf_token&#39; not in session:</span>
+<span class="s">        session[&#39;_csrf_token&#39;] = app.config[&#39;SECRET_KEY&#39;]</span>
+<span class="s">    return session[&#39;_csrf_token&#39;]</span>
+<span class="s">#DIVIDER</span>
+<span class="s">@lm.token_loader</span>
+<span class="s">def load_token(token):</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">    max_age = app.config[&quot;REMEMBER_COOKIE_DURATION&quot;].total_seconds()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    data = login_serializer.loads(token, max_age=max_age)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    user = User.get(data[0])</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    if user and data[1] == user.password:</span>
+<span class="s">        return user</span>
+<span class="s">    return None</span>
+
+</pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -353,40 +524,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-11'>#</a>
       </div>
-      <p>Handle a question review form</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">reviewQuestionIDAsString</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;questionID&#39;</span><span class="p">)</span>
-        <span class="k">assert</span><span class="p">(</span><span class="n">reviewQuestionIDAsString</span><span class="p">),</span><span class="s">&quot;reviewQuestionID (</span><span class="si">%d</span><span class="s">) wasn&#39;t passed to reviewQuestion&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reviewQuestionID</span><span class="p">)</span>
-        <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">reviewQuestionIDAsString</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">question</span><span class="p">:</span>
-            <span class="n">similarQuestions</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">findSimilarQuestions</span><span class="p">()</span>
-            <span class="n">question</span><span class="o">.</span><span class="n">decryptQuestionText</span><span class="p">(</span><span class="n">commentsOnly</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
-            <span class="n">form</span> <span class="o">=</span> <span class="n">ReviewQuestionForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,</span> <span class="n">question</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
-                <span class="n">form</span><span class="o">.</span><span class="n">populate_obj</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">user</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">question</span><span class="o">.</span><span class="n">reviewers</span><span class="p">):</span>
-                    <span class="n">question</span><span class="o">.</span><span class="n">reviewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">user</span><span class="p">)</span>
-                <span class="n">question</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-                <span class="n">question</span><span class="o">.</span><span class="n">encryptQuestionText</span><span class="p">(</span><span class="n">commentsOnly</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;button&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;needswork&#39;</span><span class="p">):</span>
-                    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-                    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&quot;requestReviewQuestion&quot;</span><span class="p">))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>            
-                        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
-                        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-                        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&quot;requestReviewQuestion&quot;</span><span class="p">))</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">flash</span><span class="p">(</span><span class="s">&#39;There was a problem handling the form POST for Question ID:</span><span class="si">%d</span><span class="s">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">question</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
-            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;reviewQuestion.html&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">form</span><span class="p">,</span> <span class="n">similarQuestionsToDisplay</span> <span class="o">=</span> <span class="n">similarQuestions</span><span class="p">,</span>                                                          \
-                                   <span class="n">questionToDisplay</span><span class="o">=</span><span class="n">Question</span><span class="o">.</span><span class="n">addMarkupToQuestionText</span><span class="p">(</span><span class="n">Question</span><span class="o">.</span><span class="n">detachAndDecryptQuestionText</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>  \
-                                   <span class="n">title</span><span class="o">=</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">],(</span><span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span><span class="n">classInfo</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">],</span><span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t find question ID: </span><span class="si">%s</span><span class="s">??&quot;</span><span class="o">%</span><span class="n">reviewQuestionIDAsString</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please choose a class first.&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseClass&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -398,59 +539,7 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/generateQuiz&#39;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">generateQuiz</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]:</span>
-        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">g_CachedQuestions</span><span class="p">:</span>
-            <span class="n">quizNumber</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;quizID&#39;</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">quizNumber</span><span class="p">,</span> <span class="s">&quot;Generate quiz without a quiz number??&quot;</span>
-            <span class="n">generatedQuiz</span><span class="p">,</span> <span class="n">generatedID</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">generateQuiz</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">quizNumber</span><span class="p">),</span> <span class="n">g_CachedQuestions</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generatedQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">quizNumberToDisplay</span> <span class="o">=</span> <span class="n">quizNumber</span><span class="p">,</span> <span class="n">generatedIDToDisplay</span> <span class="o">=</span> <span class="n">generatedID</span><span class="p">,</span> \
-                               <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">generatedQuiz</span><span class="p">,</span> <span class="n">classInfoToDisplay</span> <span class="o">=</span> <span class="n">classInfo</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please select a quiz first.&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseQuiz&#39;</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please choose a class first.&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseClass&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span>
-
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/generateExam&#39;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">generateExam</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="n">g_CachedQuestions</span><span class="p">:</span>
-            <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
-            <span class="n">generatedExam</span><span class="p">,</span> <span class="n">generatedID</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">generateFinalExam</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="n">g_CachedQuestions</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generatedQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">generatedIDToDisplay</span> <span class="o">=</span> <span class="n">generatedID</span><span class="p">,</span> \
-                                   <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">generatedExam</span><span class="p">,</span> <span class="n">classInfoToDisplay</span> <span class="o">=</span> <span class="n">classInfo</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please select a quiz first.&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseQuiz&#39;</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Please choose a class first.&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;chooseClass&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]))</span>
-
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/retrieveQuizOrExam&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">,</span> <span class="s">&#39;GET&#39;</span><span class="p">])</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">retrieveQuizOrExam</span><span class="p">():</span>
-    <span class="kn">from</span> <span class="nn">flask.helpers</span> <span class="kn">import</span> <span class="n">get_flashed_messages</span>
-    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s">&#39;POST&#39;</span><span class="p">:</span>
-        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">])</span>
-        <span class="n">code</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">[</span><span class="s">&#39;code&#39;</span><span class="p">]</span>
-        <span class="n">questions</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">getQuestionsFromID</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">addMarkupToQuestionTextToo</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">messages</span> <span class="o">=</span> <span class="n">get_flashed_messages</span><span class="p">()</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">questions</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
-                <span class="n">flash</span> <span class="p">(</span><span class="s">&quot;No valid questions found for code: </span><span class="si">%s</span><span class="s">??&quot;</span><span class="o">%</span><span class="n">code</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;retrieveQuizOrExam&#39;</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;generatedQuizOrExam.html&#39;</span><span class="p">,</span> <span class="n">generatedIDToDisplay</span> <span class="o">=</span> <span class="n">code</span><span class="p">,</span> \
-           <span class="n">generatedQuestionsToDisplay</span> <span class="o">=</span> <span class="n">questions</span><span class="p">,</span> <span class="n">classInfoToDisplay</span> <span class="o">=</span> <span class="n">classInfo</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;retrieveQuizOrExam.html&#39;</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -459,9 +548,7 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-13'>#</a>
       </div>
-      <h6></h6>
-<p>ADMIN #</p>
-<h6></h6>
+      <p>TODO: Add confirmation!</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -473,26 +560,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-14'>#</a>
       </div>
-      
+      <p>Retrieve a question that's been least reviewed for a chosen class.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/adminDatabaseReset&quot;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">adminDatabaseReset</span><span class="p">():</span>
-    <span class="n">messageList</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-        <span class="n">messageList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Deleting Question id: </span><span class="si">%d</span><span class="s"> (class id: </span><span class="si">%d</span><span class="s">) (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">classID</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">shortenedDecryptedQuestionWithMarkup</span><span class="p">()))</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">fullname</span> <span class="o">!=</span> <span class="s">&quot;Glenn Sugden&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-        <span class="n">messageList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Deleting User id: </span><span class="si">%d</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="n">entry</span><span class="o">.</span><span class="n">fullname</span><span class="p">))</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-        <span class="n">messageList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;Resetting class ids for: </span><span class="si">%s</span><span class="s"> (id: </span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">longName</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
-        <span class="n">entry</span><span class="o">.</span><span class="n">currentID</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">startingID</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-    <span class="n">messageList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;...done!&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;adminOutput.html&#39;</span><span class="p">,</span><span class="n">title</span><span class="o">=</span><span class="s">&quot;Admin. - Database Reset&quot;</span><span class="p">,</span> <span class="n">messagestoDisplay</span> <span class="o">=</span> <span class="n">messageList</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -501,9 +572,34 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-15'>#</a>
       </div>
-      <h6></h6>
-<p>UTILITES #</p>
-<h6></h6>
+      <p>Least reviewed is found by looking for 0, 1, 2, etc. up to 10 prior reviews."""
+f session['classAbbr']:
+   classInfo = ClassInfo.get(session['classAbbr'])
+   if (Question.query.filter(Question.classAbbr == session['classAbbr']).count()&gt;0):
+       questionsToReview = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
+       leastReviewed = app.config["REVIEWS_BEFORE_OK_TO_USE"]
+       assert(leastReviewed&gt;-1)
+       for questionToReview in questionsToReview:
+           numTimesReviewed = len(questionToReview.reviewers)
+           if ( numTimesReviewed &lt; leastReviewed):
+               leastReviewed = numTimesReviewed
+       leastReviewedQuestionsToReview=[]
+       for questionToReview in questionsToReview:
+           numTimesReviewed = len(questionToReview.reviewers)
+           if (numTimesReviewed == leastReviewed):
+               leastReviewedQuestionsToReview.append(questionToReview)
+           # We have a list of least reviewed questions, pick one at random.
+       questionToReview = random.choice(leastReviewedQuestionsToReview)
+       return redirect(url_for('reviewQuestion',questionID=questionToReview.id))
+   flash('There are no questions to review for class: '+classInfo.longName)
+lse:
+   flash("Please choose a class first.")
+eturn redirect(url_for('chooseClass',mode=session['mode']))</p>
+<p>route('/reviewQuestion', methods=['POST', 'GET'])
+n_required
+_permission.require()
+eviewQuestion():
+Handler for the "Review question" functionality. Redisplays the original question text as</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -515,16 +611,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-16'>#</a>
       </div>
-      
+      <p>Handle a question review form</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">currentUserFirstName</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">fullname</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">fullname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot; &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s">&quot;?? anonymous ??&quot;</span>
-    <span class="k">return</span> <span class="s">&quot;?? NO GLOBAL USER ??&quot;</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -533,9 +623,7 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-17'>#</a>
       </div>
-      <h6></h6>
-<p>SECURITY #</p>
-<h6></h6>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -547,53 +635,12 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-18'>#</a>
       </div>
-      
+      <h6></h6>
+<p>ADMIN #</p>
+<h6></h6>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/verifyUsers&quot;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">verifyUsers</span><span class="p">():</span>
-    <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">getAllUnverifiedUsers</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;verifyUsers.html&#39;</span><span class="p">,</span> <span class="n">unverifiedUsers</span><span class="o">=</span><span class="n">unverifiedUsers</span><span class="p">)</span>
-
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/verifyingUser&quot;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">verifyingUser</span><span class="p">():</span>
-    <span class="n">idAsString</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">idAsString</span><span class="p">,</span> <span class="s">&quot;ID wasn&#39;t passed to verifyingUser??&quot;</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">idAsString</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span><span class="p">):</span>
-            <span class="n">user_datastore</span> <span class="o">=</span> <span class="n">SQLAlchemyUserDatastore</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">)</span>
-            <span class="n">default_role</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">find_or_create_role</span><span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">)</span>
-            <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
-            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
-            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;User ID </span><span class="si">%s</span><span class="s"> is already verified?&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idAsString</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t find User ID </span><span class="si">%s</span><span class="s"> to verify?&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idAsString</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s">&#39;verifyUsers&#39;</span><span class="p">))</span>
-
-<span class="nd">@app.route</span><span class="p">(</span><span class="s">&quot;/unverifiedUser&quot;</span><span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@user_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">unverifiedUser</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;unverifiedUser.html&#39;</span><span class="p">,</span>
-        <span class="n">admins</span> <span class="o">=</span> <span class="n">getAdmins</span><span class="p">())</span>
-
-<span class="nd">@lm.user_loader</span>
-<span class="k">def</span> <span class="nf">load_user</span><span class="p">(</span><span class="n">uid</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">uid</span><span class="p">))</span>
- 
-<span class="nd">@app.before_request</span>
-<span class="k">def</span> <span class="nf">before_request</span><span class="p">():</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span>
-    
-<span class="nd">@identity_loaded.connect_via</span><span class="p">(</span><span class="n">app</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">on_identity_loaded</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">identity</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -602,10 +649,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-19'>#</a>
       </div>
-      <p>Set the identity user object</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">identity</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -614,11 +661,12 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-20'>#</a>
       </div>
-      <p>Add the UserNeed to the identity</p>
+      <h6></h6>
+<p>UTILITES #</p>
+<h6></h6>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;id&#39;</span><span class="p">):</span>
-        <span class="n">identity</span><span class="o">.</span><span class="n">provides</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">UserNeed</span><span class="p">(</span><span class="n">current_user</span><span class="o">.</span><span class="n">id</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -627,13 +675,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-21'>#</a>
       </div>
-      <p>Assuming the User model has a list of roles, update the
-identity with the roles that the user provides</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;roles&#39;</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">current_user</span><span class="o">.</span><span class="n">roles</span><span class="p">:</span>
-            <span class="n">identity</span><span class="o">.</span><span class="n">provides</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">RoleNeed</span><span class="p">(</span><span class="n">role</span><span class="o">.</span><span class="n">name</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -642,10 +687,9 @@ identity with the roles that the user provides</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-22'>#</a>
       </div>
-      <h1>This processor is added to only the register view</h1>
-<p>@security.register_context_processor
-def security_register_processor():
-    app.logger.debug("security_register_processor")</p>
+      <h6></h6>
+<p>TESTING #</p>
+<h6></h6>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -660,11 +704,7 @@ def security_register_processor():
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">generate_csrf_token</span><span class="p">():</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;generate_csrf_token&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s">&#39;_csrf_token&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
-        <span class="n">session</span><span class="p">[</span><span class="s">&#39;_csrf_token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;SECRET_KEY&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;_csrf_token&#39;</span><span class="p">]</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -673,14 +713,12 @@ def security_register_processor():
       <div class='octowrap'>
         <a class='octothorpe' href='#section-24'>#</a>
       </div>
-      <p>Flask-Login token_loader callback. 
-The token_loader function asks this function to take the token that was 
-stored on the users computer process it to check if its valid and then 
-return a User Object if its valid or None if its not valid.</p>
+      <h6></h6>
+<p>SECURITY #</p>
+<h6></h6>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@lm.token_loader</span>
-<span class="k">def</span> <span class="nf">load_token</span><span class="p">(</span><span class="n">token</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -701,8 +739,7 @@ return a User Object if its valid or None if its not valid.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-26'>#</a>
       </div>
-      <p>The Token itself was generated by User.get_auth_token.  So it is up to 
-us to known the format of the token data itself.  </p>
+      <p>Set the identity user object</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -714,14 +751,10 @@ us to known the format of the token data itself.  </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-27'>#</a>
       </div>
-      <p>The Token was encrypted using itsdangerous.URLSafeTimedSerializer which 
-allows us to have a max_age on the token itself.  When the cookie is stored
-on the users computer it also has a exipry date, but could be changed by
-the user, so this feature allows us to enforce the exipry date of the token
-server side and not rely on the users cookie to exipre. </p>
+      <p>Add the UserNeed to the identity</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">max_age</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;REMEMBER_COOKIE_DURATION&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -730,10 +763,11 @@ server side and not rely on the users cookie to exipre. </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-28'>#</a>
       </div>
-      <p>Decrypt the Security Token, data = [username, hashpass]</p>
+      <p>Assuming the User model has a list of roles, update the
+identity with the roles that the user provides</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">data</span> <span class="o">=</span> <span class="n">login_serializer</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="n">max_age</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -742,10 +776,13 @@ server side and not rely on the users cookie to exipre. </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-29'>#</a>
       </div>
-      <p>Find the User</p>
+      <h1>This processor is added to only the register view</h1>
+<p>@security.register_context_processor
+def security_register_processor():
+    app.logger.debug("security_register_processor")</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -754,14 +791,102 @@ server side and not rely on the users cookie to exipre. </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-30'>#</a>
       </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>Flask-Login token_loader callback. 
+The token_loader function asks this function to take the token that was 
+stored on the users computer process it to check if its valid and then 
+return a User Object if its valid or None if its not valid.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>The Token itself was generated by User.get_auth_token.  So it is up to 
+us to known the format of the token data itself.  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>The Token was encrypted using itsdangerous.URLSafeTimedSerializer which 
+allows us to have a max_age on the token itself.  When the cookie is stored
+on the users computer it also has a exipry date, but could be changed by
+the user, so this feature allows us to enforce the exipry date of the token
+server side and not rely on the users cookie to exipre. </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      <p>Decrypt the Security Token, data = [username, hashpass]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>Find the User</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
       <p>Check Password and return user or None</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">user</span>
-    <span class="k">return</span> <span class="bp">None</span>
-
-</pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>

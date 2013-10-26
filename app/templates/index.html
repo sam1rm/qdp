@@ -1,5 +1,5 @@
 {% extends "layout.html" %} {% block content %} 
-<table>
+<table width="100%">
 	<tr>
 		<td>
 			<h2>
@@ -11,22 +11,19 @@
 				</i>
 				Write 
 			</a>
-			<br /> 
-			<br /> 
+			<br /> <br /> 
 			<a href="{{ url_for('chooseClass', mode='Edit') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 				<i class="icon-white icon-pencil">
 				</i>
 				Edit 
 			</a>
-			<br /> 
-			<br /> 
+			<br /> <br /> 
 			<a href="{{ url_for('chooseClass', mode='Review') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 				<i class="icon-white icon-ok">
 				</i>
 				Review 
 			</a>
-			<br /> 
-			<br /> 
+			<br /> <br /> 
 			<h2>
 				Quizzes &amp; Exams 
 			</h2>
@@ -36,33 +33,47 @@
 				</i>
 				Generate 
 			</a>
-			<br /> 
-			<br /> 
+			<br /> <br /> 
 			<a href="{{ url_for('retrieveQuizOrExam') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
 				<i class="icon-white icon-file">
 				</i>
 				Retrieve 
 			</a>
 		</td>
-        {% if isAdmin %} 
-    		{% if hasUnverifiedUsers %} 
-    		<td style="vertical-align:center;">
-    			<a href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
-    				<i class="icon-white icon-file">
-    				</i>
-    				Approve Users 
-    			</a>
-    		</td>
-    		{% endif %}
-    		<td>
-    		  <a href="{{ url_for('adminDatabaseReset') }}" style="width: 200px; min-width:200px;" class="btn btn-danger btn-large">
-                    <i class="icon-white icon-file">
-                    </i>
-                    Reset Database
-                </a>
-    		</td>
-        {% endif %} 
+		{% if isAdmin %} 
+		{% if hasUnverifiedUsers %} 
+		<td style="vertical-align:center;">
+			<a href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
+				<i class="icon-white icon-file">
+				</i>
+				Approve Users 
+			</a>
+		</td>
+		{% endif %}
+		{% if isDebugging %} 
+		<td>
+		<table>
+			<tr>
+				<td>
+					<a href="{{ url_for('adminDatabaseReset') }}" style="width: 200px; min-width:200px;" class="btn btn-danger btn-large">
+						<i class="icon-white icon-file">
+						</i>
+						Reset Database 
+					</a>
+				</td>
+			</tr>
+			<tr><td>&nbsp;</td></tr>
+			<tr>
+				<td>
+					<a href="{{ url_for('testing') }}" style="width: 200px; min-width:200px;" class="btn btn-danger btn-large">
+						Testing...
+					</a>
+				</td>
+			</tr>
+			</table>
+		</td>
+		{% endif %} 
+		{% endif %}
 	</tr>
-	<tr><td><img src="{{imageToDisplay}}"></td></tr>
 </table>
 {% endblock %}

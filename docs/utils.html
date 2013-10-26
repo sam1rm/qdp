@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>utils.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  <div class='section'>
+    <div class='docs'><h1>utils.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">config</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">Crypto.Cipher</span> <span class="kn">import</span> <span class="n">AES</span>
+<span class="kn">from</span> <span class="nn">Crypto</span> <span class="kn">import</span> <span class="n">Random</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>Write some data to a temporary file. Used by Image to pull dynamic images from database</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">writeTempFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="n">data</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <p>to be used in some question text.</p>
+<blockquote>
+<blockquote>
+<p>print writeTempFile("test.txt","DON'T PANIC!"); print readTempFile("test.txt");
+tmp/test.txt
+"DON'T PANIC!", '/tmp/test.txt')</p>
+</blockquote>
+</blockquote>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&quot;tmp&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span> <span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s">&quot;tmp&quot;</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="s">&quot;tmp/&quot;</span><span class="o">+</span><span class="n">filename</span>
+    <span class="n">fref</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="s">&quot;wb&quot;</span><span class="p">)</span>
+    <span class="n">fref</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">path</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>Read some data from a temporary file. (See sister-function "write" for more info and tests)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">readTempFile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">path</span> <span class="o">=</span> <span class="s">&quot;tmp/&quot;</span><span class="o">+</span><span class="n">filename</span>
+    <span class="n">fref</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="s">&quot;rb&quot;</span><span class="p">)</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">fref</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">path</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>Simple convert some text into HTML code .. mostly a stub to decorate later,</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">convertToHTML</span><span class="p">(</span><span class="n">text</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>but does add <br />'s correctly to text which contains a newline (necessary
+   to display textfield text correctly.</p>
+<blockquote>
+<blockquote>
+<p>print convertToHTML("test")
+est
+print convertToHTML("this\nis\na\ntest.")
+his<br />is<br />a<br />test.</p>
+</blockquote>
+</blockquote>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="kn">import</span> <span class="nn">flask</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">text</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">+</span> <span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="p">(</span><span class="s">&#39;&lt;br /&gt;&#39;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">result</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>Encrypt a 16-byte, length-prefixed, padded message using AES.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="n">message</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>Returned message is base64 encoded.</p>
+<blockquote>
+<blockquote>
+<p>message,iv=encrypt("this is a test"); decrypt(message,iv)
+this is a test'</p>
+</blockquote>
+</blockquote>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">iv</span> <span class="o">=</span> <span class="n">Random</span><span class="o">.</span><span class="n">new</span><span class="p">()</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">AES</span><span class="o">.</span><span class="n">block_size</span><span class="p">)</span>
+    <span class="n">OBJ</span> <span class="o">=</span> <span class="n">AES</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">SECRET_KEY</span><span class="p">,</span> <span class="n">AES</span><span class="o">.</span><span class="n">MODE_CBC</span><span class="p">,</span> <span class="n">iv</span><span class="p">)</span>
+    <span class="n">numToPad</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">-</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">)</span> <span class="o">%</span> <span class="mi">16</span>
+    <span class="n">paddedMessage</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%04d%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">),</span><span class="n">message</span><span class="p">,</span><span class="n">config</span><span class="o">.</span><span class="n">PADDING</span><span class="p">[:</span><span class="n">numToPad</span><span class="p">])</span>
+    <span class="n">encryptedMessage</span> <span class="o">=</span> <span class="n">OBJ</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">paddedMessage</span><span class="p">)</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">encryptedMessage</span><span class="p">),</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">iv</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>Decode a base64 message using AES. Returned is original message minus the padding,</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="n">b64Message</span><span class="p">,</span> <span class="n">IV</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>which is checked for integrity (the length is also a prefix integrity checker) 
+   (see sister function encrypt for tests). """
+v = base64.b64decode(IV)
+BJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
+essage = base64.b64decode(b64Message)
+addedMessage = OBJ.decrypt(message)
+essageLen = int(paddedMessage[:4])
+umToPad = 16 - ( messageLen + 4 ) % 16
+essage = paddedMessage[4:messageLen+4]
+f (paddedMessage[messageLen+4:] != config.PADDING[:numToPad]):
+   return "INVALID PADDING"
+eturn(message)</p>
+<p>name<strong> == "</strong>main__":
+mport doctest
+octest.testmod()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

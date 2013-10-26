@@ -23,15 +23,13 @@ def index():
         are any), and provide additional administration. """
     user = g.user
     if user.is_verified():
-        image = Image.getByName("9c.3.1.gif")
-        imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
         imageFileURL = url_for('static', filename='img/possibly47abc.png')
         return render_template('index.html',
             user = user,
             isAdmin = user.is_admin(),
             hasUnverifiedUsers = (user.is_admin() and User.hasUnverifiedUsers()),    # redundant on purpose
             help = 'helpMain',
-            imageToDisplay = imageToDisplayPath)
+            isDebugging = app.config['DEBUG'])
     else:
         return redirect(url_for('unverifiedUser'))
         
@@ -337,6 +335,22 @@ def currentUserFirstName():
         else:
             return "?? anonymous ??"
     return "?? NO GLOBAL USER ??"
+
+###########
+# TESTING #
+###########
+
+@app.route("/testing")
+@login_required
+@admin_permission.require()
+def testing():
+    import os
+    image = Image.getByName("9c.3.1.gif")
+    assert image,"Couldn't find image \"9c.3.1.gif\"??"
+    imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
+    app.logger.debug(imageToDisplayPath)
+    assert os.path.exists(imageToDisplayPath), "Path doesn't exist?? (%s)" % imageToDisplayPath
+    return render_template("testing.html", imageToDisplay = imageToDisplayPath)
     
 ############
 # SECURITY #
