@@ -1,10 +1,11 @@
-import base64
 import copy
 
 from app import db, login_serializer
 from flask import flash
 from flask.ext.security import UserMixin, RoleMixin
 from werkzeug import generate_password_hash, check_password_hash
+
+from utils import decrypt, encrypt, convertToHTML
   
 roles_users = db.Table('roles_users',
         db.Column('users_id', db.Integer(), db.ForeignKey('user.id')),
@@ -192,7 +193,7 @@ class Question(db.Model):
         return result
     
     def shortenedDecryptedQuestionWithMarkup(self):
-        ''' Returned a short..ed version of the (unencrypted) question text with HTML markup '''
+        """ Returned a short..ed version of the (unencrypted) question text with HTML markup """
         encryptedQuestion = self.question
         if encryptedQuestion:
             encryptedQuesionIV = self.questionIV 
@@ -205,7 +206,7 @@ class Question(db.Model):
             return "?? NO QUESTION TEXT ??"
 
     def shortenedDecryptedTags(self):
-        ''' Returned a short..ed version of the (unencrypted) tags '''
+        """ Returned a short..ed version of the (unencrypted) tags """
         encryptedTags = self.tags
         if encryptedTags:
             encryptedTagsIV = self.tagsIV 
@@ -225,8 +226,8 @@ class Question(db.Model):
         return offsetNumber
     
     def findSimilarQuestions(self):
-        ''' Find questions "similar" to this one. Uses quiz # and tags.
-            TODO: Union questions with the same tag(s) - right now it's looking for equal tags. '''
+        """ Find questions "similar" to this one. Uses quiz # and tags.
+            TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
         existing=[]
         tags = self.tagsAsSet()
         instances = Question.query.filter(Question.id != self.id, Question.quiz == self.quiz).order_by(Question.id).all()
@@ -266,14 +267,14 @@ class Question(db.Model):
                 
     @staticmethod
     def detachAndDecryptQuestionText(question, questionOnly = False, commentsOnly = False):
-        ''' Decrypt all of the question text, including tags and comments. '''
+        """ Decrypt all of the question text, including tags and comments. """
         convertedQuestion = copy.copy(question)
         convertedQuestion.decryptQuestionText(questionOnly, commentsOnly)
         return convertedQuestion
 
     @staticmethod
     def addMarkupToQuestionText(question, questionOnly = False, commentsOnly = False):
-        ''' Add HTML markup to all of the question text, including tags and comments. This is mostly used for \n -> <br /> '''
+        """ Add HTML markup to all of the question text, including tags and comments. This is mostly used for \n -> <br /> """
         convertedQuestion = copy.copy(question)
         if ((commentsOnly == None) or (commentsOnly == False)):
             if convertedQuestion.tags:
@@ -302,7 +303,7 @@ class Question(db.Model):
         return convertedQuestion
  
     def encryptQuestionText(self, questionOnly = False, commentsOnly = False):
-        ''' Encrypt all of the question text, including tags and comments. '''
+        """ Encrypt all of the question text, including tags and comments. """
         if ((commentsOnly == None) or (commentsOnly == False)):
             self.tags, self.tagsIV = encrypt(self.tags)
             self.instructions, self.instructionsIV = encrypt(self.instructions)
@@ -320,8 +321,8 @@ class Question(db.Model):
                   
     @staticmethod
     def generateQuiz(classInfo, quizNumber, cachedQuestions):
-        ''' Generate quiz # for a class, using previously cached questions (caller is responsible for these). 
-            TODO: Find questions with: most reviews, then different tags'''
+        """ Generate quiz # for a class, using previously cached questions (caller is responsible for these). 
+            TODO: Find questions with: most reviews, then different tags"""
         quizQuestions = []
         #questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
@@ -334,8 +335,8 @@ class Question(db.Model):
     
     @staticmethod
     def generateFinalExam(classInfo, cachedQuestions):
-        ''' Generate final exam # for a class, using previously cached questions (caller is responsible for these) 
-            TODO: Find questions with: most reviews, then different tags'''
+        """ Generate final exam # for a class, using previously cached questions (caller is responsible for these) 
+            TODO: Find questions with: most reviews, then different tags"""
         examQuestions = []
         #questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
@@ -347,9 +348,9 @@ class Question(db.Model):
     
     @staticmethod
     def generateIDFromQuestions(classInfo, questions):
-        ''' Generate an ID from quiz question ids.
+        """ Generate an ID from quiz question ids.
             1024 questions per quiz possible. Question IDs in the database
-            are offsets from the ClassInfo starting IDs. '''
+            are offsets from the ClassInfo starting IDs. """
         validIDSymbols="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len(validIDSymbols)
         idSymbols = classInfo.classAbbr
@@ -363,8 +364,8 @@ class Question(db.Model):
 
     @staticmethod
     def getQuestionsFromID(idSymbols, addMarkupToQuestionTextToo):
-        ''' Retrieve quiz question from an ID. Question IDs in the database
-            are offsets from the ClassInfo starting IDs. '''
+        """ Retrieve quiz question from an ID. Question IDs in the database
+            are offsets from the ClassInfo starting IDs. """
         validIDSymbols="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len(validIDSymbols)
         questions = []
@@ -419,7 +420,7 @@ class Image(db.Model):
     @staticmethod
     def getByName(filename):
         images = None
-        images = Question.query.filter_by(name=filename)
+        images = Image.query.filter_by(name=filename)
         if ((images == None) or (images.count()==0)):
             flash("Couldn't find any images in the database with filename: %s" % filename)
             return None
@@ -432,43 +433,3 @@ class Image(db.Model):
 
     def __str__(self):
         return "Image #%d (size=%d): %s" % (self.id, len(self.data), self.name)
-    
-
-def convertToHTML(text):
-    import flask
-    result = ""
-    if text:
-        for line in text.split('\n'):
-            result += flask.Markup.escape(line) + flask.Markup('<br />')
-        result = result[:-6]
-    return result
-
-import config
-from Crypto.Cipher import AES
-from Crypto import Random
-
-import doctest
-
-def encrypt(message):
-    ''' Encrypt a 16-byte, length-prefixed, padded message using AES.
-        Returned message is base64 encoded. ''' 
-    iv = Random.new().read(AES.block_size)
-    OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
-    numToPad = 16 - ( len(message) + 4 ) % 16
-    paddedMessage = "%04d%s%s" % (len(message),message,config.PADDING[:numToPad])
-    encryptedMessage = OBJ.encrypt(paddedMessage)
-    return(base64.b64encode(encryptedMessage),base64.b64encode(iv))
-
-def decrypt(b64Message, IV):
-    ''' Decode a base64 message using AES. Returned is original message minus the padding,
-        which is checked for integrity (the length is also a prefix integrity checker)  '''
-    iv = base64.b64decode(IV)
-    OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
-    message = base64.b64decode(b64Message)
-    paddedMessage = OBJ.decrypt(message)
-    messageLen = int(paddedMessage[:4])
-    numToPad = 16 - ( messageLen + 4 ) % 16
-    message = paddedMessage[4:messageLen+4]
-    if (paddedMessage[messageLen+4:] != config.PADDING[:numToPad]):
-        return "INVALID PADDING"
-    return(message)

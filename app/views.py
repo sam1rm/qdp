@@ -1,12 +1,13 @@
 from app import app, db, lm, login_serializer
 from app.forms import QuestionForm, ReviewQuestionForm
-from app.models import User, Role, ClassInfo, Question
+from app.models import User, Role, ClassInfo, Question, Image
 import datetime
 from flask import render_template, flash, redirect, session, url_for, request, g
 from flask.ext.login import current_user, login_required
 from flask.ext.principal import Permission, RoleNeed, UserNeed, identity_loaded
 from flask.ext.security import SQLAlchemyUserDatastore
 import random
+from utils import readTempFile, writeTempFile
 
 g_CachedQuestions=[]
 
@@ -18,27 +19,19 @@ admin_permission = Permission(RoleNeed('admin'))
 @login_required
 @user_permission.require()
 def index():
-    ''' Top level site location. Displays additional buttons for admin: Verify users (if there
-        are any), and provide additional administration. '''
+    """ Top level site location. Displays additional buttons for admin: Verify users (if there
+        are any), and provide additional administration. """
     user = g.user
     if user.is_verified():
-        import os
-        os.mkdir("tmp")
-        flash(os.path.exists("tmp"))
-        fref=open("tmp/test.txt","w")
-        fref.write("foo!bar!\n")
-        fref.close()
-        flash(os.getcwd())
-        fref=open("tmp/test.txt","r")
-        data=fref.read()
-        fref.close()
-        flash(data)
+        image = Image.getByName("9c.3.1.gif")
+        imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
         imageFileURL = url_for('static', filename='img/possibly47abc.png')
         return render_template('index.html',
             user = user,
             isAdmin = user.is_admin(),
             hasUnverifiedUsers = (user.is_admin() and User.hasUnverifiedUsers()),    # redundant on purpose
-            help = 'helpMain')
+            help = 'helpMain',
+            imageToDisplay = imageToDisplayPath)
     else:
         return redirect(url_for('unverifiedUser'))
         
@@ -46,8 +39,8 @@ def index():
 @login_required
 @user_permission.require()
 def helpMain():
-    ''' Help page associated with the main page.
-        TODO: Make help dynamic (e.g. __page__Help.html)'''
+    """ Help page associated with the main page.
+        TODO: Make help dynamic (e.g. __page__Help.html)"""
     return render_template('helpMain.html')
 
 ############
@@ -58,7 +51,7 @@ def helpMain():
 @login_required
 @user_permission.require()
 def chooseClass():
-    ''' "Funneling" location to chose a class for a specific mode (write, edit, review) '''
+    """ "Funneling" location to chose a class for a specific mode (write, edit, review) """
     argMode = request.args.get('mode')
     if argMode:
         session['mode']=argMode
@@ -71,9 +64,9 @@ def chooseClass():
 @login_required
 @user_permission.require()
 def chooseQuestionToEdit():
-    ''' Primary point for editing a question which begins with choosing questions that 
+    """ Primary point for editing a question which begins with choosing questions that 
         exist for a previously chosen class.
-        TODO: Allow admins to edit _all_ questions. '''
+        TODO: Allow admins to edit _all_ questions. """
     if session['classAbbr']:
         classInfo = ClassInfo.get(session['classAbbr'])
         questions=[]
@@ -92,8 +85,8 @@ def chooseQuestionToEdit():
 @login_required
 @admin_permission.require()
 def chooseQuiz():
-    ''' Choose from existing unique quiz numbers available
-        TODO: Super-inefficient, but tries to cache questions for a generated quiz... '''
+    """ Choose from existing unique quiz numbers available
+        TODO: Super-inefficient, but tries to cache questions for a generated quiz... """
     assert session['classAbbr'],"Couldn't find previous classAbbr (ClassInfo)"
     classInfo = ClassInfo.get(session['classAbbr'])
     global g_CachedQuestions
@@ -111,7 +104,7 @@ def chooseQuiz():
 @login_required
 @user_permission.require()
 def choseClass():
-    ''' Once a class is chosen (above), redirect to the mode's page (etc. 'write'->editQuestion()) '''
+    """ Once a class is chosen (above), redirect to the mode's page (etc. 'write'->editQuestion()) """
     if 'mode' in session:
         argForClass = request.args.get('classAbbr')
         session['classAbbr']=argForClass
@@ -190,8 +183,8 @@ def editQuestion():
 @login_required
 @user_permission.require()
 def requestReviewQuestion():
-    ''' Retrieve a question that's been least reviewed for a chosen class.
-        Least reviewed is found by looking for 0, 1, 2, etc. up to 10 prior reviews.'''
+    """ Retrieve a question that's been least reviewed for a chosen class.
+        Least reviewed is found by looking for 0, 1, 2, etc. up to 10 prior reviews."""
     if session['classAbbr']:
         classInfo = ClassInfo.get(session['classAbbr'])
         if (Question.query.filter(Question.classAbbr == session['classAbbr']).count()>0):
@@ -219,9 +212,9 @@ def requestReviewQuestion():
 @login_required
 @user_permission.require()
 def reviewQuestion():
-    ''' Handler for the "Review question" functionality. Redisplays the original question text as
+    """ Handler for the "Review question" functionality. Redisplays the original question text as
         uneditable and includes comment sections.
-        TODO: Show/hide comment sections''' 
+        TODO: Show/hide comment sections""" 
     if session['classAbbr']:
         classInfo = ClassInfo.get(session['classAbbr'])
         # Handle a question review form
