@@ -345,6 +345,9 @@ def currentUserFirstName():
 @admin_permission.require()
 def testing():
     import os
+    image = Image.getByName("9c.3.1.gif")
+    assert image,"Couldn't find image \"9c.3.1.gif\"??"
+    imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
     if False:
         image = Image.getByName("9c.3.1.gif")
         assert image,"Couldn't find image \"9c.3.1.gif\"??"
@@ -355,7 +358,7 @@ def testing():
         flash(imageToDisplayPath)
         return render_template("testing.html", imageToDisplay = imageToDisplayPath)
     else:
-        messages = []
+        messages = ["Testing..."]
         for root, dirs, files in os.walk(".", topdown=True, onerror=None, followlinks=False):
             for dir in dirs:
                 if dir[0] != '.':
