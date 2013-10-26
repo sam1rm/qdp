@@ -23,6 +23,8 @@ def index():
     user = g.user
     if user.is_verified():
         import os
+        os.mkdir("tmp")
+        flash(os.path.exists("tmp"))
         fref=open("tmp/test.txt","w")
         fref.write("foo!bar!\n")
         fref.close()
