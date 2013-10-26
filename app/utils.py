@@ -12,9 +12,9 @@ def writeTempFile(filename,data):
     /tmp/test.txt
     ("DON'T PANIC!", '/tmp/test.txt')
     """
-    if ( os.path.exists("tmp") == False ):
-        os.mkdir("tmp")
-    path = "tmp/"+filename
+    if ( os.path.exists("/tmp") == False ):
+        os.mkdir("/tmp")
+    path = "/tmp/"+filename
     fref = open(path,"wb")
     fref.write(data)
     fref.close()
@@ -22,7 +22,7 @@ def writeTempFile(filename,data):
     
 def readTempFile(filename):
     """ Read some data from a temporary file. (See sister-function "write" for more info and tests) """
-    path = "tmp/"+filename
+    path = "/tmp/"+filename
     fref=open(path,"rb")
     data=fref.read()
     fref.close()
