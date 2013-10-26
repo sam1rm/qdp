@@ -330,7 +330,7 @@ def adminDatabaseReset():
 def adminTesting():
     import os
     messages=[]
-    if False:
+    if True:
         image = Image.getByName("9c.3.1.gif")
         assert image,"Couldn't find image \"9c.3.1.gif\"??"
         imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
