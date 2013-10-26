@@ -22,10 +22,16 @@
     <div class='code'>
       <div class="highlight"><pre><span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">config</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">Crypto.Cipher</span> <span class="kn">import</span> <span class="n">AES</span>
-<span class="kn">from</span> <span class="nn">Crypto</span> <span class="kn">import</span> <span class="n">Random</span></pre></div>
+<span class="kn">from</span> <span class="nn">Crypto</span> <span class="kn">import</span> <span class="n">Random</span>
+
+<span class="kn">import</span> <span class="nn">flask</span>
+
+<span class="n">TMP_PATH</span> <span class="o">=</span> <span class="s">&quot;/tmp&quot;</span>
+<span class="n">IMAGE_REGEX</span> <span class="o">=</span> <span class="s">r&quot;\[\[(.*?)\]\]&quot;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -56,9 +62,9 @@ tmp/test.txt
 </blockquote>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&quot;/tmp&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span> <span class="p">):</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s">&quot;/tmp&quot;</span><span class="p">)</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="s">&quot;/tmp/&quot;</span><span class="o">+</span><span class="n">filename</span>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">TMP_PATH</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span> <span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">TMP_PATH</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">TMP_PATH</span><span class="o">+</span><span class="s">&quot;/&quot;</span><span class="o">+</span><span class="n">filename</span>
     <span class="n">fref</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="s">&quot;wb&quot;</span><span class="p">)</span>
     <span class="n">fref</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -86,7 +92,7 @@ tmp/test.txt
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">path</span> <span class="o">=</span> <span class="s">&quot;/tmp/&quot;</span><span class="o">+</span><span class="n">filename</span>
+      <div class="highlight"><pre>    <span class="n">path</span> <span class="o">=</span> <span class="n">TMP_PATH</span><span class="o">+</span><span class="s">&quot;/&quot;</span><span class="o">+</span><span class="n">filename</span>
     <span class="n">fref</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="s">&quot;rb&quot;</span><span class="p">)</span>
     <span class="n">data</span><span class="o">=</span><span class="n">fref</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
     <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -99,10 +105,10 @@ tmp/test.txt
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
-      <p>Simple convert some text into HTML code .. mostly a stub to decorate later,</p>
+      <p>Turn a filename request (e.g. tmp/image.jpg) into a valid request with the proper MIME type.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">convertToHTML</span><span class="p">(</span><span class="n">text</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">makeTempFileResp</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -111,8 +117,101 @@ tmp/test.txt
       <div class='octowrap'>
         <a class='octothorpe' href='#section-6'>#</a>
       </div>
-      <p>but does add <br />'s correctly to text which contains a newline (necessary
-   to display textfield text correctly.</p>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">make_response</span><span class="p">,</span> <span class="n">render_template</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">TMP_PATH</span><span class="o">+</span><span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">filename</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">fref</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span><span class="s">&quot;rb&quot;</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">fref</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span><span class="o">==</span><span class="s">&quot;GIF&quot;</span><span class="p">):</span>
+            <span class="n">resp</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s">&quot;image/GIF&quot;</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span><span class="o">==</span><span class="s">&quot;JFIF&quot;</span><span class="p">):</span>
+            <span class="n">resp</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s">&quot;image/JPEG&quot;</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&#39;Unable to open file for reading in makeTempFileResp: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">path</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="n">render_template</span><span class="p">(</span><span class="s">&#39;404.shtml&#39;</span><span class="p">),</span> <span class="mi">404</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">resp</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>Replaces <a href="filename.html">filename</a> with <img src="filename">, and returns the file names of the images to be cached (can't do it here because we need Image (which needs this file))</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">replaceImageTags</span><span class="p">(</span><span class="n">text</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>TODO: Make this more efficient during <img> replacement by searching from replacement forward.</p>
+<blockquote>
+<blockquote>
+<p>print replaceImageTags("this is a test")
+Markup(u'this is a test'), set([]))
+print replaceImageTags("this is <a href="filename.html">filename.ext</a> a test")
+Markup(u'this is <img src="/tmp/filename.ext"> a test'), set(['filename.ext']))
+print replaceImageTags("this is [filename.ext]] another [<a href="filename.ext]]%20another%20[[filename2.html">filename2.ext2</a> test")
+Markup(u'this is <img src="/tmp/filename.ext"> another <img src="/tmp/filename2.ext2"> test'), set(['filename2.ext2', 'filename.ext']))
+print replaceImageTags(flask.Markup("this is <a href="filename.html">filename.ext</a> a test"))
+Markup(u'this is <img src="/tmp/filename.ext"> a test'), set([u'filename.ext']))
+print replaceImageTags(flask.Markup("this is <a href="filename.html">filename.ext</a> a <br />"))
+Markup(u'this is <img src="/tmp/filename.ext"> a <br />'), set([u'filename.ext']))
+print replaceImageTags(flask.Markup("this is <a href="filename.html">filename.ext</a> a &amp;"))
+Markup(u'this is <img src="/tmp/filename.ext"> a &amp;'), set([u'filename.ext']))
+print replaceImageTags(flask.Markup("this is [filename1.ext]] &amp; [<a href="filename1.ext]]%20&amp;amp;%20[[filename2.html">filename2.ext</a> test"))
+Markup(u'this is <img src="/tmp/filename1.ext"> &amp; <img src="/tmp/filename2.ext"> test'), set([u'filename1.ext', u'filename2.ext']))</p>
+</blockquote>
+</blockquote>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">))):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="o">.</span><span class="n">unescape</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:]</span>
+    <span class="n">imagesToCache</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">if</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">imageRegExPat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">IMAGE_REGEX</span><span class="p">)</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">imageRegExPat</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">imagesToCache</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[:</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">0</span><span class="p">)]</span><span class="o">+</span><span class="s">&#39;&lt;img src=&quot;&#39;</span><span class="o">+</span><span class="n">TMP_PATH</span><span class="o">+</span><span class="s">&#39;/&#39;</span><span class="o">+</span><span class="n">filename</span><span class="o">+</span><span class="s">&#39;&quot;&gt;&#39;</span><span class="o">+</span><span class="n">result</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">(</span><span class="mi">0</span><span class="p">):]</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">imageRegExPat</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">imagesToCache</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>Simple convert some text into HTML code .. dds <br />'s correctly to text which contains</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">convertToHTML</span><span class="p">(</span><span class="n">text</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>a newline (necessary to display multi-line text correctly).</p>
 <blockquote>
 <blockquote>
 <p>print convertToHTML("test")
@@ -123,8 +222,7 @@ his<br />is<br />a<br />test.</p>
 </blockquote>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="kn">import</span> <span class="nn">flask</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+      <div class="highlight"><pre>    <span class="n">result</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
     <span class="k">if</span> <span class="n">text</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">):</span>
             <span class="n">result</span> <span class="o">+=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">+</span> <span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="p">(</span><span class="s">&#39;&lt;br /&gt;&#39;</span><span class="p">)</span>
@@ -133,10 +231,10 @@ his<br />is<br />a<br />test.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-7'>
+  <div class='section' id='section-11'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <p>Encrypt a 16-byte, length-prefixed, padded message using AES.</p>
     </div>
@@ -145,10 +243,10 @@ his<br />is<br />a<br />test.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-8'>
+  <div class='section' id='section-12'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
+        <a class='octothorpe' href='#section-12'>#</a>
       </div>
       <p>Returned message is base64 encoded.</p>
 <blockquote>
@@ -168,10 +266,10 @@ this is a test'</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-13'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-13'>#</a>
       </div>
       <p>Decode a base64 message using AES. Returned is original message minus the padding,</p>
     </div>
@@ -180,18 +278,24 @@ this is a test'</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-10'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-10'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <p>which is checked for integrity (the length is also a prefix integrity checker) 
    (see sister function encrypt for tests). """
-v = base64.b64decode(IV)
+ry:
+   iv = base64.b64decode(IV)
+xcept TypeError as ex:
+   return "INVALID IV"
 BJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
 essage = base64.b64decode(b64Message)
 addedMessage = OBJ.decrypt(message)
-essageLen = int(paddedMessage[:4])
+ry:
+   messageLen = int(paddedMessage[:4])
+xcept ValueError as ex:
+   return "INVALID LENGTH"
 umToPad = 16 - ( messageLen + 4 ) % 16
 essage = paddedMessage[4:messageLen+4]
 f (paddedMessage[messageLen+4:] != config.PADDING[:numToPad]):

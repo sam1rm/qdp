@@ -27,7 +27,7 @@
 <span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">UserMixin</span><span class="p">,</span> <span class="n">RoleMixin</span>
 <span class="kn">from</span> <span class="nn">werkzeug</span> <span class="kn">import</span> <span class="n">generate_password_hash</span><span class="p">,</span> <span class="n">check_password_hash</span>
 
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">decrypt</span><span class="p">,</span> <span class="n">encrypt</span><span class="p">,</span> <span class="n">convertToHTML</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">decrypt</span><span class="p">,</span> <span class="n">encrypt</span><span class="p">,</span> <span class="n">convertToHTML</span><span class="p">,</span> <span class="n">replaceImageTags</span><span class="p">,</span> <span class="n">readTempFile</span><span class="p">,</span> <span class="n">writeTempFile</span>
   
 <span class="n">roles_users</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="s">&#39;roles_users&#39;</span><span class="p">,</span>
         <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;users_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.id&#39;</span><span class="p">)),</span>
@@ -351,7 +351,8 @@
       <p>Relationships with other models</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">reviewers</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">relationship</span><span class="p">(</span><span class="s">&#39;User&#39;</span><span class="p">,</span> <span class="n">secondary</span> <span class="o">=</span> <span class="n">users_questions</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backref</span><span class="p">(</span><span class="s">&#39;reviewers&#39;</span><span class="p">,</span> <span class="n">lazy</span> <span class="o">=</span> <span class="s">&#39;dynamic&#39;</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">reviewers</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">relationship</span><span class="p">(</span><span class="s">&#39;User&#39;</span><span class="p">,</span> <span class="n">secondary</span> <span class="o">=</span> <span class="n">users_questions</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backref</span><span class="p">(</span><span class="s">&#39;reviewers&#39;</span><span class="p">,</span> <span class="n">lazy</span> <span class="o">=</span> <span class="s">&#39;dynamic&#39;</span><span class="p">))</span>
+    <span class="n">isOKFlags</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -520,8 +521,27 @@ f ((questionOnly == None) or (questionOnly == False)):
        self.hintsComments = decrypt(self.hintsComments,self.hintsCommentsIV)
    if self.answerComments:
        self.answerComments = decrypt(self.answerComments,self.answerCommentsIV)</p>
+<p>ddReviewer(self, user, isOKFlag, maxReviewers):
+f (self.isOKFlags == None):    # Initialize flags if none have been set
+   self.isOKFlags = 0
+ry:
+   userIndex = self.reviewers.index(user)
+xcept ValueError as ex:
+   if (len(self.reviewers)==maxReviewers): # Shift out earliest reviewer and 
+       discardedUser = self.reviewers[0]
+       self.reviewers = self.reviewers[1:]
+       print "DISCARDED (overflow) REVIEWER: %s" % discardedUser
+       self.isOKFlags = self.isOKFlags &gt;&gt; 1
+       userIndex = 2
+   else:
+       userIndex = len(self.reviewers)
+elf.isOKFlags = self.isOKFlags &amp; ~(1&lt;<userIndex) | isOKFlag<<userIndex # Set (or clear) the corresponding isOKFlag
+f (userIndex >= len(self.reviewers)):
+   self.reviewers.append(user)
+lse:
+   self.reviewers[userIndex] = user</p>
 <p>icmethod
-etachAndDecryptQuestionText(question, questionOnly = False, commentsOnly = False):
+opyAndDecryptText(question, questionOnly = False, commentsOnly = False):
 Decrypt all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
@@ -553,30 +573,33 @@ Decrypt all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>        <span class="n">convertedQuestion</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
+        <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
         <span class="k">if</span> <span class="p">((</span><span class="n">commentsOnly</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">commentsOnly</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">))</span>
         <span class="k">if</span> <span class="p">((</span><span class="n">questionOnly</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">questionOnly</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span> <span class="o">=</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">)</span>
+                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">imagesToCache</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">getAndCacheByName</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>                        
         <span class="k">return</span> <span class="n">convertedQuestion</span></pre></div>
     </div>
   </div>
@@ -641,7 +664,7 @@ uizQuestions = []
 questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
 or question in cachedQuestions:
    if (question.quiz == quizNumber):
-       markedUpQuestion = Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question,questionOnly=True))
+       markedUpQuestion = Question.addMarkupToQuestionText(Question.copyAndDecryptText(question,questionOnly=True))
        quizQuestions.append(markedUpQuestion)
        if (len(quizQuestions)&gt;5):
            break
@@ -655,7 +678,7 @@ Generate final exam # for a class, using previously cached questions (caller is 
 <span class="s">        examQuestions = []</span>
 <span class="s">#DIVIDER</span>
 <span class="s">        for question in cachedQuestions:</span>
-<span class="s">            markedUpQuestion = Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question,questionOnly=True))</span>
+<span class="s">            markedUpQuestion = Question.addMarkupToQuestionText(Question.copyAndDecryptText(question,questionOnly=True))</span>
 <span class="s">            examQuestions.append(markedUpQuestion)</span>
 <span class="s">            if (len(examQuestions)&gt;5):</span>
 <span class="s">                break</span>
@@ -696,7 +719,7 @@ Generate final exam # for a class, using previously cached questions (caller is 
                     <span class="n">questionClassID</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="o">+</span> <span class="n">questionNumber</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">getUsingClassID</span><span class="p">(</span><span class="n">questionClassID</span><span class="p">)</span>
-                        <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">detachAndDecryptQuestionText</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">copyAndDecryptText</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">addMarkupToQuestionTextToo</span><span class="p">:</span>
                             <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">addMarkupToQuestionText</span><span class="p">(</span><span class="n">decryptedQuestion</span><span class="p">,</span> <span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
                         <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decryptedQuestion</span><span class="p">)</span>
@@ -755,10 +778,7 @@ etQuestionsFromID(idSymbols, addMarkupToQuestionTextToo):
 Retrieve quiz question from an ID. Question IDs in the database</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Image</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">80</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">LargeBinary</span><span class="p">(</span><span class="mi">4096</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Image</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -766,6 +786,20 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">80</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">LargeBinary</span><span class="p">(</span><span class="mi">4096</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       
     </div>
@@ -779,7 +813,22 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
             <span class="k">return</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Found more than one image (</span><span class="si">%d</span><span class="s">) in the database with filename: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">images</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>    
+        <span class="k">return</span> <span class="n">images</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>  
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getAndCacheByName</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">readTempFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">data</span> <span class="o">==</span> <span class="bp">None</span><span class="p">):</span>    
+            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">getByName</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">image</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">data</span>
+                <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">writeTempFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">path</span>
   
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s">&#39;&lt;Image </span><span class="si">%r</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
@@ -791,24 +840,12 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-35'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
   <div class='section' id='section-36'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-36'>#</a>
       </div>
-      
+      <p>Class to encapsulate the storage and retrieval of images from the database.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -819,6 +856,18 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-38'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-38'>#</a>
       </div>
       
     </div>

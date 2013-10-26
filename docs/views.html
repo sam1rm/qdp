@@ -29,7 +29,7 @@
 <span class="kn">from</span> <span class="nn">flask.ext.principal</span> <span class="kn">import</span> <span class="n">Permission</span><span class="p">,</span> <span class="n">RoleNeed</span><span class="p">,</span> <span class="n">UserNeed</span><span class="p">,</span> <span class="n">identity_loaded</span>
 <span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">SQLAlchemyUserDatastore</span>
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">readTempFile</span><span class="p">,</span> <span class="n">writeTempFile</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">readTempFile</span><span class="p">,</span> <span class="n">writeTempFile</span><span class="p">,</span> <span class="n">makeTempFileResp</span>
 
 <span class="n">g_CachedQuestions</span><span class="o">=</span><span class="p">[]</span></pre></div>
     </div>
@@ -313,23 +313,27 @@ Choose from existing unique quiz numbers available</p>
 <span class="s">            form = ReviewQuestionForm(request.form, question)</span>
 <span class="s">            if request.method == &#39;POST&#39;:</span>
 <span class="s">                form.populate_obj(question)</span>
-<span class="s">                if (g.user not in question.reviewers):</span>
-<span class="s">                    question.reviewers.append(g.user)</span>
 <span class="s">                question.modified = datetime.datetime.now()</span>
 <span class="s">                question.encryptQuestionText(commentsOnly = True)</span>
 <span class="s">                if (request.form[&#39;button&#39;] == &#39;needswork&#39;):</span>
+<span class="s">                    question.addReviewer(g.user,False,app.config[&#39;REVIEWS_BEFORE_OK_TO_USE&#39;])</span>
 <span class="s">                    db.session.commit()</span>
 <span class="s">                    return redirect(url_for(&quot;requestReviewQuestion&quot;))</span>
 <span class="s">                else:</span>
+<span class="s">                    question.addReviewer(g.user,True,app.config[&#39;REVIEWS_BEFORE_OK_TO_USE&#39;])</span>
 <span class="s">                    if form.validate():            </span>
 <span class="s">                        db.session.merge(question)</span>
 <span class="s">                        db.session.commit()</span>
 <span class="s">                        return redirect(url_for(&quot;requestReviewQuestion&quot;))</span>
 <span class="s">                    else:</span>
 <span class="s">                        flash(&#39;There was a problem handling the form POST for Question ID:</span><span class="si">%d</span><span class="s">&#39;%(question.id))</span>
-<span class="s">            return render_template(&#39;reviewQuestion.html&#39;, form=form, similarQuestionsToDisplay = similarQuestions,                                                          </span><span class="se">\</span>
-<span class="s">                                   questionToDisplay=Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question, questionOnly=True)),  </span><span class="se">\</span>
-<span class="s">                                   title=&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;%(session[&#39;mode&#39;],(question.offsetNumberFromClass(classInfo)+1),session[&#39;classAbbr&#39;],classInfo.longName ))</span>
+<span class="s">            reviewersSaidOK = [0] # loop.index starts index at 1</span>
+<span class="s">            for n in range(len(question.reviewers)):</span>
+<span class="s">                reviewersSaidOK.append(question.isOKFlags &amp; 1&lt;&lt;n)</span>
+<span class="s">            return render_template(&#39;reviewQuestion.html&#39;, form=form, similarQuestionsToDisplay = similarQuestions,                                                               </span><span class="se">\</span>
+<span class="s">                                   questionToDisplay=Question.addMarkupToQuestionText(Question.copyAndDecryptText(question, questionOnly=True)),                                 </span><span class="se">\</span>
+<span class="s">                                   title=&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot;%(session[&#39;mode&#39;],(question.offsetNumberFromClass(classInfo)+1),session[&#39;classAbbr&#39;],classInfo.longName),  </span><span class="se">\</span>
+<span class="s">                                                                        reviewersSaidOKToDisplay = reviewersSaidOK )</span>
 <span class="s">        else:</span>
 <span class="s">            flash(&quot;Couldn&#39;t find question ID: </span><span class="si">%s</span><span class="s">??&quot;</span><span class="si">%r</span><span class="s">eviewQuestionIDAsString)</span>
 <span class="s">    else:</span>
@@ -416,28 +420,20 @@ Choose from existing unique quiz numbers available</p>
 <span class="s">def adminTesting():</span>
 <span class="s">    import os</span>
 <span class="s">    messages=[]</span>
-<span class="s">    if True:</span>
-<span class="s">        image = Image.getByName(&quot;9c.3.1.gif&quot;)</span>
-<span class="s">        assert image,&quot;Couldn&#39;t find image </span><span class="se">\&quot;</span><span class="s">9c.3.1.gif</span><span class="se">\&quot;</span><span class="s">??&quot;</span>
-<span class="s">        imageToDisplayPath = writeTempFile(&quot;9c.3.1.gif&quot;,image.data)</span>
-<span class="s">        flash(os.getcwd())</span>
-<span class="s">        assert os.path.exists(imageToDisplayPath), &quot;Path doesn&#39;t exist?? (</span><span class="si">%s</span><span class="s">)&quot; </span><span class="si">% i</span><span class="s">mageToDisplayPath</span>
-<span class="s">        flash(imageToDisplayPath)</span>
-<span class="s">        return render_template(&quot;adminTesting.html&quot;, imageToDisplay = imageToDisplayPath)</span>
-<span class="s">    else:</span>
-<span class="s">        for root, dirs, files in os.walk(&quot;/tmp&quot;, topdown=True, onerror=None, followlinks=False):</span>
-<span class="s">            for dir in dirs:</span>
-<span class="s">                if True:</span>
-<span class="s">#DIVIDER</span>
-<span class="s">                    for file in files:</span>
-<span class="s">                        fullpath = os.path.join(os.path.join(root, dir),file)</span>
-<span class="s">#DIVIDER</span>
-<span class="s">                        messages.append(fullpath)</span>
-<span class="s">                else:</span>
-<span class="s">                    dirs.remove(dir)</span>
-<span class="s">        return render_template(&quot;adminOutput.html&quot;, messagesToDisplay = messages)</span>
+<span class="s">    image1,path1=Image.getAndCacheByName(&quot;9c.3.1.gif&quot;)</span>
+<span class="s">    app.logger.debug(path1)</span>
+<span class="s">    image2,path2=Image.getAndCacheByName(&quot;9c.3.1.jpg&quot;)</span>
+<span class="s">    app.logger.debug(path2)</span>
+<span class="s">    return render_template(&quot;adminTesting.html&quot;, imagesToDisplay = [&quot;/tmp/9c.3.1.gif&quot;,&quot;/tmp/9c.3.1.jpg&quot;])</span>
 <span class="s">#DIVIDER</span>
 
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route(&quot;/tmp/&lt;path:path&gt;&quot;)</span>
+<span class="s">def tempPath(path):</span>
+<span class="s">    &#39;&#39;&#39; Shiv (to utils) to handle tmp/FILE URL requests. &#39;&#39;&#39;</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    resp = makeTempFileResp(path)</span>
+<span class="s">    return resp</span>
 <span class="s">#DIVIDER</span>
 <span class="s">def currentUserFirstName():</span>
 <span class="s">    if g.user:</span>
@@ -674,7 +670,9 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <div class='octowrap'>
         <a class='octothorpe' href='#section-20'>#</a>
       </div>
-      <p>if dir[0] != '.':</p>
+      <h6></h6>
+<p>UTILITES #</p>
+<h6></h6>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -686,7 +684,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <div class='octowrap'>
         <a class='octothorpe' href='#section-21'>#</a>
       </div>
-      <p>app.logger.debug(fullpath)</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -698,9 +696,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <div class='octowrap'>
         <a class='octothorpe' href='#section-22'>#</a>
       </div>
-      <h6></h6>
-<p>UTILITES #</p>
-<h6></h6>
+      <p>app.logger.debug(path)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

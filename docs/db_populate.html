@@ -89,27 +89,27 @@
       <p>print password</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="n">user</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;headcrash@berkeley.edu&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Glenn Sugden&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+      <div class="highlight"><pre><span class="n">user1</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;headcrash@berkeley.edu&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Glenn Sugden&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
 
-<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
-<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span>
+<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user1</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
+<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user1</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span>
 
-<span class="n">user</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;carolm@EECS.berkeley.edu&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Carol Marshall&quot;</span><span class="p">)</span>
+<span class="n">user2</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;carolm@EECS.berkeley.edu&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Carol Marshall&quot;</span><span class="p">)</span>
 
-<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
-<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span>
+<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user2</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
+<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user2</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span>
 
-<span class="n">user</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;user@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe User&quot;</span><span class="p">)</span>
+<span class="n">user3</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;user@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe User&quot;</span><span class="p">)</span>
 
-<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
+<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user3</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
 
-<span class="n">user</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;arie.coach@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Arie Meir&quot;</span><span class="p">)</span>
+<span class="n">user4</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;arie.coach@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Arie Meir&quot;</span><span class="p">)</span>
 
-<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
+<span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user4</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
 
-<span class="n">user</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;unverified@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Unverified User&quot;</span><span class="p">)</span>
+<span class="n">user5</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;unverified@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Unverified User&quot;</span><span class="p">)</span>
 
-<span class="n">user</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;hack666@gmail.com&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Hacker&quot;</span><span class="p">)</span></pre></div>
+<span class="n">user6</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;hack666@gmail.com&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Hacker&quot;</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -163,15 +163,7 @@
 <h6></h6>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="n">path</span> <span class="o">=</span> <span class="s">&quot;db_populate_images/&quot;</span>
-<span class="n">filename</span> <span class="o">=</span> <span class="s">&quot;9c.3.1.gif&quot;</span>
-<span class="n">imageDataFileRef</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="n">filename</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">imageDataFileRef</span><span class="p">,</span><span class="s">&quot;Can&#39;t find </span><span class="si">%s</span><span class="s">??&quot;</span><span class="o">%</span><span class="n">path</span><span class="o">+</span><span class="n">filename</span>
-<span class="n">imageData</span> <span class="o">=</span> <span class="n">imageDataFileRef</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-<span class="k">assert</span> <span class="n">imageData</span><span class="p">,</span><span class="s">&quot;Image (</span><span class="si">%s</span><span class="s">) is empty??&quot;</span><span class="o">%</span><span class="n">path</span><span class="o">+</span><span class="n">filename</span>
-<span class="n">imageDataFileRef</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span> <span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">imageData</span> <span class="p">)</span>
-<span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">image</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -179,6 +171,29 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">add_image</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="s">&quot;db_populate_images/&quot;</span>
+    <span class="n">imageDataFileRef</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">+</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">imageDataFileRef</span><span class="p">,</span><span class="s">&quot;Can&#39;t find </span><span class="si">%s</span><span class="s">??&quot;</span><span class="o">%</span><span class="n">path</span><span class="o">+</span><span class="n">filename</span>
+    <span class="n">imageData</span> <span class="o">=</span> <span class="n">imageDataFileRef</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">imageData</span><span class="p">,</span><span class="s">&quot;Image (</span><span class="si">%s</span><span class="s">) is empty??&quot;</span><span class="o">%</span><span class="n">path</span><span class="o">+</span><span class="n">filename</span>
+    <span class="n">imageDataFileRef</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span> <span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">imageData</span> <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+<span class="n">add_image</span><span class="p">(</span><span class="s">&quot;9c.3.1.gif&quot;</span><span class="p">)</span>
+<span class="n">add_image</span><span class="p">(</span><span class="s">&quot;9c.3.1.jpg&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <h6></h6>
 <p>9C : C #</p>
@@ -192,25 +207,25 @@
 <span class="n">encryptedAnswer</span><span class="p">,</span> <span class="n">encryptedAnswerIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="s">u&quot;[[9c.3.1.answer.gif]]&quot;</span><span class="p">)</span>
 
 <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">classID</span> <span class="o">=</span> <span class="n">classInfo9C</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> <span class="n">created</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">classInfo9C</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> <span class="n">quiz</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>   \
-    <span class="n">tags</span><span class="o">=</span><span class="n">encryptedTags</span><span class="p">,</span> <span class="n">instructions</span><span class="o">=</span><span class="n">encryptedInstructions</span><span class="p">,</span> <span class="n">question</span> <span class="o">=</span> <span class="n">encryptedQuestion</span><span class="p">,</span> <span class="n">answer</span> <span class="o">=</span> <span class="n">encryptedAnswer</span><span class="p">,</span>                     \
-    <span class="n">tagsIV</span><span class="o">=</span><span class="n">encryptedTagsIV</span><span class="p">,</span> <span class="n">instructionsIV</span><span class="o">=</span><span class="n">encryptedInstructionsIV</span><span class="p">,</span> <span class="n">questionIV</span><span class="o">=</span><span class="n">encryptedQuestionIV</span><span class="p">,</span> <span class="n">answerIV</span> <span class="o">=</span> <span class="n">encryptedAnswerIV</span><span class="p">,</span>       \
-    <span class="n">user_id</span> <span class="o">=</span> <span class="mi">1</span>  <span class="p">)</span>
+    <span class="n">tags</span><span class="o">=</span><span class="n">encryptedTags</span><span class="p">,</span> <span class="n">instructions</span><span class="o">=</span><span class="n">encryptedInstructions</span><span class="p">,</span> <span class="n">question</span> <span class="o">=</span> <span class="n">encryptedQuestion</span><span class="p">,</span> <span class="n">examples</span> <span class="o">=</span> <span class="n">encryptedExample</span><span class="p">,</span>                  \
+    <span class="n">answer</span> <span class="o">=</span> <span class="n">encryptedAnswer</span><span class="p">,</span> <span class="n">tagsIV</span><span class="o">=</span><span class="n">encryptedTagsIV</span><span class="p">,</span> <span class="n">instructionsIV</span><span class="o">=</span><span class="n">encryptedInstructionsIV</span><span class="p">,</span> <span class="n">questionIV</span><span class="o">=</span><span class="n">encryptedQuestionIV</span><span class="p">,</span>           \
+    <span class="n">answerIV</span> <span class="o">=</span> <span class="n">encryptedAnswerIV</span><span class="p">,</span> <span class="n">examplesIV</span> <span class="o">=</span><span class="n">encryptedExampleIV</span><span class="p">,</span>  <span class="n">user_id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">reviewers</span><span class="o">=</span><span class="p">[</span><span class="n">user2</span><span class="p">,</span><span class="n">user3</span><span class="p">,</span><span class="n">user4</span><span class="p">],</span> <span class="n">isOKFlags</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">&lt;&lt;</span><span class="mi">2</span><span class="p">)</span>  <span class="p">)</span>
 
 <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">question</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-10'>#</a>
       </div>
       <h4>+</h4>
 <p>9F : C++ #</p>
 <h6></h6>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="n">encryptedTags</span><span class="p">,</span> <span class="n">encryptedTagsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="s">&quot;uOperators,Expressions&quot;</span><span class="p">)</span>
+      <div class="highlight"><pre><span class="n">encryptedTags</span><span class="p">,</span> <span class="n">encryptedTagsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="s">u&quot;Operators,Expressions&quot;</span><span class="p">)</span>
 <span class="n">encryptedInstructions</span><span class="p">,</span> <span class="n">encryptedInstructionsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="s">u&quot;Circle the correct expression. Assume default meanings for each operator.&quot;</span><span class="p">)</span>
 <span class="n">encryptedQuestion</span><span class="p">,</span> <span class="n">encryptedQuestionIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="s">u&quot;cin &gt;&gt; x or cin &lt;&lt; x</span><span class="se">\n</span><span class="s">cout &lt;&lt; </span><span class="se">\&quot;</span><span class="s">value for n?</span><span class="se">\&quot;</span><span class="s"> or cout &lt;&lt; </span><span class="se">\&#39;</span><span class="s">value for n?</span><span class="se">\&#39;</span><span class="s">&quot;</span><span class="p">)</span>
 <span class="n">encryptedAnswer</span><span class="p">,</span> <span class="n">encryptedAnswerIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="s">u&quot;cin &gt;&gt; x</span><span class="se">\n</span><span class="s">cout &lt;&lt; </span><span class="se">\&quot;</span><span class="s">value for n?</span><span class="se">\&quot;</span><span class="s">&quot;</span><span class="p">)</span>
