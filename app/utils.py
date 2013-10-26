@@ -14,7 +14,7 @@ def writeTempFile(filename,data):
     """
     if ( os.path.exists("tmp") == False ):
         os.mkdir("tmp")
-    path = "tmp/"+filename
+    path = "./"+filename
     fref = open(path,"wb")
     fref.write(data)
     fref.close()
@@ -22,7 +22,7 @@ def writeTempFile(filename,data):
     
 def readTempFile(filename):
     """ Read some data from a temporary file. (See sister-function "write" for more info and tests) """
-    path = "tmp/"+filename
+    path = "./"+filename
     fref=open(path,"rb")
     data=fref.read()
     fref.close()
