@@ -225,23 +225,27 @@ def reviewQuestion():
             form = ReviewQuestionForm(request.form, question)
             if request.method == 'POST':
                 form.populate_obj(question)
-                if (g.user not in question.reviewers):
-                    question.reviewers.append(g.user)
                 question.modified = datetime.datetime.now()
                 question.encryptQuestionText(commentsOnly = True)
                 if (request.form['button'] == 'needswork'):
+                    question.addReviewer(g.user,False,app.config['REVIEWS_BEFORE_OK_TO_USE'])
                     db.session.commit()
                     return redirect(url_for("requestReviewQuestion"))
                 else:
+                    question.addReviewer(g.user,True,app.config['REVIEWS_BEFORE_OK_TO_USE'])
                     if form.validate():            
                         db.session.merge(question)
                         db.session.commit()
                         return redirect(url_for("requestReviewQuestion"))
                     else:
                         flash('There was a problem handling the form POST for Question ID:%d'%(question.id))
-            return render_template('reviewQuestion.html', form=form, similarQuestionsToDisplay = similarQuestions,                                                          \
-                                   questionToDisplay=Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question, questionOnly=True)),  \
-                                   title="%s Question #%d For %s (%s)"%(session['mode'],(question.offsetNumberFromClass(classInfo)+1),session['classAbbr'],classInfo.longName ))
+            reviewersSaidOK = [0] # loop.index starts index at 1
+            for n in range(len(question.reviewers)):
+                reviewersSaidOK.append(question.isOKFlags & 1<<n)
+            return render_template('reviewQuestion.html', form=form, similarQuestionsToDisplay = similarQuestions,                                                               \
+                                   questionToDisplay=Question.addMarkupToQuestionText(Question.copyAndDecryptText(question, questionOnly=True)),                                 \
+                                   title="%s Question #%d For %s (%s)"%(session['mode'],(question.offsetNumberFromClass(classInfo)+1),session['classAbbr'],classInfo.longName),  \
+                                                                        reviewersSaidOKToDisplay = reviewersSaidOK )
         else:
             flash("Couldn't find question ID: %s??"%reviewQuestionIDAsString)
     else:

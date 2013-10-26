@@ -1,4 +1,7 @@
-{% extends "layout.html" %} {% block content %} 
+{% extends "layout.html" %} 
+{% block head %}
+{% endblock %}
+{% block content %} 
 {% if form.errors %}
     <ul class="errors">
         {% for field_name, field_errors in form.errors|dictsort if field_errors %}
@@ -11,103 +14,76 @@
 <table>
     <tr>
         <td width="50%">
-            <form method="post" action="reviewQuestion?questionID={{questionToDisplay.classID}}" class="well span6">
+            <form method="post" action="reviewQuestion?questionID={{questionToDisplay.id}}" class="span6">
                 {{form.hidden_tag()}} 
-                <div class="control-group">
-                    <label class="control-label" for="quiz">
-                        Quiz: 
-                    </label>
+                        <b>Quiz</b>
+                    <hr>
                     {{questionToDisplay.quiz}}
-                </div>
-            <div class="span6">
-                    <label class="control-label" for="code">
-                        Tags: 
-                    </label>
+                <br />
+                <br />
+                        <b>Tags</b>
+                    <hr>
                     {{questionToDisplay.tags}} 
                     {{form.tagsComments(rows=1,cols=100,placeholder="Comments on Tags")}}
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="instructions">
-                        Instructions: 
-                    </label>
+                <br />
+                <br />
+                        <b>Instructions</b>
+                    <hr>
                     {{questionToDisplay.instructions}} 
                     {{form.instructionsComments(rows=2,cols=100,placeholder="Comments on Instructions")}}
-                    <br />
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="question">
-                        Question: 
-                    </label>
+                <br />
+                <br />
+                        <b>Question</b>
+                    <hr>
                     {{questionToDisplay.question}} 
                     {{form.questionComments(rows=2,cols=100,placeholder="Comments on Questions")}}
                     <br />
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="examples">
-                        Examples: 
-                    </label>
+                <br />
+                        <b>Examples</b>
+                    <hr>
                     {{questionToDisplay.examples}} 
                     {{form.examplesComments(rows=2,cols=100,placeholder="Comments on Examples")}}
                     <br />
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="hints">
-                        Hints/Cautions/etc.: 
-                    </label>
+                <br />
+                        <b>Hints/Cautions/etc.</b>
+                    <hr>
                     {{questionToDisplay.hints}} 
                     {{form.hintsComments(rows=2,cols=100,placeholder="Comments on Hints/Cautions/etc.")}}
                     <br />
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="answer">
-                        Answer: 
-                    </label>
+                <br />
+                        <b>Answer</b>
+                    <hr>
                     {{questionToDisplay.answer}} 
                     {{form.answerComments(rows=2,cols=100,placeholder="Comments on Answers")}}
                     <br />
-                </div>
-                <div class="control-group">
+                <br/ >
+                <br />
+                <table table-striped table-hover>
+                    {% for reviewer in questionToDisplay.reviewers %}
+                    <tr><td>
                     <label class="control-label" for="reviewed1">
                         Reviewed by: 
                     </label>
-                {% if questionToDisplay.reviewers[0] %}
-                    {{questionToDisplay.reviewers[0].fullname}} 
-                    &lt;{{questionToDisplay.reviewers[0].email}}&gt;
-                {% else %}
-                    <i>Nobody</i>
-                {% endif %}
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="reviewed2">
-                        Reviewed by: 
-                    </label>
-                {% if questionToDisplay.reviewers[1] %}
-                    {{questionToDisplay.reviewers[1].fullname}} 
-                    &lt;{{questionToDisplay.reviewers[1].email}}&gt;
-                {% else %}
-                    <i>Nobody</i>
-                {% endif %}
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="reviewed3">
-                        Reviewed by: 
-                    </label>
-                {% if questionToDisplay.reviewers[2] %}
-                    {{questionToDisplay.reviewers[2].fullname}} 
-                    &lt;{{questionToDisplay.reviewers[2].email}}&gt;
-                {% else %}
-                    <i>Nobody</i>
-                {% endif %}
-                </div>
+                    {{reviewer.fullname}}
+                    </td><td> 
+                    &lt;{{reviewer.email}}&gt;
+                    </td><td> 
+                    {% if reviewersSaidOKToDisplay[loop.index] %}
+                    <span class="glyphicon glyphicon-ok"></span>
+                    {% else %}
+                    <span class="glyphicon glyphicon-thumbs-down"></span>
+                    {% endif %}
+                    </td></tr>
+                {% endfor %}
+                    </table>
                 <br/ >
-                <div class="control-group">
+                <br />
                     <button type="submit" class="btn btn-success center" name='button' value="good">
                         Looks Good 
                     </button>
                     <button type="submit" class="btn btn-warning center" name='button' value="needswork">
                         Needs Work 
                     </button>
-                </div>
             </form>
         </td>
         <td style="vertical-align:top;" td width="50%">

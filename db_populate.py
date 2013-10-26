@@ -36,27 +36,27 @@ with app.app_context():
     password = encrypt_password('shouldnotbepassword')
     #print password
 
-user = user_datastore.create_user(password=password, email = "headcrash@berkeley.edu", fullname = "Glenn Sugden", confirmed_at=datetime.datetime.now())
+user1 = user_datastore.create_user(password=password, email = "headcrash@berkeley.edu", fullname = "Glenn Sugden", confirmed_at=datetime.datetime.now())
 
-user_datastore.add_role_to_user(user, default_role)
-user_datastore.add_role_to_user(user, admin_role)
+user_datastore.add_role_to_user(user1, default_role)
+user_datastore.add_role_to_user(user1, admin_role)
 
-user = user_datastore.create_user(password=password, email = "carolm@EECS.berkeley.edu", confirmed_at=datetime.datetime.now(), fullname = "Carol Marshall")
+user2 = user_datastore.create_user(password=password, email = "carolm@EECS.berkeley.edu", confirmed_at=datetime.datetime.now(), fullname = "Carol Marshall")
 
-user_datastore.add_role_to_user(user, default_role)
-user_datastore.add_role_to_user(user, admin_role)
+user_datastore.add_role_to_user(user2, default_role)
+user_datastore.add_role_to_user(user2, admin_role)
 
-user = user_datastore.create_user(password=password, email = "user@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Joe User")
+user3 = user_datastore.create_user(password=password, email = "user@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Joe User")
 
-user_datastore.add_role_to_user(user, default_role)
+user_datastore.add_role_to_user(user3, default_role)
 
-user = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")
+user4 = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")
 
-user_datastore.add_role_to_user(user, default_role)
+user_datastore.add_role_to_user(user4, default_role)
 
-user = user_datastore.create_user(password=password, email = "unverified@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Unverified User")
+user5 = user_datastore.create_user(password=password, email = "unverified@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Unverified User")
 
-user = user_datastore.create_user(password=password, email = "hack666@gmail.com", fullname = "Joe Hacker")
+user6 = user_datastore.create_user(password=password, email = "hack666@gmail.com", fullname = "Joe Hacker")
 
 ##############
 # CLASS INFO #
@@ -107,9 +107,9 @@ encryptedExample, encryptedExampleIV = encrypt(u"[[9c.3.1.gif]]")
 encryptedAnswer, encryptedAnswerIV = encrypt(u"[[9c.3.1.answer.gif]]")
 
 question = Question(classID = classInfo9C.startingID, created = datetime.datetime.now(), classAbbr = classInfo9C.classAbbr, quiz = 3,   \
-    tags=encryptedTags, instructions=encryptedInstructions, question = encryptedQuestion, answer = encryptedAnswer,                     \
-    tagsIV=encryptedTagsIV, instructionsIV=encryptedInstructionsIV, questionIV=encryptedQuestionIV, answerIV = encryptedAnswerIV,       \
-    user_id = 1  )
+    tags=encryptedTags, instructions=encryptedInstructions, question = encryptedQuestion, examples = encryptedExample,                  \
+    answer = encryptedAnswer, tagsIV=encryptedTagsIV, instructionsIV=encryptedInstructionsIV, questionIV=encryptedQuestionIV,           \
+    answerIV = encryptedAnswerIV, examplesIV =encryptedExampleIV,  user_id = 1, reviewers=[user2,user3,user4], isOKFlags = (1<<2)  )
 
 db.session.add(question)
 
@@ -117,7 +117,7 @@ db.session.add(question)
 # 9F : C++ #
 ############
 
-encryptedTags, encryptedTagsIV = encrypt("uOperators,Expressions")
+encryptedTags, encryptedTagsIV = encrypt(u"Operators,Expressions")
 encryptedInstructions, encryptedInstructionsIV = encrypt(u"Circle the correct expression. Assume default meanings for each operator.")
 encryptedQuestion, encryptedQuestionIV = encrypt(u"cin >> x or cin << x\ncout << \"value for n?\" or cout << \'value for n?\'")
 encryptedAnswer, encryptedAnswerIV = encrypt(u"cin >> x\ncout << \"value for n?\"")

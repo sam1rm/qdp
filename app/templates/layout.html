@@ -30,9 +30,16 @@
         .margin-base-vertical {
             margin: 40px 0;
         }
+        hr { 
+            color: #666;
+            background-color: #666;
+            height: 1px;
+            margin: 0px 0;
+            border: 0;
+        }
         .upcenter{position:absolute;top:10px;left:30%;margin:0px 0px 0px 0px;padding:0px 0px;}
         .upleft1{position:absolute;top:10px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
-        .upleft2{position:absolute;top:42px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .upleft2{position:absolute;top:48px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
         .upright1{position:absolute;top:10px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
         .upright2{position:absolute;top:42px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
         .upright3{position:absolute;top:58px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
@@ -44,9 +51,9 @@
 <body>
 <div class="page">
 	<h1 class="upleft1">
-		QDP <br />
+		QDP<br />
 	</h1>
-	<span class="lowleft text-muted">Build: {{config['VERSION_NUMBER']}}</span>
+	<span class="upleft2 text-muted">{{config['VERSION_NUMBER']}}</span>
 	<h2 class="upcenter">
 		{{ title }} 
 	</h2>

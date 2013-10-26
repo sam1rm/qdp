@@ -7,19 +7,19 @@
 			</h2>
 			<br /> 
 			<a href="{{ url_for('chooseClass', mode='Write') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
-				<i class="icon-white icon-plus">
+				<i class="glyphicon-white glyphicon-plus">
 				</i>
 				Write 
 			</a>
 			<br /> <br /> 
 			<a href="{{ url_for('chooseClass', mode='Edit') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
-				<i class="icon-white icon-pencil">
+				<i class="glyphicon-white glyphicon-pencil">
 				</i>
 				Edit 
 			</a>
 			<br /> <br /> 
 			<a href="{{ url_for('chooseClass', mode='Review') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
-				<i class="icon-white icon-ok">
+				<i class="glyphicon-white glyphicon-ok">
 				</i>
 				Review 
 			</a>
@@ -29,13 +29,13 @@
 			</h2>
 			<br /> 
 			<a href="{{ url_for('chooseClass', mode='Generate') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
-				<i class="icon-white icon-print">
+				<i class="glyphicon-white glyphicon-print">
 				</i>
 				Generate 
 			</a>
 			<br /> <br /> 
 			<a href="{{ url_for('retrieveQuizOrExam') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
-				<i class="icon-white icon-file">
+				<i class="glyphicon-white glyphicon-file">
 				</i>
 				Retrieve 
 			</a>
@@ -44,7 +44,7 @@
 		{% if hasUnverifiedUsers %} 
 		<td style="vertical-align:center;">
 			<a href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
-				<i class="icon-white icon-file">
+				<i class="glyphicon-white glyphicon-file">
 				</i>
 				Approve Users 
 			</a>
@@ -56,7 +56,7 @@
 			<tr>
 				<td>
 					<a href="{{ url_for('adminDatabaseReset') }}" style="width: 200px; min-width:200px;" class="btn btn-danger btn-large">
-						<i class="icon-white icon-file">
+						<i class="glyphicon-white glyphicon-file">
 						</i>
 						Reset Database 
 					</a>

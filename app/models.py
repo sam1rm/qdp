@@ -5,7 +5,7 @@ from flask import flash
 from flask.ext.security import UserMixin, RoleMixin
 from werkzeug import generate_password_hash, check_password_hash
 
-from utils import decrypt, encrypt, convertToHTML
+from utils import decrypt, encrypt, convertToHTML, replaceImageTags, readTempFile, writeTempFile
   
 roles_users = db.Table('roles_users',
         db.Column('users_id', db.Integer(), db.ForeignKey('user.id')),
@@ -162,6 +162,7 @@ class Question(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     # Relationships with other models
     reviewers = db.relationship('User', secondary = users_questions, backref = db.backref('reviewers', lazy = 'dynamic'))
+    isOKFlags = db.Column(db.Integer)
     
     @staticmethod
     def get(id):
@@ -265,8 +266,28 @@ class Question(db.Model):
             if self.answerComments:
                 self.answerComments = decrypt(self.answerComments,self.answerCommentsIV)
                 
+    def addReviewer(self, user, isOKFlag, maxReviewers):
+        if (self.isOKFlags == None):    # Initialize flags if none have been set
+            self.isOKFlags = 0
+        try:
+            userIndex = self.reviewers.index(user)
+        except ValueError as ex:
+            if (len(self.reviewers)==maxReviewers): # Shift out earliest reviewer and 
+                discardedUser = self.reviewers[0]
+                self.reviewers = self.reviewers[1:]
+                print "DISCARDED (overflow) REVIEWER: %s" % discardedUser
+                self.isOKFlags = self.isOKFlags >> 1
+                userIndex = 2
+            else:
+                userIndex = len(self.reviewers)
+        self.isOKFlags = self.isOKFlags & ~(1<<userIndex) | isOKFlag<<userIndex # Set (or clear) the corresponding isOKFlag
+        if (userIndex >= len(self.reviewers)):
+            self.reviewers.append(user)
+        else:
+            self.reviewers[userIndex] = user
+                
     @staticmethod
-    def detachAndDecryptQuestionText(question, questionOnly = False, commentsOnly = False):
+    def copyAndDecryptText(question, questionOnly = False, commentsOnly = False):
         """ Decrypt all of the question text, including tags and comments. """
         convertedQuestion = copy.copy(question)
         convertedQuestion.decryptQuestionText(questionOnly, commentsOnly)
@@ -276,30 +297,33 @@ class Question(db.Model):
     def addMarkupToQuestionText(question, questionOnly = False, commentsOnly = False):
         """ Add HTML markup to all of the question text, including tags and comments. This is mostly used for \n -> <br /> """
         convertedQuestion = copy.copy(question)
+        overallImagesToCache = set([])
         if ((commentsOnly == None) or (commentsOnly == False)):
             if convertedQuestion.tags:
-                convertedQuestion.tags = convertToHTML(convertedQuestion.tags)
+                convertedQuestion.tags, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.tags))
             if convertedQuestion.instructions:
-                convertedQuestion.instructions = convertToHTML(convertedQuestion.instructions)
+                convertedQuestion.instructions, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.instructions))
             if convertedQuestion.question:
-                convertedQuestion.question = convertToHTML(convertedQuestion.question)
+                convertedQuestion.question, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.question))
             if convertedQuestion.examples:
-                convertedQuestion.examples = convertToHTML(convertedQuestion.examples)
+                convertedQuestion.examples, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.examples))
             if convertedQuestion.hints:
-                convertedQuestion.hints = convertToHTML(convertedQuestion.hints)
+                convertedQuestion.hints, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.hints))
             if convertedQuestion.answer:
-                convertedQuestion.answer = convertToHTML(convertedQuestion.answer)
+                convertedQuestion.answer, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.answer))
         if ((questionOnly == None) or (questionOnly == False)):
             if convertedQuestion.instructionsComments:
-                convertedQuestion.instructionsComments = convertToHTML(convertedQuestion.instructionsComments)
+                convertedQuestion.instructionsComments, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.instructionsComments))
             if convertedQuestion.questionComments:
-                convertedQuestion.questionComments = convertToHTML(convertedQuestion.questionComments)
+                convertedQuestion.questionComments, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.questionComments))
             if convertedQuestion.examplesComments:
-                convertedQuestion.examplesComments = convertToHTML(convertedQuestion.examplesComments)
+                convertedQuestion.examplesComments, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.examplesComments))
             if convertedQuestion.hintsComments:
-                convertedQuestion.hintsComments = convertToHTML(convertedQuestion.hintsComments)
+                convertedQuestion.hintsComments, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.hintsComments))
             if convertedQuestion.answerComments:
-                convertedQuestion.answerComments = convertToHTML(convertedQuestion.answerComments)
+                convertedQuestion.answerComments, imagesToCache = replaceImageTags(convertToHTML(convertedQuestion.answerComments))
+        for filename in imagesToCache:
+            _, _ = Image.getAndCacheByName(filename)                        
         return convertedQuestion
  
     def encryptQuestionText(self, questionOnly = False, commentsOnly = False):
@@ -327,7 +351,7 @@ class Question(db.Model):
         #questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
             if (question.quiz == quizNumber):
-                markedUpQuestion = Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question,questionOnly=True))
+                markedUpQuestion = Question.addMarkupToQuestionText(Question.copyAndDecryptText(question,questionOnly=True))
                 quizQuestions.append(markedUpQuestion)
                 if (len(quizQuestions)>5):
                     break
@@ -340,7 +364,7 @@ class Question(db.Model):
         examQuestions = []
         #questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
-            markedUpQuestion = Question.addMarkupToQuestionText(Question.detachAndDecryptQuestionText(question,questionOnly=True))
+            markedUpQuestion = Question.addMarkupToQuestionText(Question.copyAndDecryptText(question,questionOnly=True))
             examQuestions.append(markedUpQuestion)
             if (len(examQuestions)>5):
                 break
@@ -397,7 +421,7 @@ class Question(db.Model):
                     questionClassID = classInfo.startingID + questionNumber
                     try:
                         question = Question.getUsingClassID(questionClassID)
-                        decryptedQuestion = Question.detachAndDecryptQuestionText(question, questionOnly=True)
+                        decryptedQuestion = Question.copyAndDecryptText(question, questionOnly=True)
                         if addMarkupToQuestionTextToo:
                             decryptedQuestion = Question.addMarkupToQuestionText(decryptedQuestion, questionOnly=True)
                         questions.append(decryptedQuestion)
@@ -431,17 +455,17 @@ class Image(db.Model):
 
     @staticmethod
     def getAndCacheByName(filename):
-        from utils import readTempFile, writeTempFile
+        path = None
         try:
             data, path = readTempFile(filename)
         except IOError as ex:
             data = None
         if (data == None):    
             image = Image.getByName(filename)
-            assert image,"Couldn't find image: %s"%filename
-            data = image.data
-            assert data,"Couldn't find image data: %s"%filename
-        path = writeTempFile(filename,data)
+            if image:
+                data = image.data
+                if data:
+                    path = writeTempFile(filename,data)
         return data, path
   
     def __repr__(self):
