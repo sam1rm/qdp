@@ -23,11 +23,11 @@ def index():
     user = g.user
     if user.is_verified():
         import os
-        fref=open("test.txt","w")
+        fref=open("tmp/test.txt","w")
         fref.write("foo!bar!\n")
         fref.close()
         flash(os.getcwd())
-        fref=open("test.txt","r")
+        fref=open("tmp/test.txt","r")
         data=fref.read()
         fref.close()
         flash(data)
