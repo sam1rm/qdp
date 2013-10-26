@@ -334,7 +334,6 @@ def adminTesting():
         image = Image.getByName("9c.3.1.gif")
         assert image,"Couldn't find image \"9c.3.1.gif\"??"
         imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
-        imageToDisplayPath = os.getcwd() +"/"+ imageToDisplayPath
         flash(os.getcwd())
         assert os.path.exists(imageToDisplayPath), "Path doesn't exist?? (%s)" % imageToDisplayPath
         flash(imageToDisplayPath)

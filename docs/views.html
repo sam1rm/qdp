@@ -408,7 +408,34 @@ Choose from existing unique quiz numbers available</p>
 <span class="s">        entry.currentID = entry.startingID</span>
 <span class="s">    db.session.commit()</span>
 <span class="s">    messageList.append(&quot;...done!&quot;)</span>
-<span class="s">    return render_template(&#39;adminOutput.html&#39;,title=&quot;Admin. - Database Reset&quot;, messagestoDisplay = messageList)</span>
+<span class="s">    return render_template(&#39;adminOutput.html&#39;,title=&quot;Admin. - Database Reset&quot;, messagesToDisplay = messageList)</span>
+
+<span class="s">@app.route(&quot;/adminTesting&quot;)</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def adminTesting():</span>
+<span class="s">    import os</span>
+<span class="s">    messages=[]</span>
+<span class="s">    if True:</span>
+<span class="s">        image = Image.getByName(&quot;9c.3.1.gif&quot;)</span>
+<span class="s">        assert image,&quot;Couldn&#39;t find image </span><span class="se">\&quot;</span><span class="s">9c.3.1.gif</span><span class="se">\&quot;</span><span class="s">??&quot;</span>
+<span class="s">        imageToDisplayPath = writeTempFile(&quot;9c.3.1.gif&quot;,image.data)</span>
+<span class="s">        flash(os.getcwd())</span>
+<span class="s">        assert os.path.exists(imageToDisplayPath), &quot;Path doesn&#39;t exist?? (</span><span class="si">%s</span><span class="s">)&quot; </span><span class="si">% i</span><span class="s">mageToDisplayPath</span>
+<span class="s">        flash(imageToDisplayPath)</span>
+<span class="s">        return render_template(&quot;adminTesting.html&quot;, imageToDisplay = imageToDisplayPath)</span>
+<span class="s">    else:</span>
+<span class="s">        for root, dirs, files in os.walk(&quot;/tmp&quot;, topdown=True, onerror=None, followlinks=False):</span>
+<span class="s">            for dir in dirs:</span>
+<span class="s">                if True:</span>
+<span class="s">#DIVIDER</span>
+<span class="s">                    for file in files:</span>
+<span class="s">                        fullpath = os.path.join(os.path.join(root, dir),file)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">                        messages.append(fullpath)</span>
+<span class="s">                else:</span>
+<span class="s">                    dirs.remove(dir)</span>
+<span class="s">        return render_template(&quot;adminOutput.html&quot;, messagesToDisplay = messages)</span>
 <span class="s">#DIVIDER</span>
 
 <span class="s">#DIVIDER</span>
@@ -419,20 +446,6 @@ Choose from existing unique quiz numbers available</p>
 <span class="s">        else:</span>
 <span class="s">            return &quot;?? anonymous ??&quot;</span>
 <span class="s">    return &quot;?? NO GLOBAL USER ??&quot;</span>
-<span class="s">#DIVIDER</span>
-
-<span class="s">#DIVIDER</span>
-<span class="s">@app.route(&quot;/testing&quot;)</span>
-<span class="s">@login_required</span>
-<span class="s">@admin_permission.require()</span>
-<span class="s">def testing():</span>
-<span class="s">    import os</span>
-<span class="s">    image = Image.getByName(&quot;9c.3.1.gif&quot;)</span>
-<span class="s">    assert image,&quot;Couldn&#39;t find image </span><span class="se">\&quot;</span><span class="s">9c.3.1.gif</span><span class="se">\&quot;</span><span class="s">??&quot;</span>
-<span class="s">    imageToDisplayPath = writeTempFile(&quot;9c.3.1.gif&quot;,image.data)</span>
-<span class="s">    app.logger.debug(imageToDisplayPath)</span>
-<span class="s">    assert os.path.exists(imageToDisplayPath), &quot;Path doesn&#39;t exist?? (</span><span class="si">%s</span><span class="s">)&quot; </span><span class="si">% i</span><span class="s">mageToDisplayPath</span>
-<span class="s">    return render_template(&quot;testing.html&quot;, imageToDisplay = imageToDisplayPath)</span>
 <span class="s">#DIVIDER</span>
 
 <span class="s">#DIVIDER</span>
@@ -661,9 +674,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <div class='octowrap'>
         <a class='octothorpe' href='#section-20'>#</a>
       </div>
-      <h6></h6>
-<p>UTILITES #</p>
-<h6></h6>
+      <p>if dir[0] != '.':</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -675,7 +686,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <div class='octowrap'>
         <a class='octothorpe' href='#section-21'>#</a>
       </div>
-      
+      <p>app.logger.debug(fullpath)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -688,7 +699,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
         <a class='octothorpe' href='#section-22'>#</a>
       </div>
       <h6></h6>
-<p>TESTING #</p>
+<p>UTILITES #</p>
 <h6></h6>
     </div>
     <div class='code'>
