@@ -7,7 +7,7 @@ from flask.ext.login import current_user, login_required
 from flask.ext.principal import Permission, RoleNeed, UserNeed, identity_loaded
 from flask.ext.security import SQLAlchemyUserDatastore
 import random
-from utils import readTempFile, writeTempFile
+from utils import readTempFile, writeTempFile, makeTempFileResp
 
 g_CachedQuestions=[]
 
@@ -330,39 +330,22 @@ def adminDatabaseReset():
 def adminTesting():
     import os
     messages=[]
-    if True:
-        path = writeTempFile("test.txt","TESTING")
-        flash('path: '+path)
-        data, path = readTempFile("test.txt")
-        flash("data: "+data)
-        flash("path: "+path)
-        #flash("url_for: "+url_for("./tmp/test.txt"))
-        image = Image.getByName("9c.3.1.gif")
-        assert image,"Couldn't find image \"9c.3.1.gif\"??"
-        imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
-        flash("os.getcwd(): "+os.getcwd())
-        assert os.path.exists(imageToDisplayPath), "Path doesn't exist?? (%s)" % imageToDisplayPath
-        flash("imageToDisplayPath: "+imageToDisplayPath)
-        data, path = readTempFile("9c.3.1.gif")
-        flash("path: "+path)
-        flash("data[:20]: "+data[:20])
-        return render_template("adminTesting.html", imageToDisplay = imageToDisplayPath)
-    else:
-        for root, dirs, files in os.walk("/tmp", topdown=True, onerror=None, followlinks=False):
-            for dir in dirs:
-                if True:
-                #if dir[0] != '.':
-                    for file in files:
-                        fullpath = os.path.join(os.path.join(root, dir),file)
-                        #app.logger.debug(fullpath)
-                        messages.append(fullpath)
-                else:
-                    dirs.remove(dir)
-        return render_template("adminOutput.html", messagesToDisplay = messages)
+    image1,path1=Image.getAndCacheByName("9c.3.1.gif")
+    app.logger.debug(path1)
+    image2,path2=Image.getAndCacheByName("9c.3.1.jpg")
+    app.logger.debug(path2)
+    return render_template("adminTesting.html", imagesToDisplay = ["/tmp/9c.3.1.gif","/tmp/9c.3.1.jpg"])
 
 ############
 # UTILITES #
 ############
+
+@app.route("/tmp/<path:path>")
+def tempPath(path):
+    ''' Shiv (to utils) to handle tmp/FILE URL requests. '''
+    #app.logger.debug(path)
+    resp = makeTempFileResp(path)
+    return resp
 
 def currentUserFirstName():
     if g.user:

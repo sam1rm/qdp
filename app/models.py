@@ -426,7 +426,19 @@ class Image(db.Model):
             return None
         if (images.count()>1):
             flash("Found more than one image (%d) in the database with filename: %s" % filename)
-        return images.one()    
+        return images.one()  
+
+    @staticmethod
+    def getAndCacheByName(filename):
+        from utils import readTempFile, writeTempFile
+        data, path = readTempFile(filename)
+        if (data == None):    
+            image = Image.getByName(filename)
+            assert image,"Couldn't find image: %s"%filename
+            data = image.data
+            assert data,"Couldn't find image data: %s"%filename
+        path = writeTempFile(filename,data)
+        return data, path
   
     def __repr__(self):
         return '<Image %r>' % (self.id)

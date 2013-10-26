@@ -5,7 +5,7 @@ import os
 from Crypto.Cipher import AES
 from Crypto import Random
 
-TMP_PATH = "./tmp"
+TMP_PATH = "/tmp"
 
 def writeTempFile(filename,data):
     """ Write some data to a temporary file. Used by Image to pull dynamic images from database
@@ -29,6 +29,21 @@ def readTempFile(filename):
     data=fref.read()
     fref.close()
     return data, path
+
+def makeTempFileResp(filename):
+    from flask import make_response
+    path = TMP_PATH+"/" + filename
+    fref=open(path,"rb")
+    data=fref.read()
+    fref.close()
+    resp = make_response(data)
+    if (data[:3]=="GIF"):
+        resp.content_type = "image/GIF"
+    elif (data[4:8]=="JFIF"):
+        resp.content_type = "image/JPEG"
+    else:
+        resp.content_type = ""
+    return resp
 
 def convertToHTML(text):
     """ Simple convert some text into HTML code .. mostly a stub to decorate later,

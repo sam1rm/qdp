@@ -83,15 +83,18 @@ db.session.add(classInfo9H)
 # IMAGES #
 ##########
 
-path = "db_populate_images/"
-filename = "9c.3.1.gif"
-imageDataFileRef = open(path+filename)
-assert imageDataFileRef,"Can't find %s??"%path+filename
-imageData = imageDataFileRef.read()
-assert imageData,"Image (%s) is empty??"%path+filename
-imageDataFileRef.close()
-image = Image( name=filename, data=imageData )
-db.session.add(image)
+def add_image(filename):
+    path = "db_populate_images/"
+    imageDataFileRef = open(path+filename)
+    assert imageDataFileRef,"Can't find %s??"%path+filename
+    imageData = imageDataFileRef.read()
+    assert imageData,"Image (%s) is empty??"%path+filename
+    imageDataFileRef.close()
+    image = Image( name=filename, data=imageData )
+    db.session.add(image)
+
+add_image("9c.3.1.gif")
+add_image("9c.3.1.jpg")
 
 ##########
 # 9C : C #

@@ -1,8 +1,12 @@
 {% extends "layout.html" %} 
 {% block head %}
 {% endblock %}
-{% block content %} 
-{{imageToDisplay}}: <img src="{{imageToDisplay}}">
+{% block content %}
+<ol> 
+{% for imageToDisplay in imagesToDisplay %}
+    <li>{{imageToDisplay}}: <img src="{{imageToDisplay}}"></li>
+{% endfor %}
+ </ol>
 <br />
 <img src="{{ url_for('static', filename='img/possibly47abc.png') }}" height="64" width="64">
 {% endblock %}
