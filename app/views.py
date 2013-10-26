@@ -322,7 +322,41 @@ def adminDatabaseReset():
         entry.currentID = entry.startingID
     db.session.commit()
     messageList.append("...done!")
-    return render_template('adminOutput.html',title="Admin. - Database Reset", messagestoDisplay = messageList)
+    return render_template('adminOutput.html',title="Admin. - Database Reset", messagesToDisplay = messageList)
+
+@app.route("/adminTesting")
+@login_required
+@admin_permission.require()
+def adminTesting():
+    import os
+    tempPath = writeTempFile("testing","foo!bar!")
+    app.logger.debug(tempPath)
+    data = readTempFile("testing")
+    app.logger.debug(data)
+    messages = []
+    image = Image.getByName("9c.3.1.gif")
+    assert image,"Couldn't find image \"9c.3.1.gif\"??"
+    imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
+    if False:
+        image = Image.getByName("9c.3.1.gif")
+        assert image,"Couldn't find image \"9c.3.1.gif\"??"
+        imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
+        imageToDisplayPath = os.getcwd() +"/"+ imageToDisplayPath
+        flash(os.getcwd())
+        assert os.path.exists(imageToDisplayPath), "Path doesn't exist?? (%s)" % imageToDisplayPath
+        flash(imageToDisplayPath)
+        return render_template("adminTesting.html", imageToDisplay = imageToDisplayPath)
+    else:
+        for root, dirs, files in os.walk(".", topdown=True, onerror=None, followlinks=False):
+            for dir in dirs:
+                if dir[0] != '.':
+                    for file in files:
+                        fullpath = os.path.join(os.path.join(root, dir),file)
+                        #app.logger.debug(fullpath)
+                        messages.append(fullpath)
+                else:
+                    dirs.remove(dir)
+        return render_template("adminOutput.html", messagesToDisplay = messages)
 
 ############
 # UTILITES #
@@ -335,40 +369,6 @@ def currentUserFirstName():
         else:
             return "?? anonymous ??"
     return "?? NO GLOBAL USER ??"
-
-###########
-# TESTING #
-###########
-
-@app.route("/testing")
-@login_required
-@admin_permission.require()
-def testing():
-    import os
-    image = Image.getByName("9c.3.1.gif")
-    assert image,"Couldn't find image \"9c.3.1.gif\"??"
-    imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
-    if False:
-        image = Image.getByName("9c.3.1.gif")
-        assert image,"Couldn't find image \"9c.3.1.gif\"??"
-        imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
-        imageToDisplayPath = os.getcwd() +"/"+ imageToDisplayPath
-        flash(os.getcwd())
-        assert os.path.exists(imageToDisplayPath), "Path doesn't exist?? (%s)" % imageToDisplayPath
-        flash(imageToDisplayPath)
-        return render_template("testing.html", imageToDisplay = imageToDisplayPath)
-    else:
-        messages = ["Testing..."]
-        for root, dirs, files in os.walk(".", topdown=True, onerror=None, followlinks=False):
-            for dir in dirs:
-                if dir[0] != '.':
-                    for file in files:
-                        fullpath = os.path.join(os.path.join(root, dir),file)
-                        app.logger.debug(fullpath)
-                        messages.append(fullpath)
-                else:
-                    dirs.remove(dir)
-        return render_template("adminOutput.html", messagesToDisplay = messages)
     
 ############
 # SECURITY #

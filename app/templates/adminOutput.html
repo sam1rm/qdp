@@ -6,8 +6,12 @@
 {% endblock %}
 {% block content %} 
 <ul>
-    {% for message in messagestoDisplay %}
-    <li>{{message}}</li> 
-    {% endfor %} 
+    {% if messagesToDisplay %}
+        {% for message in messagesToDisplay %}
+            <li>{{message}}</li> 
+        {% endfor %}
+    {% else %}
+        <li>Nothing to display...</li>
+    {% endif %} 
 </ul>
 {% endblock %}
