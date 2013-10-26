@@ -329,16 +329,6 @@ def adminDatabaseReset():
 @admin_permission.require()
 def adminTesting():
     import os
-    tempPath = writeTempFile("testing","foo!bar!")
-    app.logger.debug(tempPath)
-    data, path = readTempFile("testing")
-    app.logger.debug(data)
-    app.logger.debug(path)
-    messages = []
-    image = Image.getByName("9c.3.1.gif")
-    assert image,"Couldn't find image \"9c.3.1.gif\"??"
-    imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
-    app.logger.debug(imageToDisplayPath)
     if False:
         image = Image.getByName("9c.3.1.gif")
         assert image,"Couldn't find image \"9c.3.1.gif\"??"
@@ -349,7 +339,7 @@ def adminTesting():
         flash(imageToDisplayPath)
         return render_template("adminTesting.html", imageToDisplay = imageToDisplayPath)
     else:
-        for root, dirs, files in os.walk("/", topdown=True, onerror=None, followlinks=False):
+        for root, dirs, files in os.walk("/tmp", topdown=True, onerror=None, followlinks=False):
             for dir in dirs:
                 if True:
                 #if dir[0] != '.':
