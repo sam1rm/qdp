@@ -329,6 +329,7 @@ def adminDatabaseReset():
 @admin_permission.require()
 def adminTesting():
     import os
+    messages=[]
     if False:
         image = Image.getByName("9c.3.1.gif")
         assert image,"Couldn't find image \"9c.3.1.gif\"??"
