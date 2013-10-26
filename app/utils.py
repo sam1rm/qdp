@@ -5,6 +5,8 @@ import os
 from Crypto.Cipher import AES
 from Crypto import Random
 
+TMP_PATH = "./tmp"
+
 def writeTempFile(filename,data):
     """ Write some data to a temporary file. Used by Image to pull dynamic images from database
         to be used in some question text.
@@ -12,9 +14,9 @@ def writeTempFile(filename,data):
     /tmp/test.txt
     ("DON'T PANIC!", '/tmp/test.txt')
     """
-    if ( os.path.exists("/tmp") == False ):
-        os.mkdir("/tmp")
-    path = "/tmp/"+filename
+    if ( os.path.exists(TMP_PATH) == False ):
+        os.mkdir(TMP_PATH)
+    path = TMP_PATH+"/"+filename
     fref = open(path,"wb")
     fref.write(data)
     fref.close()
@@ -22,7 +24,7 @@ def writeTempFile(filename,data):
     
 def readTempFile(filename):
     """ Read some data from a temporary file. (See sister-function "write" for more info and tests) """
-    path = "/tmp/"+filename
+    path = TMP_PATH+"/"+filename
     fref=open(path,"rb")
     data=fref.read()
     fref.close()

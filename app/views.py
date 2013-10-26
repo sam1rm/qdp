@@ -331,12 +331,21 @@ def adminTesting():
     import os
     messages=[]
     if True:
+        path = writeTempFile("test.txt","TESTING")
+        flash('path: '+path)
+        data, path = readTempFile("test.txt")
+        flash("data: "+data)
+        flash("path: "+path)
+        #flash("url_for: "+url_for("./tmp/test.txt"))
         image = Image.getByName("9c.3.1.gif")
         assert image,"Couldn't find image \"9c.3.1.gif\"??"
         imageToDisplayPath = writeTempFile("9c.3.1.gif",image.data)
-        flash(os.getcwd())
+        flash("os.getcwd(): "+os.getcwd())
         assert os.path.exists(imageToDisplayPath), "Path doesn't exist?? (%s)" % imageToDisplayPath
-        flash(imageToDisplayPath)
+        flash("imageToDisplayPath: "+imageToDisplayPath)
+        data, path = readTempFile("9c.3.1.gif")
+        flash("path: "+path)
+        flash("data[:20]: "+data[:20])
         return render_template("adminTesting.html", imageToDisplay = imageToDisplayPath)
     else:
         for root, dirs, files in os.walk("/tmp", topdown=True, onerror=None, followlinks=False):
