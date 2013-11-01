@@ -1,14 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<title>Sandbox</title>
-	<meta name="generator" content="BBEdit 10.5" />
-	<link rel="stylesheet" media="screen" type="text/css" href="../static/js/css/bootstrap.min.css') }}">
-</head>
-<body>
-<hr style="margin: 0px 0;">
-test
-<hr style="margin: 0px 0;">
-</body>
-</html>
+{% extends "layout.html" %}
+{% block content %} 
+{{config['UPLOAD_FOLDER']}}
+{% endblock %}

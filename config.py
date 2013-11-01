@@ -33,3 +33,9 @@ MAIL_PASSWORD = 'DDVhd,(gC^54'
 import datetime
 VERSION_NUMBER = "ALPHA VERSION : 00"
 REVIEWS_BEFORE_OK_TO_USE = 3
+
+# File uploads
+
+UPLOAD_FOLDER = '/tmp'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+
