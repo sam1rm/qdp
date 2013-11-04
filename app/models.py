@@ -1,4 +1,5 @@
 import copy
+import doctest
 
 from app import db, login_serializer
 from flask import flash
@@ -14,6 +15,10 @@ roles_users = db.Table( 'roles_users',
 users_questions = db.Table( 'users_questions',
         db.Column( 'users_id', db.Integer(), db.ForeignKey( 'user.id' ) ),
         db.Column( 'questions_id', db.Integer(), db.ForeignKey( 'question.id' ) ) )
+
+questions_histories = db.Table( 'questions_histories',
+        db.Column( 'questions_id', db.Integer(), db.ForeignKey( 'question.id' ) ),
+        db.Column( 'history_id', db.Integer(), db.ForeignKey( 'history.id' ) ) )
 
 class Role( db.Model, RoleMixin ):
     id = db.Column( db.Integer(), primary_key = True )
@@ -163,9 +168,13 @@ class Question( db.Model ):
     # Relationships with other models
     reviewers = db.relationship( 'User', secondary = users_questions, backref = db.backref( 'reviewers', lazy = 'dynamic' ) )
     isOKFlags = db.Column( db.Integer )
+    tagTextIsEncrypted = True
+    questionTextIsEncrypted = True
+    commentTextIsEncrypted = True
 
     @staticmethod
     def get( id ):
+        """ Retrieve a question from the database by raw id. Also flag the question text as being initially encrypted. """
         questions = None
         questions = Question.query.filter_by( id = id )
         if ( ( questions == None ) or ( questions.count() == 0 ) ):
@@ -173,10 +182,14 @@ class Question( db.Model ):
             return None
         if ( questions.count() > 1 ):
             flash( "Found more than one question (%d) in the database with (raw) ID: %d" % ( questions.count(), id ) )
-        return questions.one()
+        question = questions.one()
+        return question
 
     @staticmethod
     def getUsingClassID( classID ):
+        """ Retrieve a question from the database by the id offset by the class id. This is to have questions numbered
+            within a class's category - used to generate the id to retrieve a previously generated quiz/exam.
+            Also flag the question text as being initially encrypted. """
         questions = None
         questions = Question.query.filter_by( classID = classID )
         if ( ( questions == None ) or ( questions.count() == 0 ) ):
@@ -184,42 +197,44 @@ class Question( db.Model ):
             return None
         if ( questions.count() > 1 ):
             flash( "Found more than one question (%d) in the database with (class) ID: %d" % ( questions.count(), classID ) )
+        question = questions.one()
         return questions.one()
 
     def tagsAsSet( self ):
-        result = set()
         if self.tags:
-            for tag in self.tags.split( "," ):
-                result.add( tag.strip() )
-        return result
+            self.decryptTagText()
+            result = set()
+            if self.tags:
+                for tag in self.tags.split( "," ):
+                    result.add( tag.strip() )
+            return result
+        else:
+            return "?? NO TAGS ??"
 
-    def shortenedDecryptedQuestionWithMarkup( self ):
+    def shortenedQuestionWithMarkup( self ):
         """ Returned a short..ed version of the (unencrypted) question text with HTML markup """
-        encryptedQuestion = self.question
-        if encryptedQuestion:
-            encryptedQuesionIV = self.questionIV
-            question = decrypt( encryptedQuestion, encryptedQuesionIV ).strip()
-            if ( len( question ) < 80 ):
-                return convertToHTML( question )
+        if self.question:
+            self.decryptQuestionText()
+            if ( len( self.question ) < 60 ):
+                return convertToHTML( self.question )
             else:
-                return convertToHTML( question[0:38].strip() ) + "..." + convertToHTML( question[-38:].strip() )
+                return convertToHTML( self.question[0:28].strip() ) + "..." + convertToHTML( self.question[-28:].strip() )
         else:
             return "?? NO QUESTION TEXT ??"
 
     def shortenedDecryptedTags( self ):
         """ Returned a short..ed version of the (unencrypted) tags """
-        encryptedTags = self.tags
-        if encryptedTags:
-            encryptedTagsIV = self.tagsIV
-            tags = decrypt( encryptedTags, encryptedTagsIV ).strip()
-            if ( len( tags ) < 80 ):
-                return tags
+        if self.tags:
+            self.decryptTagText()
+            if ( len( self.tags ) < 80 ):
+                return self.tags
             else:
-                return tags[0:38].strip() + "..." + tags[-38:].strip()
+                return self.tags[0:38].strip() + "..." + self.tags[-38:].strip()
         else:
             return "?? NO TAGS ??"
 
     def offsetNumberFromClass( self, classInfo ):
+        """ Returns the id offset by a class's category (see getUsingClassID above) """
         assert ( type( self.classID ) == type( 1 ) ), "self.classID (%r) != int??" % self.classID
         assert ( type( classInfo.startingID ) == type( 1 ) ), "classInfo.startingID (%r) != int??" % classInfo.startingID
         offsetNumber = ( self.classID - classInfo.startingID )
@@ -231,42 +246,16 @@ class Question( db.Model ):
             TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
         existing = []
         tags = self.tagsAsSet()
-        instances = Question.query.filter( Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
+        instances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
         for instance in instances:
             instanceTags = instance.tagsAsSet()
             if ( len( instanceTags.intersection( tags ) ) > 0 ):
                 existing.append( instance )
         return existing
-
-    def decryptQuestionText( self, questionOnly = False, commentsOnly = False ):
-        if ( ( commentsOnly == None ) or ( commentsOnly == False ) ):
-            if self.tags:
-                self.tags = decrypt( self.tags, self.tagsIV )
-            if self.instructions:
-                self.instructions = decrypt( self.instructions, self.instructionsIV )
-            if self.question:
-                self.question = decrypt( self.question, self.questionIV )
-            if self.examples:
-                self.examples = decrypt( self.examples, self.examplesIV )
-            if self.hints:
-                self.hints = decrypt( self.hints, self.hintsIV )
-            if self.answer:
-                self.answer = decrypt( self.answer, self.answerIV )
-        if ( ( questionOnly == None ) or ( questionOnly == False ) ):
-            if self.tagsComments:
-                self.tagsComments = decrypt( self.tagsComments, self.tagsCommentsIV )
-            if self.instructionsComments:
-                self.instructionsComments = decrypt( self.instructionsComments, self.instructionsCommentsIV )
-            if self.questionComments:
-                self.questionComments = decrypt( self.questionComments, self.questionCommentsIV )
-            if self.examplesComments:
-                self.examplesComments = decrypt( self.examplesComments, self.examplesIV )
-            if self.hintsComments:
-                self.hintsComments = decrypt( self.hintsComments, self.hintsCommentsIV )
-            if self.answerComments:
-                self.answerComments = decrypt( self.answerComments, self.answerCommentsIV )
-
+    
     def addReviewer( self, user, isOKFlag, maxReviewers ):
+        """ Add a user to a question's "reviewers" as well as set the "is this question OK" flag.
+            maxReviewers is necessary to shift out old reviewers and keep the most recent ones. """ 
         if ( self.isOKFlags == None ):  # Initialize flags if none have been set
             self.isOKFlags = 0
         try:
@@ -287,21 +276,16 @@ class Question( db.Model ):
             self.reviewers[userIndex] = user
 
     @staticmethod
-    def copyAndDecryptText( question, questionOnly = False, commentsOnly = False ):
-        """ Decrypt all of the question text, including tags and comments. """
-        convertedQuestion = copy.copy( question )
-        convertedQuestion.decryptQuestionText( questionOnly, commentsOnly )
-        return convertedQuestion
-
-    @staticmethod
-    def addMarkupToQuestionText( question, questionOnly = False, commentsOnly = False ):
-        """ Add HTML markup to all of the question text, including tags and comments. This is mostly used for \n -> <br /> """
+    def addMarkupToQuestionText( question, decryptTags = False, decryptQuestion = False, decryptComments = False ):
+        """ Add HTML markup to all of the question text, including tags and comments.
+            This is mostly used for: \n -> <br /> as well as replacing the [[image]] tags. """
         convertedQuestion = copy.copy( question )
         overallImagesToCache = set( [] )
-        if ( ( commentsOnly == None ) or ( commentsOnly == False ) ):
+        if decryptTags:
             if convertedQuestion.tags:
                 convertedQuestion.tags, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.tags ) )
                 overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if decryptQuestion:
             if convertedQuestion.instructions:
                 convertedQuestion.instructions, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructions ) )
                 overallImagesToCache = overallImagesToCache.union( imagesToCache )
@@ -317,7 +301,7 @@ class Question( db.Model ):
             if convertedQuestion.answer:
                 convertedQuestion.answer, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answer ) )
                 overallImagesToCache = overallImagesToCache.union( imagesToCache )
-        if ( ( questionOnly == None ) or ( questionOnly == False ) ):
+        if decryptComments:
             if convertedQuestion.instructionsComments:
                 convertedQuestion.instructionsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructionsComments ) )
                 overallImagesToCache = overallImagesToCache.union( imagesToCache )
@@ -337,45 +321,111 @@ class Question( db.Model ):
             _, _ = Image.getAndCacheByName( filename )
         return convertedQuestion
 
-    def encryptQuestionText( self, questionOnly = False, commentsOnly = False ):
+    # Encryption and decryption
+
+    @staticmethod
+    def copyAndDecryptText( question, decryptTags = True, decryptQuestion = True, decryptComments = True ):
+        """ Decrypt all of the question text, including tags and comments. """
+        convertedQuestion = copy.copy( question )
+        convertedQuestion.decryptText(decryptTags, decryptQuestion, decryptComments )
+        return convertedQuestion
+
+    def decryptText( self, decryptTags = True, decryptQuestion = True, decryptComments = True ):
+        """ Decrypt all of the question text, including tags and comments. """
+        if decryptTags:
+            self.decryptTagText()
+        if decryptQuestion:
+            self.decryptQuestionText()
+        if decryptComments:
+            self.decryptCommentText()
+    
+    def decryptTagText(self):
+        """ Decrypt a question's tags (if they exist) if they aren't already decrypted. """
+        if self.tags:
+            if self.tagTextIsEncrypted:
+                self.tags = decrypt( self.tags, self.tagsIV )
+                self.tagTextIsEncrypted = False
+            
+    def decryptQuestionText(self):
+        """ Decrypt a question's text parts (if they exist) if they aren't already decrypted. """
+        if self.questionTextIsEncrypted:
+            if self.instructions:
+                self.instructions = decrypt( self.instructions, self.instructionsIV )
+            if self.question:
+                self.question = decrypt( self.question, self.questionIV )
+            if self.examples:
+                self.examples = decrypt( self.examples, self.examplesIV )
+            if self.hints:
+                self.hints = decrypt( self.hints, self.hintsIV )
+            if self.answer:
+                self.answer = decrypt( self.answer, self.answerIV )
+            self.questionTextIsEncrypted = False
+
+    def decryptCommentText(self):
+        """ Decrypt a question's comments (if they exist) if they aren't already decrypted. """
+        if self.commentTextIsEncrypted:
+            if self.tagsComments:
+                self.tagsComments = decrypt( self.tagsComments, self.tagsCommentsIV )
+            if self.instructionsComments:
+                self.instructionsComments = decrypt( self.instructionsComments, self.instructionsCommentsIV )
+            if self.questionComments:
+                self.questionComments = decrypt( self.questionComments, self.questionCommentsIV )
+            if self.examplesComments:
+                self.examplesComments = decrypt( self.examplesComments, self.examplesIV )
+            if self.hintsComments:
+                self.hintsComments = decrypt( self.hintsComments, self.hintsCommentsIV )
+            if self.answerComments:
+                self.answerComments = decrypt( self.answerComments, self.answerCommentsIV )
+            self.commentTextIsEncrypted = False
+
+    def encryptText( self, encryptTags = True, encryptQuestion = True, encryptComments = True ):
         """ Encrypt all of the question text, including tags and comments. """
-        if ( ( commentsOnly == None ) or ( commentsOnly == False ) ):
+        if ((encryptTags) and (self.tagTextIsEncrypted == False)):
+            self.tags, self.tagsIV = encrypt( self.tags )
+            self.tagTextIsEncrypted = True
+        if ((encryptQuestion) and (self.questionTextIsEncrypted == False)):
             self.tags, self.tagsIV = encrypt( self.tags )
             self.instructions, self.instructionsIV = encrypt( self.instructions )
             self.question, self.questionIV = encrypt( self.question )
             self.examples, self.examplesIV = encrypt( self.examples )
             self.hints, self.hintsIV = encrypt( self.hints )
             self.answer, self.answerIV = encrypt( self.answer )
-        if ( ( questionOnly == None ) or ( questionOnly == False ) ):
+            self.questionTextIsEncrypted = True
+        if ((encryptComments) and (self.commentTextIsEncrypted == False)):
             self.tagsComments, self.tagsCommentsIV = encrypt( self.tagsComments )
             self.instructionsComments, self.instructionsCommentsIV = encrypt( self.instructionsComments )
             self.questionComments, self.questionCommentsIV = encrypt( self.questionComments )
             self.examplesComments, self.examplesCommentsIV = encrypt( self.examplesComments )
             self.hintsComments, self.hintsCommentsIV = encrypt( self.hintsComments )
             self.answerComments, self.answerCommentsIV = encrypt( self.answerComments )
+            self.commentTextIsEncrypted = True
 
+    # Generate Quizzes and Exams
+    
     @staticmethod
-    def generateQuiz( classInfo, quizNumber, cachedQuestions ):
+    def generateQuiz( classInfo, quizNumber, cachedQuestions, maxNumberOfQuestions ):
         """ Generate quiz # for a class, using previously cached questions (caller is responsible for these).
-            TODO: Find questions with: most reviews, then different tags"""
+            TODO: Find questions with: most reviews, then different tags
+            TODO: Modify maxNumberOfQuestions by length of question / time to answer. """
         quizQuestions = []
         # questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
             if ( question.quiz == quizNumber ):
-                markedUpQuestion = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question, questionOnly = True ) )
+                markedUpQuestion = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question, decryptComments = False ) )
                 quizQuestions.append( markedUpQuestion )
-                if ( len( quizQuestions ) > 5 ):
+                if ( len( quizQuestions ) > maxNumberOfQuestions ):
                     break
         return quizQuestions, Question.generateIDFromQuestions( classInfo, quizQuestions )
 
     @staticmethod
     def generateFinalExam( classInfo, cachedQuestions ):
         """ Generate final exam # for a class, using previously cached questions (caller is responsible for these)
-            TODO: Find questions with: most reviews, then different tags"""
+            TODO: Find questions with: most reviews, then different tags
+            TODO: Modify maxNumberOfQuestions by length of question / time to answer. """
         examQuestions = []
         # questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
-            markedUpQuestion = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question, questionOnly = True ) )
+            markedUpQuestion = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question, decryptComments = False ) )
             examQuestions.append( markedUpQuestion )
             if ( len( examQuestions ) > 5 ):
                 break
@@ -432,7 +482,7 @@ class Question( db.Model ):
                     questionClassID = classInfo.startingID + questionNumber
                     try:
                         question = Question.getUsingClassID( questionClassID )
-                        decryptedQuestion = Question.copyAndDecryptText( question, questionOnly = True )
+                        decryptedQuestion = Question.copyAndDecryptText( question, decryptComments = False )
                         if addMarkupToQuestionTextToo:
                             decryptedQuestion = Question.addMarkupToQuestionText( decryptedQuestion, questionOnly = True )
                         questions.append( decryptedQuestion )
@@ -484,3 +534,19 @@ class Image( db.Model ):
 
     def __str__( self ):
         return "Image #%d (size=%d): %s" % ( self.id, len( self.data ), self.name )
+    
+class History( db.Model ):
+    """ A general way to store previously generated data, which, for now, is a workaround for long, 
+        clunky IDs to retrieve previously generated quizzes and exams. Class abbreviation (e.g., 9F) and
+        quiz number are to aid in retrieval and display. """
+ 
+    id = db.Column( db.Integer(), primary_key = True )
+    classAbbr = db.Column( db.String( 4 ) )
+    quiz = db.Column( db.Integer )   
+    questions = db.relationship( 'Question', secondary = questions_histories, backref = db.backref( 'histories', lazy = 'dynamic' ) )
+  
+    def __repr__( self ):
+        return '<History %r>' % ( self.id )
+
+    def __str__( self ):
+        return "History #%d: %r" % ( self.id, questions )

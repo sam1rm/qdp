@@ -147,7 +147,7 @@ def editQuestion():
         assert rawQuestionIDAsString, "rawQuestionID wasn't passed to editQuestion??"
         question = Question.get( int( rawQuestionIDAsString ) )
         if question:  # Can be None if there was a problem retrieving this question
-            question.decryptQuestionText( questionOnly = True )
+            question.decryptText()
             similarQuestions = question.findSimilarQuestions()
             form = QuestionForm( request.form, question )
             if request.method == 'POST':
@@ -163,7 +163,7 @@ def editQuestion():
                 elif form.validate():
                     form.populate_obj( question )
                     question.modified = datetime.datetime.now()
-                    question.encryptQuestionText( questionOnly = True )
+                    question.encryptText( encryptComments = False )
                     db.session.merge( question )
                     db.session.commit()
                     flash( 'Question #%d saved.' % ( question.offsetNumberFromClass( classInfo ) + 1 ) )
@@ -211,7 +211,7 @@ def requestReviewQuestion():
 @user_permission.require()
 def reviewQuestion():
     """ Handler for the "Review question" functionality. Redisplays the original question text as
-        uneditable and includes comment sections.
+        uneditable and includes editable comment sections.
         TODO: Show/hide comment sections"""
     if session['classAbbr']:
         classInfo = ClassInfo.get( session['classAbbr'] )
@@ -220,13 +220,13 @@ def reviewQuestion():
         assert( reviewQuestionIDAsString ), "reviewQuestionID wasn't passed to reviewQuestion"
         question = Question.get( int( reviewQuestionIDAsString ) )
         if question:
-            question.decryptQuestionText( commentsOnly = True )
+            question.decryptCommentText()
             similarQuestions = question.findSimilarQuestions()
             form = ReviewQuestionForm( request.form, question )
             if request.method == 'POST':
                 form.populate_obj( question )
                 question.modified = datetime.datetime.now()
-                question.encryptQuestionText( commentsOnly = True )
+                question.encryptText( )
                 if ( request.form['button'] == 'needswork' ):
                     question.addReviewer( g.user, False, app.config['REVIEWS_BEFORE_OK_TO_USE'] )
                     db.session.commit()
@@ -243,7 +243,7 @@ def reviewQuestion():
             for n in range( len( question.reviewers ) ):
                 reviewersSaidOK.append( question.isOKFlags & 1 << n )
             return render_template( 'reviewQuestion.html', form = form, similarQuestionsToDisplay = similarQuestions, \
-                                   questionToDisplay = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question, questionOnly = True ) ), \
+                                   questionToDisplay = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question ) ), \
                                    title = "%s Question #%d For %s (%s)" % ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), session['classAbbr'], classInfo.longName ), \
                                                                         reviewersSaidOKToDisplay = reviewersSaidOK )
         else:
@@ -261,7 +261,7 @@ def generateQuiz():
         if g_CachedQuestions:
             quizNumber = request.args.get( 'quizID' )
             assert quizNumber, "Generate quiz without a quiz number??"
-            generatedQuiz, generatedID = Question.generateQuiz( classInfo, int( quizNumber ), g_CachedQuestions )
+            generatedQuiz, generatedID = Question.generateQuiz( classInfo, int( quizNumber ), g_CachedQuestions, app.config['MAX_NUMBER_OF_QUESTIONS'] )
             return render_template( 'generatedQuizOrExam.html', quizNumberToDisplay = quizNumber, generatedIDToDisplay = generatedID, \
                                generatedQuestionsToDisplay = generatedQuiz, classInfoToDisplay = classInfo )
         else:
@@ -315,16 +315,18 @@ def retrieveQuizOrExam():
 @admin_permission.require()
 def adminDatabaseReset():
     messageList = []
-    for entry in Question.query.all():
-        messageList.append( "Deleting Question id: %d (class id: %d) (%s)" % ( entry.id, entry.classID, entry.shortenedDecryptedQuestionWithMarkup() ) )
-        db.session.delete( entry )
-    for entry in User.query.filter( User.fullname != "Glenn Sugden" ).all():
-        messageList.append( "Deleting User id: %d (%s)" % ( entry.id, entry.fullname ) )
-        db.session.delete( entry )
-    for entry in ClassInfo.query.all():
-        messageList.append( "Resetting class ids for: %s (id: %d)" % ( entry.longName, entry.id ) )
-        entry.currentID = entry.startingID
-    db.session.commit()
+#     for entry in Question.query.all():
+#         messageList.append( "Deleting Question id: %d (class id: %d) (%s)" % ( entry.id, entry.classID, entry.shortenedDecryptedQuestionWithMarkup() ) )
+#         db.session.delete( entry )
+#     for entry in User.query.filter( User.fullname != "Glenn Sugden" ).all():
+#         messageList.append( "Deleting User id: %d (%s)" % ( entry.id, entry.fullname ) )
+#         db.session.delete( entry )
+#     for entry in ClassInfo.query.all():
+#         messageList.append( "Resetting class ids for: %s (id: %d)" % ( entry.longName, entry.id ) )
+#         entry.currentID = entry.startingID
+#     db.session.commit()
+    import db_reset
+    db_reset.resetDatabase(db)
     messageList.append( "...done!" )
     return render_template( 'adminOutput.html', title = "Admin. - Database Reset", messagesToDisplay = messageList )
 

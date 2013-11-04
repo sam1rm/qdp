@@ -21,6 +21,7 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">doctest</span>
 
 <span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">db</span><span class="p">,</span> <span class="n">login_serializer</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">flash</span>
@@ -28,14 +29,18 @@
 <span class="kn">from</span> <span class="nn">werkzeug</span> <span class="kn">import</span> <span class="n">generate_password_hash</span><span class="p">,</span> <span class="n">check_password_hash</span>
 
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">decrypt</span><span class="p">,</span> <span class="n">encrypt</span><span class="p">,</span> <span class="n">convertToHTML</span><span class="p">,</span> <span class="n">replaceImageTags</span><span class="p">,</span> <span class="n">readTempFile</span><span class="p">,</span> <span class="n">writeTempFile</span>
-  
-<span class="n">roles_users</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="s">&#39;roles_users&#39;</span><span class="p">,</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;users_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.id&#39;</span><span class="p">)),</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;roles_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;role.id&#39;</span><span class="p">)))</span>
 
-<span class="n">users_questions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="s">&#39;users_questions&#39;</span><span class="p">,</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;users_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.id&#39;</span><span class="p">)),</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="s">&#39;questions_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;question.id&#39;</span><span class="p">)))</span></pre></div>
+<span class="n">roles_users</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span> <span class="s">&#39;roles_users&#39;</span><span class="p">,</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="s">&#39;users_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span> <span class="s">&#39;user.id&#39;</span> <span class="p">)</span> <span class="p">),</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="s">&#39;roles_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span> <span class="s">&#39;role.id&#39;</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+
+<span class="n">users_questions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span> <span class="s">&#39;users_questions&#39;</span><span class="p">,</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="s">&#39;users_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span> <span class="s">&#39;user.id&#39;</span> <span class="p">)</span> <span class="p">),</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="s">&#39;questions_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span> <span class="s">&#39;question.id&#39;</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span>
+
+<span class="n">questions_histories</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span> <span class="s">&#39;questions_histories&#39;</span><span class="p">,</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="s">&#39;questions_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span> <span class="s">&#39;question.id&#39;</span> <span class="p">)</span> <span class="p">),</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="s">&#39;history_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span> <span class="s">&#39;history.id&#39;</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -47,10 +52,10 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Role</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">RoleMixin</span><span class="p">):</span>
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">80</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">description</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Role</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">RoleMixin</span> <span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">80</span> <span class="p">),</span> <span class="n">unique</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">255</span> <span class="p">)</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -62,7 +67,7 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
         <span class="k">return</span> <span class="s">&#39;&lt;Role </span><span class="si">%d</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span></pre></div>
     </div>
   </div>
@@ -75,13 +80,13 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">UserMixin</span><span class="p">):</span>
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">email</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">unique</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">password</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">))</span>
-    <span class="n">fullname</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">255</span><span class="p">),</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">unique</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">active</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Boolean</span><span class="p">())</span>
-    <span class="n">created</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">DateTime</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">User</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">UserMixin</span> <span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">255</span> <span class="p">),</span> <span class="n">unique</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
+    <span class="n">password</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">255</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">fullname</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">255</span> <span class="p">),</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">unique</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
+    <span class="n">active</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Boolean</span><span class="p">()</span> <span class="p">)</span>
+    <span class="n">created</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">DateTime</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -93,12 +98,12 @@
       <p>Flask-Security Fields</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">confirmed_at</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">DateTime</span><span class="p">())</span>
-    <span class="n">last_login_at</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">DateTime</span><span class="p">)</span>
-    <span class="n">current_login_at</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">DateTime</span><span class="p">)</span>
-    <span class="n">last_login_ip</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
-    <span class="n">current_login_ip</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
-    <span class="n">login_count</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">confirmed_at</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">DateTime</span><span class="p">()</span> <span class="p">)</span>
+    <span class="n">last_login_at</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">DateTime</span> <span class="p">)</span>
+    <span class="n">current_login_at</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">DateTime</span> <span class="p">)</span>
+    <span class="n">last_login_ip</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">100</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">current_login_ip</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">100</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">login_count</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -110,8 +115,8 @@
       <p>Relationships with other models</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">roles</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">relationship</span><span class="p">(</span><span class="s">&#39;Role&#39;</span><span class="p">,</span> <span class="n">secondary</span> <span class="o">=</span> <span class="n">roles_users</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backref</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">lazy</span><span class="o">=</span><span class="s">&#39;dynamic&#39;</span><span class="p">))</span>
-    <span class="n">questions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">relationship</span><span class="p">(</span><span class="s">&#39;Question&#39;</span><span class="p">,</span> <span class="n">secondary</span> <span class="o">=</span> <span class="n">users_questions</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backref</span><span class="p">(</span><span class="s">&#39;author&#39;</span><span class="p">,</span> <span class="n">lazy</span> <span class="o">=</span> <span class="s">&#39;dynamic&#39;</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">roles</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">relationship</span><span class="p">(</span> <span class="s">&#39;Role&#39;</span><span class="p">,</span> <span class="n">secondary</span> <span class="o">=</span> <span class="n">roles_users</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backref</span><span class="p">(</span> <span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">lazy</span> <span class="o">=</span> <span class="s">&#39;dynamic&#39;</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">questions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">relationship</span><span class="p">(</span> <span class="s">&#39;Question&#39;</span><span class="p">,</span> <span class="n">secondary</span> <span class="o">=</span> <span class="n">users_questions</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backref</span><span class="p">(</span> <span class="s">&#39;author&#39;</span><span class="p">,</span> <span class="n">lazy</span> <span class="o">=</span> <span class="s">&#39;dynamic&#39;</span> <span class="p">)</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -124,10 +129,10 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">uid</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">uid</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span> <span class="n">uid</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span> <span class="nb">id</span> <span class="o">=</span> <span class="n">uid</span> <span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">get_auth_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    <span class="k">def</span> <span class="nf">get_auth_token</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -139,8 +144,8 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">login_serializer</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">login_serializer</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span> <span class="n">data</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -152,7 +157,7 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_authenticated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_authenticated</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
         <span class="k">return</span> <span class="bp">True</span></pre></div>
     </div>
   </div>
@@ -165,7 +170,7 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
         <span class="k">return</span> <span class="bp">True</span></pre></div>
     </div>
   </div>
@@ -178,7 +183,7 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_anonymous</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_anonymous</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
         <span class="k">return</span> <span class="bp">False</span></pre></div>
     </div>
   </div>
@@ -191,8 +196,8 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">unicode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">get_id</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="nb">unicode</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -204,8 +209,8 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_verified</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="s">&#39;user&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roles</span> <span class="ow">or</span> <span class="s">&#39;admin&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roles</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_verified</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="s">&#39;user&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roles</span> <span class="ow">or</span> <span class="s">&#39;admin&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roles</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -217,8 +222,8 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_admin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="s">&#39;admin&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roles</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">is_admin</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span> <span class="s">&#39;admin&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">roles</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -230,8 +235,8 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">set_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">generate_password_hash</span><span class="p">(</span><span class="n">password</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">set_password</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">password</span> <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">generate_password_hash</span><span class="p">(</span> <span class="n">password</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -243,8 +248,8 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">check_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">check_password_hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">check_password</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">password</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="n">check_password_hash</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="n">password</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -259,87 +264,87 @@
       <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">getAllAdmins</span><span class="p">():</span>
         <span class="n">admins</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="n">user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">()</span> <span class="p">):</span>
                 <span class="k">if</span> <span class="n">admins</span><span class="p">:</span>
-                    <span class="n">admins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+                    <span class="n">admins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">user</span> <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">admins</span><span class="o">=</span><span class="p">[</span><span class="n">user</span><span class="p">]</span>
+                    <span class="n">admins</span> <span class="o">=</span> <span class="p">[</span><span class="n">user</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">admins</span>
-    
+
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">hasUnverifiedUsers</span><span class="p">():</span>
-        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span> <span class="p">):</span>
                 <span class="k">return</span> <span class="bp">True</span>
         <span class="k">return</span> <span class="bp">False</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">getAllUnverifiedUsers</span><span class="p">():</span>
         <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">User</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span> <span class="p">):</span>
                 <span class="k">if</span> <span class="n">unverifiedUsers</span><span class="p">:</span>
-                    <span class="n">unverifiedUsers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+                    <span class="n">unverifiedUsers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">user</span> <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">unverifiedUsers</span><span class="o">=</span><span class="p">[</span><span class="n">user</span><span class="p">]</span>
+                    <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="p">[</span><span class="n">user</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">unverifiedUsers</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
         <span class="k">return</span> <span class="s">&#39;&lt;User </span><span class="si">%d</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&#39;User #</span><span class="si">%d</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fullname</span><span class="p">)</span>
- 
-<span class="k">class</span> <span class="nc">ClassInfo</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-    <span class="n">longName</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">256</span><span class="p">))</span>
-    <span class="n">startingID</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span>
-    <span class="n">currentID</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;User #</span><span class="si">%d</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fullname</span> <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">ClassInfo</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Model</span> <span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
+    <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">4</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">longName</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">256</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">startingID</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span> <span class="p">)</span>
+    <span class="n">currentID</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span> <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">classAbbr</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">classAbbr</span><span class="o">=</span><span class="n">classAbbr</span><span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span> <span class="n">classAbbr</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span> <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">classAbbr</span> <span class="p">)</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
         <span class="k">return</span> <span class="s">&#39;&lt;ClassInfo </span><span class="si">%r</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&#39;ClassInfo </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">): startingID=</span><span class="si">%d</span><span class="s">, currentID=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">longName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentID</span><span class="p">)</span>
- 
-<span class="k">class</span> <span class="nc">Question</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
-    <span class="n">classID</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span>
-    <span class="n">created</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">DateTime</span><span class="p">)</span>
-    <span class="n">modified</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">DateTime</span><span class="p">)</span>
-    <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">4</span><span class="p">))</span>
-    <span class="n">quiz</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span>
-    <span class="n">tags</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">256</span><span class="p">))</span>
-    <span class="n">tagsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">tagsComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">tagsCommentsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">instructions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">instructionsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">instructionsComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">instructionsCommentsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">question</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">questionIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">questionComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">questionCommentsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">examples</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">examplesIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">examplesComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">examplesCommentsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">hints</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">hintsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">hintsComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">hintsCommentsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">answer</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">answerIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">answerComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Text</span><span class="p">)</span>
-    <span class="n">answerCommentsIV</span><span class="o">=</span><span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
-    <span class="n">user_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">&#39;user.id&#39;</span><span class="p">))</span></pre></div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+        <span class="k">return</span> <span class="s">&#39;ClassInfo </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">): startingID=</span><span class="si">%d</span><span class="s">, currentID=</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">longName</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentID</span> <span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Question</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Model</span> <span class="p">):</span>
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
+    <span class="n">classID</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span> <span class="p">)</span>
+    <span class="n">created</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">DateTime</span> <span class="p">)</span>
+    <span class="n">modified</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">DateTime</span> <span class="p">)</span>
+    <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">4</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">quiz</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span> <span class="p">)</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">256</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">tagsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">tagsComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">tagsCommentsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">instructions</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">instructionsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">instructionsComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">instructionsCommentsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">question</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">questionIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">questionComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">questionCommentsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">examples</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">examplesIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">examplesComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">examplesCommentsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">hints</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">hintsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">hintsComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">hintsCommentsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">answer</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">answerIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">answerComments</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Text</span> <span class="p">)</span>
+    <span class="n">answerCommentsIV</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span> <span class="mi">16</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span> <span class="s">&#39;user.id&#39;</span> <span class="p">)</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -351,8 +356,11 @@
       <p>Relationships with other models</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">reviewers</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">relationship</span><span class="p">(</span><span class="s">&#39;User&#39;</span><span class="p">,</span> <span class="n">secondary</span> <span class="o">=</span> <span class="n">users_questions</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backref</span><span class="p">(</span><span class="s">&#39;reviewers&#39;</span><span class="p">,</span> <span class="n">lazy</span> <span class="o">=</span> <span class="s">&#39;dynamic&#39;</span><span class="p">))</span>
-    <span class="n">isOKFlags</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">reviewers</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">relationship</span><span class="p">(</span> <span class="s">&#39;User&#39;</span><span class="p">,</span> <span class="n">secondary</span> <span class="o">=</span> <span class="n">users_questions</span><span class="p">,</span> <span class="n">backref</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">backref</span><span class="p">(</span> <span class="s">&#39;reviewers&#39;</span><span class="p">,</span> <span class="n">lazy</span> <span class="o">=</span> <span class="s">&#39;dynamic&#39;</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">isOKFlags</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span> <span class="p">)</span>
+    <span class="n">tagTextIsEncrypted</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">questionTextIsEncrypted</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="n">commentTextIsEncrypted</span> <span class="o">=</span> <span class="bp">True</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -361,39 +369,11 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-18'>#</a>
       </div>
-      <p>Returned a short..ed version of the (unencrypted) question text with HTML markup</p>
+      <p>Retrieve a question from the database by raw id. Also flag the question text as being initially encrypted.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
-        <span class="n">questions</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">questions</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">questions</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">==</span><span class="mi">0</span><span class="p">)):</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t find any questions in the database with (raw) ID: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Found more than one question (</span><span class="si">%d</span><span class="s">) in the database with (raw) ID: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span><span class="nb">id</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">questions</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>    
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">getUsingClassID</span><span class="p">(</span><span class="n">classID</span><span class="p">):</span>
-        <span class="n">questions</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">questions</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">classID</span><span class="o">=</span><span class="n">classID</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">questions</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">==</span><span class="mi">0</span><span class="p">)):</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t find any questions in the database with (class) ID: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">classID</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Found more than one question (</span><span class="si">%d</span><span class="s">) in the database with (class) ID: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span><span class="n">classID</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">questions</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>    
-    
-    <span class="k">def</span> <span class="nf">tagsAsSet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">result</span><span class="o">=</span><span class="nb">set</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">):</span>
-                <span class="n">result</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tag</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">result</span>
-    
-    <span class="k">def</span> <span class="nf">shortenedDecryptedQuestionWithMarkup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span> <span class="nb">id</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -405,16 +385,15 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">encryptedQuestion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span>
-        <span class="k">if</span> <span class="n">encryptedQuestion</span><span class="p">:</span>
-            <span class="n">encryptedQuesionIV</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> 
-            <span class="n">question</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span><span class="n">encryptedQuestion</span><span class="p">,</span><span class="n">encryptedQuesionIV</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">question</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">80</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">convertToHTML</span><span class="p">(</span><span class="n">question</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">38</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span><span class="o">+</span><span class="s">&quot;...&quot;</span><span class="o">+</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">question</span><span class="p">[</span><span class="o">-</span><span class="mi">38</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s">&quot;?? NO QUESTION TEXT ??&quot;</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">questions</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">questions</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span> <span class="nb">id</span> <span class="o">=</span> <span class="nb">id</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="p">(</span> <span class="n">questions</span> <span class="o">==</span> <span class="bp">None</span> <span class="p">)</span> <span class="ow">or</span> <span class="p">(</span> <span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">)</span> <span class="p">):</span>
+            <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;Couldn&#39;t find any questions in the database with (raw) ID: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">):</span>
+            <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;Found more than one question (</span><span class="si">%d</span><span class="s">) in the database with (raw) ID: </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">questions</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="nb">id</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="n">question</span> <span class="o">=</span> <span class="n">questions</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">question</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -423,10 +402,11 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-20'>#</a>
       </div>
-      <p>Returned a short..ed version of the (unencrypted) tags</p>
+      <p>Retrieve a question from the database by the id offset by the class id. This is to have questions numbered</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">shortenedDecryptedTags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getUsingClassID</span><span class="p">(</span> <span class="n">classID</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -435,19 +415,39 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-21'>#</a>
       </div>
-      
+      <p>within a class's category - used to generate the id to retrieve a previously generated quiz/exam.
+   Also flag the question text as being initially encrypted. """
+uestions = None
+uestions = Question.query.filter_by( classID = classID )
+f ( ( questions == None ) or ( questions.count() == 0 ) ):
+   flash( "Couldn't find any questions in the database with (class) ID: %d" % classID )
+   return None
+f ( questions.count() &gt; 1 ):
+   flash( "Found more than one question (%d) in the database with (class) ID: %d" % ( questions.count(), classID ) )
+uestion = questions.one()
+eturn questions.one()</p>
+<p>agsAsSet( self ):
+f self.tags:
+   self.decryptTagText()
+   result = set()
+   if self.tags:
+       for tag in self.tags.split( "," ):
+           result.add( tag.strip() )
+   return result
+lse:
+   return "?? NO TAGS ??"</p>
+<p>hortenedQuestionWithMarkup( self ):
+Returned a short..ed version of the (unencrypted) question text with HTML markup</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">encryptedTags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span>
-        <span class="k">if</span> <span class="n">encryptedTags</span><span class="p">:</span>
-            <span class="n">encryptedTagsIV</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsIV</span> 
-            <span class="n">tags</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span><span class="n">encryptedTags</span><span class="p">,</span><span class="n">encryptedTagsIV</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">80</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">tags</span>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decryptQuestionText</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">60</span> <span class="p">):</span>
+                <span class="k">return</span> <span class="n">convertToHTML</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">tags</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">38</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">+</span><span class="s">&quot;...&quot;</span><span class="o">+</span><span class="n">tags</span><span class="p">[</span><span class="o">-</span><span class="mi">38</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">convertToHTML</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">28</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="p">)</span> <span class="o">+</span> <span class="s">&quot;...&quot;</span> <span class="o">+</span> <span class="n">convertToHTML</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">[</span><span class="o">-</span><span class="mi">28</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s">&quot;?? NO TAGS ??&quot;</span></pre></div>
+            <span class="k">return</span> <span class="s">&quot;?? NO QUESTION TEXT ??&quot;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -456,15 +456,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-22'>#</a>
       </div>
-      
+      <p>Returned a short..ed version of the (unencrypted) tags</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">offsetNumberFromClass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classInfo</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">classID</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="s">&quot;self.classID (</span><span class="si">%r</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="s">&quot;classInfo.startingID (</span><span class="si">%r</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span>
-        <span class="n">offsetNumber</span> <span class="o">=</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span> <span class="o">-</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="p">)</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">offsetNumber</span><span class="p">)</span><span class="o">==</span><span class="nb">type</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="s">&quot;offsetNumber (</span><span class="si">%r</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="n">offsetNumber</span>
-        <span class="k">return</span> <span class="n">offsetNumber</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">shortenedDecryptedTags</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -473,10 +468,17 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-23'>#</a>
       </div>
-      <p>Find questions "similar" to this one. Uses quiz # and tags.</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">findSimilarQuestions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decryptTagText</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">80</span> <span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">38</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;...&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="o">-</span><span class="mi">38</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;?? NO TAGS ??&quot;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -485,69 +487,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-24'>#</a>
       </div>
-      <p>TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
-xisting=[]
-ags = self.tagsAsSet()
-nstances = Question.query.filter(Question.id != self.id, Question.quiz == self.quiz).order_by(Question.id).all()
-or instance in instances:
-   instanceTags = instance.tagsAsSet()
-   if (len(instanceTags.intersection(tags))&gt;0):
-       existing.append(instance) 
-eturn existing</p>
-<p>ecryptQuestionText(self, questionOnly = False, commentsOnly = False):
-f ((commentsOnly == None) or (commentsOnly == False)):
-   if self.tags:
-       self.tags = decrypt(self.tags,self.tagsIV)
-   if self.instructions:
-       self.instructions = decrypt(self.instructions,self.instructionsIV)
-   if self.question:
-       self.question = decrypt(self.question,self.questionIV)
-   if self.examples:
-       self.examples = decrypt(self.examples,self.examplesIV)
-   if self.hints:
-       self.hints = decrypt(self.hints,self.hintsIV)
-   if self.answer:
-       self.answer = decrypt(self.answer,self.answerIV)
-f ((questionOnly == None) or (questionOnly == False)):
-   if self.tagsComments:
-       self.tagsComments = decrypt(self.tagsComments,self.tagsCommentsIV)
-   if self.instructionsComments:
-       self.instructionsComments = decrypt(self.instructionsComments,self.instructionsCommentsIV)
-   if self.questionComments:
-       self.questionComments = decrypt(self.questionComments,self.questionCommentsIV)
-   if self.examplesComments:
-       self.examplesComments = decrypt(self.examplesComments,self.examplesIV)
-   if self.hintsComments:
-       self.hintsComments = decrypt(self.hintsComments,self.hintsCommentsIV)
-   if self.answerComments:
-       self.answerComments = decrypt(self.answerComments,self.answerCommentsIV)</p>
-<p>ddReviewer(self, user, isOKFlag, maxReviewers):
-f (self.isOKFlags == None):    # Initialize flags if none have been set
-   self.isOKFlags = 0
-ry:
-   userIndex = self.reviewers.index(user)
-xcept ValueError as ex:
-   if (len(self.reviewers)==maxReviewers): # Shift out earliest reviewer and 
-       discardedUser = self.reviewers[0]
-       self.reviewers = self.reviewers[1:]
-       print "DISCARDED (overflow) REVIEWER: %s" % discardedUser
-       self.isOKFlags = self.isOKFlags &gt;&gt; 1
-       userIndex = 2
-   else:
-       userIndex = len(self.reviewers)
-elf.isOKFlags = self.isOKFlags &amp; ~(1&lt;<userIndex) | isOKFlag<<userIndex # Set (or clear) the corresponding isOKFlag
-f (userIndex >= len(self.reviewers)):
-   self.reviewers.append(user)
-lse:
-   self.reviewers[userIndex] = user</p>
-<p>icmethod
-opyAndDecryptText(question, questionOnly = False, commentsOnly = False):
-Decrypt all of the question text, including tags and comments.</p>
+      <p>Returns the id offset by a class's category (see getUsingClassID above)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">convertedQuestion</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
-        <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">decryptQuestionText</span><span class="p">(</span><span class="n">questionOnly</span><span class="p">,</span> <span class="n">commentsOnly</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">convertedQuestion</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">offsetNumberFromClass</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">classInfo</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -556,11 +499,14 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-25'>#</a>
       </div>
-      <p>Add HTML markup to all of the question text, including tags and comments. This is mostly used for \n -&gt; <br /></p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">addMarkupToQuestionText</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">questionOnly</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="n">commentsOnly</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">assert</span> <span class="p">(</span> <span class="nb">type</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span> <span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">),</span> <span class="s">&quot;self.classID (</span><span class="si">%r</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span>
+        <span class="k">assert</span> <span class="p">(</span> <span class="nb">type</span><span class="p">(</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">),</span> <span class="s">&quot;classInfo.startingID (</span><span class="si">%r</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span>
+        <span class="n">offsetNumber</span> <span class="o">=</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span> <span class="o">-</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="p">)</span>
+        <span class="k">assert</span> <span class="p">(</span> <span class="nb">type</span><span class="p">(</span> <span class="n">offsetNumber</span> <span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">),</span> <span class="s">&quot;offsetNumber (</span><span class="si">%r</span><span class="s">) != int??&quot;</span> <span class="o">%</span> <span class="n">offsetNumber</span>
+        <span class="k">return</span> <span class="n">offsetNumber</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -569,38 +515,10 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-26'>#</a>
       </div>
-      
+      <p>Find questions "similar" to this one. Uses quiz # and tags.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">convertedQuestion</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">question</span><span class="p">)</span>
-        <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">commentsOnly</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">commentsOnly</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">))</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">questionOnly</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">questionOnly</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">:</span>
-                <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">replaceImageTags</span><span class="p">(</span><span class="n">convertToHTML</span><span class="p">(</span><span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">imagesToCache</span><span class="p">:</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">getAndCacheByName</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>                        
-        <span class="k">return</span> <span class="n">convertedQuestion</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">findSimilarQuestions</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -609,10 +527,124 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-27'>#</a>
       </div>
-      <p>Encrypt all of the question text, including tags and comments.</p>
+      <p>TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
+xisting = []
+ags = self.tagsAsSet()
+nstances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
+or instance in instances:
+   instanceTags = instance.tagsAsSet()
+   if ( len( instanceTags.intersection( tags ) ) &gt; 0 ):
+       existing.append( instance )
+eturn existing</p>
+<p>ddReviewer( self, user, isOKFlag, maxReviewers ):
+Add a user to a question's "reviewers" as well as set the "is this question OK" flag.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">encryptQuestionText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">questionOnly</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="n">commentsOnly</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>            <span class="n">maxReviewers</span> <span class="ow">is</span> <span class="n">necessary</span> <span class="n">to</span> <span class="n">shift</span> <span class="n">out</span> <span class="n">old</span> <span class="n">reviewers</span> <span class="ow">and</span> <span class="n">keep</span> <span class="n">the</span> <span class="n">most</span> <span class="n">recent</span> <span class="n">ones</span><span class="o">.</span> <span class="s">&quot;&quot;&quot; </span>
+<span class="s">        if ( self.isOKFlags == None ):  # Initialize flags if none have been set</span>
+<span class="s">            self.isOKFlags = 0</span>
+<span class="s">        try:</span>
+<span class="s">            userIndex = self.reviewers.index( user )</span>
+<span class="s">        except ValueError as ex:</span>
+<span class="s">            if ( len( self.reviewers ) == maxReviewers ):  # Shift out earliest reviewer and</span>
+<span class="s">                discardedUser = self.reviewers[0]</span>
+<span class="s">                self.reviewers = self.reviewers[1:]</span>
+<span class="s">                print &quot;DISCARDED (overflow) REVIEWER: </span><span class="si">%s</span><span class="s">&quot; </span><span class="si">% d</span><span class="s">iscardedUser</span>
+<span class="s">                self.isOKFlags = self.isOKFlags &gt;&gt; 1</span>
+<span class="s">                userIndex = 2</span>
+<span class="s">            else:</span>
+<span class="s">                userIndex = len( self.reviewers )</span>
+<span class="s">        self.isOKFlags = self.isOKFlags &amp; ~( 1 &lt;&lt; userIndex ) | isOKFlag &lt;&lt; userIndex  # Set (or clear) the corresponding isOKFlag</span>
+<span class="s">        if ( userIndex &gt;= len( self.reviewers ) ):</span>
+<span class="s">            self.reviewers.append( user )</span>
+<span class="s">        else:</span>
+<span class="s">            self.reviewers[userIndex] = user</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    @staticmethod</span>
+<span class="s">    def addMarkupToQuestionText( question, decryptTags = False, decryptQuestion = False, decryptComments = False ):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        convertedQuestion = copy.copy( question )</span>
+<span class="s">        convertedQuestion.decryptText(decryptTags, decryptQuestion, decryptComments )</span>
+<span class="s">        return convertedQuestion</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    def decryptText( self, decryptTags = True, decryptQuestion = True, decryptComments = True ):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        if decryptTags:</span>
+<span class="s">            self.decryptTagText()</span>
+<span class="s">        if decryptQuestion:</span>
+<span class="s">            self.decryptQuestionText()</span>
+<span class="s">        if decryptComments:</span>
+<span class="s">            self.decryptCommentText()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    def decryptTagText(self):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        if self.tags:</span>
+<span class="s">            if self.tagTextIsEncrypted:</span>
+<span class="s">                self.tags = decrypt( self.tags, self.tagsIV )</span>
+<span class="s">                self.tagTextIsEncrypted = False</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    def decryptQuestionText(self):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        if self.questionTextIsEncrypted:</span>
+<span class="s">            if self.instructions:</span>
+<span class="s">                self.instructions = decrypt( self.instructions, self.instructionsIV )</span>
+<span class="s">            if self.question:</span>
+<span class="s">                self.question = decrypt( self.question, self.questionIV )</span>
+<span class="s">            if self.examples:</span>
+<span class="s">                self.examples = decrypt( self.examples, self.examplesIV )</span>
+<span class="s">            if self.hints:</span>
+<span class="s">                self.hints = decrypt( self.hints, self.hintsIV )</span>
+<span class="s">            if self.answer:</span>
+<span class="s">                self.answer = decrypt( self.answer, self.answerIV )</span>
+<span class="s">            self.questionTextIsEncrypted = False</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    def decryptCommentText(self):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        if self.commentTextIsEncrypted:</span>
+<span class="s">            if self.tagsComments:</span>
+<span class="s">                self.tagsComments = decrypt( self.tagsComments, self.tagsCommentsIV )</span>
+<span class="s">            if self.instructionsComments:</span>
+<span class="s">                self.instructionsComments = decrypt( self.instructionsComments, self.instructionsCommentsIV )</span>
+<span class="s">            if self.questionComments:</span>
+<span class="s">                self.questionComments = decrypt( self.questionComments, self.questionCommentsIV )</span>
+<span class="s">            if self.examplesComments:</span>
+<span class="s">                self.examplesComments = decrypt( self.examplesComments, self.examplesIV )</span>
+<span class="s">            if self.hintsComments:</span>
+<span class="s">                self.hintsComments = decrypt( self.hintsComments, self.hintsCommentsIV )</span>
+<span class="s">            if self.answerComments:</span>
+<span class="s">                self.answerComments = decrypt( self.answerComments, self.answerCommentsIV )</span>
+<span class="s">            self.commentTextIsEncrypted = False</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    def encryptText( self, encryptTags = True, encryptQuestion = True, encryptComments = True ):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        if ((encryptTags) and (self.tagTextIsEncrypted == False)):</span>
+<span class="s">            self.tags, self.tagsIV = encrypt( self.tags )</span>
+<span class="s">            self.tagTextIsEncrypted = True</span>
+<span class="s">        if ((encryptQuestion) and (self.questionTextIsEncrypted == False)):</span>
+<span class="s">            self.tags, self.tagsIV = encrypt( self.tags )</span>
+<span class="s">            self.instructions, self.instructionsIV = encrypt( self.instructions )</span>
+<span class="s">            self.question, self.questionIV = encrypt( self.question )</span>
+<span class="s">            self.examples, self.examplesIV = encrypt( self.examples )</span>
+<span class="s">            self.hints, self.hintsIV = encrypt( self.hints )</span>
+<span class="s">            self.answer, self.answerIV = encrypt( self.answer )</span>
+<span class="s">            self.questionTextIsEncrypted = True</span>
+<span class="s">        if ((encryptComments) and (self.commentTextIsEncrypted == False)):</span>
+<span class="s">            self.tagsComments, self.tagsCommentsIV = encrypt( self.tagsComments )</span>
+<span class="s">            self.instructionsComments, self.instructionsCommentsIV = encrypt( self.instructionsComments )</span>
+<span class="s">            self.questionComments, self.questionCommentsIV = encrypt( self.questionComments )</span>
+<span class="s">            self.examplesComments, self.examplesCommentsIV = encrypt( self.examplesComments )</span>
+<span class="s">            self.hintsComments, self.hintsCommentsIV = encrypt( self.hintsComments )</span>
+<span class="s">            self.answerComments, self.answerCommentsIV = encrypt( self.answerComments )</span>
+<span class="s">            self.commentTextIsEncrypted = True</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">    @staticmethod</span>
+<span class="s">    def generateQuiz( classInfo, quizNumber, cachedQuestions, maxNumberOfQuestions ):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">            TODO: Find questions with: most reviews, then different tags</span>
+<span class="s">            TODO: Modify maxNumberOfQuestions by length of question / time to answer. &quot;&quot;&quot;</span>
+        <span class="n">examQuestions</span> <span class="o">=</span> <span class="p">[]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -621,23 +653,15 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-28'>#</a>
       </div>
-      
+      <p>Add HTML markup to all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">if</span> <span class="p">((</span><span class="n">commentsOnly</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">commentsOnly</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructionsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instructions</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">examples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">examplesIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">examples</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hintsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hints</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">answerIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">questionOnly</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">questionOnly</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsCommentsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructionsCommentsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">questionCommentsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">examplesCommentsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">hintsCommentsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">answerCommentsIV</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">for</span> <span class="n">question</span> <span class="ow">in</span> <span class="n">cachedQuestions</span><span class="p">:</span>
+            <span class="n">markedUpQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">addMarkupToQuestionText</span><span class="p">(</span> <span class="n">Question</span><span class="o">.</span><span class="n">copyAndDecryptText</span><span class="p">(</span> <span class="n">question</span><span class="p">,</span> <span class="n">decryptComments</span> <span class="o">=</span> <span class="bp">False</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">examQuestions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">markedUpQuestion</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="n">examQuestions</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="p">):</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">examQuestions</span><span class="p">,</span> <span class="n">Question</span><span class="o">.</span><span class="n">generateIDFromQuestions</span><span class="p">(</span> <span class="n">classInfo</span><span class="p">,</span> <span class="n">examQuestions</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -646,11 +670,56 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-29'>#</a>
       </div>
-      <p>Generate quiz # for a class, using previously cached questions (caller is responsible for these).</p>
+      <p>This is mostly used for: \n -&gt; <br /> as well as replacing the <a href="image.html">image</a> tags. """
+onvertedQuestion = copy.copy( question )
+verallImagesToCache = set( [] )
+f decryptTags:
+   if convertedQuestion.tags:
+       convertedQuestion.tags, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.tags ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+f decryptQuestion:
+   if convertedQuestion.instructions:
+       convertedQuestion.instructions, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructions ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+   if convertedQuestion.question:
+       convertedQuestion.question, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.question ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+   if convertedQuestion.examples:
+       convertedQuestion.examples, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examples ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+   if convertedQuestion.hints:
+       convertedQuestion.hints, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hints ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+   if convertedQuestion.answer:
+       convertedQuestion.answer, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answer ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+f decryptComments:
+   if convertedQuestion.instructionsComments:
+       convertedQuestion.instructionsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructionsComments ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+   if convertedQuestion.questionComments:
+       convertedQuestion.questionComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.questionComments ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+   if convertedQuestion.examplesComments:
+       convertedQuestion.examplesComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examplesComments ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+   if convertedQuestion.hintsComments:
+       convertedQuestion.hintsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hintsComments ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+   if convertedQuestion.answerComments:
+       convertedQuestion.answerComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answerComments ) )
+       overallImagesToCache = overallImagesToCache.union( imagesToCache )
+or filename in overallImagesToCache:
+   _, _ = Image.getAndCacheByName( filename )
+eturn convertedQuestion</p>
+<p>ryption and decryption</p>
+<p>icmethod
+opyAndDecryptText( question, decryptTags = True, decryptQuestion = True, decryptComments = True ):
+Decrypt all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">generateQuiz</span><span class="p">(</span><span class="n">classInfo</span><span class="p">,</span> <span class="n">quizNumber</span><span class="p">,</span> <span class="n">cachedQuestions</span><span class="p">):</span></pre></div>
+    <span class="k">def</span> <span class="nf">generateIDFromQuestions</span><span class="p">(</span> <span class="n">classInfo</span><span class="p">,</span> <span class="n">questions</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -659,74 +728,98 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-30'>#</a>
       </div>
-      <p>TODO: Find questions with: most reviews, then different tags"""
-uizQuestions = []
-questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
-or question in cachedQuestions:
-   if (question.quiz == quizNumber):
-       markedUpQuestion = Question.addMarkupToQuestionText(Question.copyAndDecryptText(question,questionOnly=True))
-       quizQuestions.append(markedUpQuestion)
-       if (len(quizQuestions)&gt;5):
-           break
-eturn quizQuestions, Question.generateIDFromQuestions(classInfo, quizQuestions)</p>
-<p>icmethod
-enerateFinalExam(classInfo, cachedQuestions):
-Generate final exam # for a class, using previously cached questions (caller is responsible for these)</p>
+      <p>Decrypt all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="n">TODO</span><span class="p">:</span> <span class="n">Find</span> <span class="n">questions</span> <span class="k">with</span><span class="p">:</span> <span class="n">most</span> <span class="n">reviews</span><span class="p">,</span> <span class="n">then</span> <span class="n">different</span> <span class="n">tags</span><span class="s">&quot;&quot;&quot;</span>
-<span class="s">        examQuestions = []</span>
+      <div class="highlight"><pre>            <span class="n">are</span> <span class="n">offsets</span> <span class="kn">from</span> <span class="nn">the</span> <span class="nn">ClassInfo</span> <span class="nn">starting</span> <span class="nn">IDs.</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">        validIDSymbols = &quot;ABCDEFGHJKLMNPQRSTUVWXYZ23456789&quot;</span>
+<span class="s">        numIDSymbols = len( validIDSymbols )</span>
+<span class="s">        questions = []</span>
+<span class="s">        questionNumbers = idSymbols.split( &#39;.&#39; )</span>
+<span class="s">        if ( len( questionNumbers ) &lt; 2 ):</span>
+<span class="s">            flash( &quot;ID (</span><span class="si">%s</span><span class="s">) doesn&#39;t have any question IDs??&quot; </span><span class="si">% i</span><span class="s">dSymbols, category = &quot;error&quot; )</span>
+<span class="s">        else:</span>
+<span class="s">            for index in range( 0, len( questionNumbers ) ):</span>
+<span class="s">                if ( index == 0 ):</span>
+<span class="s">                    try:</span>
+<span class="s">                        classInfo = ClassInfo.get( questionNumbers[index] )</span>
+<span class="s">                    except Exception as ex:</span>
+<span class="s">                        flash ( &quot;idSymbol (</span><span class="si">%s</span><span class="s">) isn&#39;t a valid class abbreviation.&quot; % questionNumbers[index], category = &quot;error&quot; )</span>
+<span class="s">                        break</span>
+<span class="s">                else:</span>
+<span class="s">                    symbol = questionNumbers[index][0]</span>
+<span class="s">                    if symbol in validIDSymbols:</span>
+<span class="s">                        questionNumber = validIDSymbols.find( symbol )</span>
+<span class="s">                        if ( len( questionNumbers[index] ) &gt; 1 ):</span>
+<span class="s">                            symbol = questionNumbers[index][1]</span>
+<span class="s">                            if symbol in validIDSymbols:</span>
+<span class="s">                                questionNumber = questionNumber * numIDSymbols + validIDSymbols.find( symbol )</span>
+<span class="s">                            else:</span>
+<span class="s">                                flash( &quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; is invalid in code: </span><span class="si">%s</span><span class="s">&quot; % ( questionNumbers[index], idSymbols ), category = &quot;warning&quot; )</span>
+<span class="s">                                continue</span>
+<span class="s">                    else:</span>
+<span class="s">                        flash( &quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; is invalid in code: </span><span class="si">%s</span><span class="s">&quot; % ( questionNumbers[index], idSymbols ), category = &quot;warning&quot; )</span>
+<span class="s">                        continue</span>
+<span class="s">                    questionClassID = classInfo.startingID + questionNumber</span>
+<span class="s">                    try:</span>
+<span class="s">                        question = Question.getUsingClassID( questionClassID )</span>
+<span class="s">                        decryptedQuestion = Question.copyAndDecryptText( question, decryptComments = False )</span>
+<span class="s">                        if addMarkupToQuestionTextToo:</span>
+<span class="s">                            decryptedQuestion = Question.addMarkupToQuestionText( decryptedQuestion, questionOnly = True )</span>
+<span class="s">                        questions.append( decryptedQuestion )</span>
+<span class="s">                    except Exception as ex:</span>
+<span class="s">                        flash ( &quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; isn&#39;t a valid question [class] id (</span><span class="si">%d</span><span class="s">) for class: </span><span class="si">%s</span><span class="s"> in code: </span><span class="si">%s</span><span class="s">&quot; % ( questionNumbers[index], questionClassID, questionNumbers[index], idSymbols ), category = &quot;warning&quot; )</span>
+<span class="s">                        continue</span>
+<span class="s">        return questions</span>
 <span class="s">#DIVIDER</span>
-<span class="s">        for question in cachedQuestions:</span>
-<span class="s">            markedUpQuestion = Question.addMarkupToQuestionText(Question.copyAndDecryptText(question,questionOnly=True))</span>
-<span class="s">            examQuestions.append(markedUpQuestion)</span>
-<span class="s">            if (len(examQuestions)&gt;5):</span>
-<span class="s">                break</span>
-<span class="s">        return examQuestions, Question.generateIDFromQuestions(classInfo, examQuestions)</span>
+<span class="s">    def __repr__( self ):</span>
+<span class="s">        return &#39;&lt;Question </span><span class="si">%r</span><span class="s">&gt;&#39; % ( self.id )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    def __str__( self ):</span>
+<span class="s">        return &quot;Question #</span><span class="si">%d</span><span class="s"> (classID: </span><span class="si">%d</span><span class="s">): </span><span class="si">%s</span><span class="s">&quot; % ( self.id, self.classID, self.decryptAndShortenQuestion() )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">class Image( db.Model ):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    id = db.Column( db.Integer(), primary_key = True )</span>
+<span class="s">    name = db.Column( db.String( 80 ), unique = True )</span>
+<span class="s">    data = db.Column( db.LargeBinary( 4096 ), unique = True )</span>
 <span class="s">#DIVIDER</span>
 <span class="s">    @staticmethod</span>
-<span class="s">    def generateIDFromQuestions(classInfo, questions):</span>
+<span class="s">    def getByName( filename ):</span>
+<span class="s">        images = None</span>
+<span class="s">        images = Image.query.filter_by( name = filename )</span>
+<span class="s">        if ( ( images == None ) or ( images.count() == 0 ) ):</span>
+<span class="s">            flash( &quot;Couldn&#39;t find any images in the database with filename: </span><span class="si">%s</span><span class="s">&quot; </span><span class="si">% f</span><span class="s">ilename )</span>
+<span class="s">            return None</span>
+<span class="s">        if ( images.count() &gt; 1 ):</span>
+<span class="s">            flash( &quot;Found more than one image (</span><span class="si">%d</span><span class="s">) in the database with filename: </span><span class="si">%s</span><span class="s">&quot; </span><span class="si">% f</span><span class="s">ilename )</span>
+<span class="s">        return images.one()</span>
+
+<span class="s">    @staticmethod</span>
+<span class="s">    def getAndCacheByName( filename ):</span>
+<span class="s">        path = None</span>
+<span class="s">        try:</span>
+<span class="s">            data, path = readTempFile( filename )</span>
+<span class="s">        except IOError as ex:</span>
+<span class="s">            data = None</span>
+<span class="s">        if ( data == None ):</span>
+<span class="s">            image = Image.getByName( filename )</span>
+<span class="s">            if image:</span>
+<span class="s">                data = image.data</span>
+<span class="s">                if data:</span>
+<span class="s">                    path = writeTempFile( filename, data )</span>
+<span class="s">        return data, path</span>
+
+<span class="s">    def __repr__( self ):</span>
+<span class="s">        return &#39;&lt;Image </span><span class="si">%r</span><span class="s">&gt;&#39; % ( self.id )</span>
+
+<span class="s">    def __str__( self ):</span>
+<span class="s">        return &quot;Image #</span><span class="si">%d</span><span class="s"> (size=</span><span class="si">%d</span><span class="s">): </span><span class="si">%s</span><span class="s">&quot; % ( self.id, len( self.data ), self.name )</span>
+<span class="s">    </span>
+<span class="s">class History( db.Model ):</span>
 <span class="s">#DIVIDER</span>
-<span class="s">            are offsets from the ClassInfo starting IDs. &quot;&quot;&quot;</span>
-        <span class="n">validIDSymbols</span><span class="o">=</span><span class="s">&quot;ABCDEFGHJKLMNPQRSTUVWXYZ23456789&quot;</span>
-        <span class="n">numIDSymbols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">validIDSymbols</span><span class="p">)</span>
-        <span class="n">questions</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">questionNumbers</span> <span class="o">=</span> <span class="n">idSymbols</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">):</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;ID (</span><span class="si">%s</span><span class="s">) doesn&#39;t have any question IDs??&quot;</span> <span class="o">%</span> <span class="n">idSymbols</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="s">&quot;error&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">)):</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
-                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                        <span class="n">flash</span> <span class="p">(</span><span class="s">&quot;idSymbol (</span><span class="si">%s</span><span class="s">) isn&#39;t a valid class abbreviation.&quot;</span> <span class="o">%</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">category</span><span class="o">=</span><span class="s">&quot;error&quot;</span><span class="p">)</span>
-                        <span class="k">break</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">symbol</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">validIDSymbols</span><span class="p">:</span>
-                        <span class="n">questionNumber</span> <span class="o">=</span> <span class="n">validIDSymbols</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
-                            <span class="n">symbol</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-                            <span class="k">if</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">validIDSymbols</span><span class="p">:</span>
-                                <span class="n">questionNumber</span> <span class="o">=</span> <span class="n">questionNumber</span> <span class="o">*</span> <span class="n">numIDSymbols</span> <span class="o">+</span> <span class="n">validIDSymbols</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
-                            <span class="k">else</span><span class="p">:</span>
-                                <span class="n">flash</span><span class="p">(</span><span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; is invalid in code: </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span><span class="n">idSymbols</span><span class="p">),</span> <span class="n">category</span><span class="o">=</span><span class="s">&quot;warning&quot;</span><span class="p">)</span>
-                                <span class="k">continue</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">flash</span><span class="p">(</span><span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; is invalid in code: </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span><span class="n">idSymbols</span><span class="p">),</span> <span class="n">category</span><span class="o">=</span><span class="s">&quot;warning&quot;</span><span class="p">)</span>
-                        <span class="k">continue</span>
-                    <span class="n">questionClassID</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="o">+</span> <span class="n">questionNumber</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">getUsingClassID</span><span class="p">(</span><span class="n">questionClassID</span><span class="p">)</span>
-                        <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">copyAndDecryptText</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="n">addMarkupToQuestionTextToo</span><span class="p">:</span>
-                            <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">addMarkupToQuestionText</span><span class="p">(</span><span class="n">decryptedQuestion</span><span class="p">,</span> <span class="n">questionOnly</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-                        <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decryptedQuestion</span><span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                        <span class="n">flash</span> <span class="p">(</span><span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; isn&#39;t a valid question [class] id (</span><span class="si">%d</span><span class="s">) for class: </span><span class="si">%s</span><span class="s"> in code: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">questionClassID</span><span class="p">,</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">idSymbols</span><span class="p">),</span> <span class="n">category</span><span class="o">=</span><span class="s">&quot;warning&quot;</span><span class="p">)</span>
-                        <span class="k">continue</span>
-        <span class="k">return</span> <span class="n">questions</span></pre></div>
+
+</pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -735,11 +828,10 @@ Generate final exam # for a class, using previously cached questions (caller is 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-31'>#</a>
       </div>
-      <p>questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&#39;&lt;Question </span><span class="si">%r</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -748,11 +840,10 @@ Generate final exam # for a class, using previously cached questions (caller is 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-32'>#</a>
       </div>
-      <p>Generate an ID from quiz question ids.</p>
+      <p>Decrypt a question's tags (if they exist) if they aren't already decrypted.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;Question #</span><span class="si">%d</span><span class="s"> (classID: </span><span class="si">%d</span><span class="s">): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">decryptAndShortenQuestion</span><span class="p">())</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -761,24 +852,10 @@ Generate final exam # for a class, using previously cached questions (caller is 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-33'>#</a>
       </div>
-      <p>1024 questions per quiz possible. Question IDs in the database
-   are offsets from the ClassInfo starting IDs. """
-alidIDSymbols="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-umIDSymbols = len(validIDSymbols)
-dSymbols = classInfo.classAbbr
-or question in questions:
-   idSymbols += '.'
-   qid = ( question.classID - classInfo.startingID )
-   if (qid &gt; numIDSymbols):
-       idSymbols += validIDSymbols[id/numIDSymbols]
-   idSymbols += validIDSymbols[qid%numIDSymbols]
-eturn idSymbols</p>
-<p>icmethod
-etQuestionsFromID(idSymbols, addMarkupToQuestionTextToo):
-Retrieve quiz question from an ID. Question IDs in the database</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Image</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -787,12 +864,10 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-34'>#</a>
       </div>
-      
+      <p>Decrypt a question's text parts (if they exist) if they aren't already decrypted.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="nb">id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="mi">80</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">LargeBinary</span><span class="p">(</span><span class="mi">4096</span><span class="p">),</span> <span class="n">unique</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -804,39 +879,7 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">getByName</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-        <span class="n">images</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">images</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">images</span> <span class="o">==</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">==</span><span class="mi">0</span><span class="p">)):</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Couldn&#39;t find any images in the database with filename: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">images</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">):</span>
-            <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Found more than one image (</span><span class="si">%d</span><span class="s">) in the database with filename: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">images</span><span class="o">.</span><span class="n">one</span><span class="p">()</span>  
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">getAndCacheByName</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">readTempFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">data</span> <span class="o">==</span> <span class="bp">None</span><span class="p">):</span>    
-            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">getByName</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">image</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">data</span>
-                <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
-                    <span class="n">path</span> <span class="o">=</span> <span class="n">writeTempFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">path</span>
-  
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&#39;&lt;Image </span><span class="si">%r</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;Image #</span><span class="si">%d</span><span class="s"> (size=</span><span class="si">%d</span><span class="s">): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-
-</pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -845,7 +888,7 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-36'>#</a>
       </div>
-      <p>Class to encapsulate the storage and retrieval of images from the database.</p>
+      <p>Decrypt a question's comments (if they exist) if they aren't already decrypted.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -869,7 +912,199 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-38'>#</a>
       </div>
+      <p>Encrypt all of the question text, including tags and comments.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
       
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      <p>Generate Quizzes and Exams</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
+      </div>
+      <p>Generate quiz # for a class, using previously cached questions (caller is responsible for these).</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      <p>TODO: Find questions with: most reviews, then different tags
+   TODO: Modify maxNumberOfQuestions by length of question / time to answer. """
+uizQuestions = []
+ questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
+or question in cachedQuestions:
+   if ( question.quiz == quizNumber ):
+       markedUpQuestion = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question, decryptComments = False ) )
+       quizQuestions.append( markedUpQuestion )
+       if ( len( quizQuestions ) &gt; maxNumberOfQuestions ):
+           break
+eturn quizQuestions, Question.generateIDFromQuestions( classInfo, quizQuestions )</p>
+<p>icmethod
+enerateFinalExam( classInfo, cachedQuestions ):
+Generate final exam # for a class, using previously cached questions (caller is responsible for these)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      <p>questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>Generate an ID from quiz question ids.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-45'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      <p>1024 questions per quiz possible. Question IDs in the database
+   are offsets from the ClassInfo starting IDs. """
+alidIDSymbols = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+umIDSymbols = len( validIDSymbols )
+dSymbols = classInfo.classAbbr
+or question in questions:
+   idSymbols += '.'
+   qid = ( question.classID - classInfo.startingID )
+   if ( qid &gt; numIDSymbols ):
+       idSymbols += validIDSymbols[id / numIDSymbols]
+   idSymbols += validIDSymbols[qid % numIDSymbols]
+eturn idSymbols</p>
+<p>icmethod
+etQuestionsFromID( idSymbols, addMarkupToQuestionTextToo ):
+Retrieve quiz question from an ID. Question IDs in the database</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-47'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-47'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-48'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-48'>#</a>
+      </div>
+      <p>Class to encapsulate the storage and retrieval of images from the database.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-49'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-49'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>A general way to store previously generated data, which, for now, is a workaround for long,</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
+      </div>
+      <p>clunky IDs to retrieve previously generated quizzes and exams. Class abbreviation (e.g., 9F) and
+   quiz number are to aid in retrieval and display. """</p>
+<p>d = db.Column( db.Integer(), primary_key = True )
+lassAbbr = db.Column( db.String( 4 ) )
+uiz = db.Column( db.Integer ) <br />
+uestions = db.relationship( 'Question', secondary = questions_histories, backref = db.backref( 'histories', lazy = 'dynamic' ) )</p>
+<p>ef <strong>repr</strong>( self ):
+   return '<History %r>' % ( self.id )</p>
+<p>ef <strong>str</strong>( self ):
+   return "History #%d: %r" % ( self.id, questions )</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

@@ -1,11 +1,10 @@
 <!doctype html>
 <head>
-	<title>QDP</title>
-	<!--link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Abel|Open+Sans:400,600" /-->
-	<link rel="stylesheet" media="screen" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-	<script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
-	<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-	<style type="text/css">
+	<title>
+		QDP
+	</title>
+<!--link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Abel|Open+Sans:400,600" /-->
+	<link rel="stylesheet" media="screen" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}"> <script src="{{ url_for('static', filename='js/jquery.js') }}"></script> <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script> <style type="text/css">
 		/* http://css-tricks.com/perfect-full-page-background-image/ */
         html {
             // background: url({{ url_for('static', filename='img/c_programming_w1.jpeg') }}) no-repeat center center fixed; 
@@ -45,37 +44,101 @@
         .upright3{position:absolute;top:58px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
         .lowleft{position:absolute;bottom:10px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
         .lowright{position:absolute;bottom:10px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
-	</style>
-	{% block head %}{% endblock %}
+	</style> 
+{% block head %}
+
+{% endblock %}
+ 
 </head>
 <body>
-<div class="page">
-	<h1 class="upleft1">
-		QDP<br />
-	</h1>
-	<span class="upleft2 text-muted">{{config['VERSION_NUMBER']}}</span>
-	<h2 class="upcenter">
-		{{ title }} 
-	</h2>
-	<div class="upright1">
-		{% if current_user.is_authenticated() %} 
-		  {{ current_user.fullname }}<br />
-		<a href="{{ url_for('security.logout') }}">Logout</a>
-		{% else %}
-		  <a href="{{ url_for('security.login') }}">Login</a><br />
-		  <a href="{{ url_for('security.register') }}">Register</a>
-		{% endif %} 
+	<div class="page">
+		<h1 class="upleft1">
+			QDP<br /> 
+		</h1>
+		<span class="upleft2 text-muted">
+			{{config['VERSION_NUMBER']}}
+		</span>
+		<h2 class="upcenter">
+			{{ title }} 
+		</h2>
+		<div class="upright1">
+			
+{% if current_user.is_authenticated() %}
+ {{ current_user.fullname }}<br /> 
+			<a href="{{ url_for('security.logout') }}">
+				Logout
+			</a>
+			
+{% else %}
+ 
+			<a href="{{ url_for('security.login') }}">
+				Login
+			</a>
+			<br /> 
+			<a href="{{ url_for('security.register') }}">
+				Register
+			</a>
+			
+{% endif %}
+ 
+		</div>
+		
+{% with messages = get_flashed_messages(with_categories=true) %}
+ 
+{% if messages %}
+ 
+		<ul class="flashes">
+			
+{% for category, message in messages %}
+ 
+			<li class="{{ category }}">
+				{{ message }}
+			</li>
+			
+{% endfor %}
+ 
+		</ul>
+		
+{% endif %}
+ 
+{% endwith %}
+
+{% if form %}
+
+{% if form.errors %}
+ 
+<ul class="errors">
+	
+{% for field_name, field_errors in form.errors|dictsort if field_errors %}
+ 
+{% for error in field_errors %}
+ 
+	<li>
+		{{ form[field_name].label }}: {{ error }} 
+	</li>
+	
+{% endfor %}
+ 
+{% endfor %}
+ 
+</ul>
+
+{% endif %}
+
+{% endif %}
+ 
+{% if help %}
+ 
+		<a href="{{ url_for(help) }}" class="lowright">
+			<img src="{{ url_for('static', filename='img/126194-simple-black-square-icon-alphanumeric-icon_091.png') }}"> 
+		</a>
+		
+{% endif %}
+ 
+{% block content %}
+
+{% endblock %}
+ 
 	</div>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul class=flashes>
-        {% for category, message in messages %}
-          <li class="{{ category }}">{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-	{% if help %} <a href="{{ url_for(help) }}" class="lowright"> <img src="{{ url_for('static', filename='img/126194-simple-black-square-icon-alphanumeric-icon_091.png') }}"> </a> {% endif %} {% block content %}{% endblock %} 
-</div>
 </body>
 </html>

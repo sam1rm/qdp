@@ -30,9 +30,9 @@ MAIL_PASSWORD = 'DDVhd,(gC^54'
 
 # QDP Specific
 
-import datetime
 VERSION_NUMBER = "ALPHA VERSION : 00"
 REVIEWS_BEFORE_OK_TO_USE = 3
+MAX_NUMBER_OF_QUESTIONS = 5
 
 # File uploads
 

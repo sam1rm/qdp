@@ -1,6 +1,15 @@
 {% extends "layout.html" %} {% block content %} 
 <table width="100%">
 	<tr>
+	<th></th>
+	{% if isAdmin %} 
+	<th>Admin</th>
+	{% endif %}
+	{% if isDebugging %}
+	<th>Debug</th>
+	{% endif %}
+	</tr>
+	<tr>
 		<td>
 			<h2>
 				Questions 
