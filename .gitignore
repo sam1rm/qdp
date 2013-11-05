@@ -3,3 +3,4 @@
 pushher.sh
 tmp/
 *populate*
+app.db

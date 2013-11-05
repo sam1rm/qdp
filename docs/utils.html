@@ -288,9 +288,12 @@ this is a test'</p>
 ry:
    iv = base64.b64decode(IV)
 xcept TypeError as ex:
-   return "INVALID IV"
+   return "INVALID IV for decryption"
 BJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
-essage = base64.b64decode(b64Message)
+ry:
+   message = base64.b64decode(b64Message)
+xcept TypeError as ex:
+   return "INVALID b64Message to decrypt"
 addedMessage = OBJ.decrypt(message)
 ry:
    messageLen = int(paddedMessage[:4])

@@ -29,6 +29,9 @@ class Role( db.Model, RoleMixin ):
         return '<Role %d>' % self.id
 
 class User( db.Model, UserMixin ):
+    """ Class that stores user information, including the password in encrypted form. Also handles session cookies
+        for the 'remember me' option. Also keeps track of the Role of the user (e.g. 'Admin') as well as the
+        questions that the user has written. """
     id = db.Column( db.Integer, primary_key = True )
     email = db.Column( db.String( 255 ), unique = True )
     password = db.Column( db.String( 255 ) )
