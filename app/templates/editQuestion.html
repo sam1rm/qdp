@@ -95,7 +95,7 @@
 			</h3>
 			<div class="tabbable">
 				<ul class="nav nav-tabs">
-				    {% for similarQuestion in similaryQuestionsToDisplay %}
+				    {% for similarQuestion in similarQuestionsToDisplay %}
     				    {% if loop.first %}
     					   <li class="active">
     					{% else %}
@@ -108,7 +108,7 @@
 					{% endfor %}
 				</ul>
 				<div class="tab-content">
-                    {% for similarQuestion in similaryQuestionsToDisplay %}
+                    {% for similarQuestion in similarQuestionsToDisplay %}
                         {% if loop.first %}
     					   <div class="tab-pane active" id="tab{{loop.index}}">
     					{% else %}

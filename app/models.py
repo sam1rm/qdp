@@ -206,7 +206,7 @@ class Question( db.Model ):
             result = set()
             if self.tags:
                 for tag in self.tags.split( "," ):
-                    result.add( tag.strip() )
+                    result.add( tag.lower().strip() )
             return result
         else:
             return "?? NO TAGS ??"
@@ -250,7 +250,7 @@ class Question( db.Model ):
         for instance in instances:
             instanceTags = instance.tagsAsSet()
             if ( len( instanceTags.intersection( tags ) ) > 0 ):
-                existing.append( instance )
+                existing.append( Question.copyAndDecryptText(instance) )
         return existing
     
     def addReviewer( self, user, isOKFlag, maxReviewers ):
@@ -341,10 +341,10 @@ class Question( db.Model ):
     
     def decryptTagText(self):
         """ Decrypt a question's tags (if they exist) if they aren't already decrypted. """
-        if self.tags:
-            if self.tagTextIsEncrypted:
+        if self.tagTextIsEncrypted:
+            if self.tags:
                 self.tags = decrypt( self.tags, self.tagsIV )
-                self.tagTextIsEncrypted = False
+            self.tagTextIsEncrypted = False
             
     def decryptQuestionText(self):
         """ Decrypt a question's text parts (if they exist) if they aren't already decrypted. """
@@ -384,7 +384,6 @@ class Question( db.Model ):
             self.tags, self.tagsIV = encrypt( self.tags )
             self.tagTextIsEncrypted = True
         if ((encryptQuestion) and (self.questionTextIsEncrypted == False)):
-            self.tags, self.tagsIV = encrypt( self.tags )
             self.instructions, self.instructionsIV = encrypt( self.instructions )
             self.question, self.questionIV = encrypt( self.question )
             self.examples, self.examplesIV = encrypt( self.examples )
@@ -435,7 +434,8 @@ class Question( db.Model ):
     def generateIDFromQuestions( classInfo, questions ):
         """ Generate an ID from quiz question ids.
             1024 questions per quiz possible. Question IDs in the database
-            are offsets from the ClassInfo starting IDs. """
+            are offsets from the ClassInfo starting IDs. 
+            TODO: Turn this into a History instead. """
         validIDSymbols = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len( validIDSymbols )
         idSymbols = classInfo.classAbbr
@@ -450,7 +450,8 @@ class Question( db.Model ):
     @staticmethod
     def getQuestionsFromID( idSymbols, addMarkupToQuestionTextToo ):
         """ Retrieve quiz question from an ID. Question IDs in the database
-            are offsets from the ClassInfo starting IDs. """
+            are offsets from the ClassInfo starting IDs.
+            TODO: Turn this into a History instead. """
         validIDSymbols = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len( validIDSymbols )
         questions = []
@@ -539,7 +540,6 @@ class History( db.Model ):
     """ A general way to store previously generated data, which, for now, is a workaround for long, 
         clunky IDs to retrieve previously generated quizzes and exams. Class abbreviation (e.g., 9F) and
         quiz number are to aid in retrieval and display. """
- 
     id = db.Column( db.Integer(), primary_key = True )
     classAbbr = db.Column( db.String( 4 ) )
     quiz = db.Column( db.Integer )   

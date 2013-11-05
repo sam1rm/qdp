@@ -121,9 +121,12 @@ def decrypt(b64Message, IV):
     try:
         iv = base64.b64decode(IV)
     except TypeError as ex:
-        return "INVALID IV"
+        return "INVALID IV for decryption"
     OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
-    message = base64.b64decode(b64Message)
+    try:
+        message = base64.b64decode(b64Message)
+    except TypeError as ex:
+        return "INVALID b64Message to decrypt"
     paddedMessage = OBJ.decrypt(message)
     try:
         messageLen = int(paddedMessage[:4])
