@@ -1,0 +1,37 @@
+{% extends "layout.html" %} {% block head %} <style>
+    td {text-align:center;vertical-align:middle;}
+    img {height:64px;}
+</style> <script type="text/javascript">>
+    $('.table-hover tr').click(function () { question = $(this).data("image"); window.location.href = {{url_for('imageStatistics',imageID=image)}}; })
+</script> {% endblock %} {% block content %} 
+<table class="table table-striped table-bordered table-condensed table-hover">
+	<thead>
+		<tr>
+			<td>
+				ID 
+			</td>
+			<td>
+				/path/to 
+			<td>
+				Image 
+			</td>
+	</thead>
+	<tbody>
+		{% for image in imagesToDisplay %} 
+		<tr data-image=image.id>
+			<td>
+				<a href="{{url_for('imageStatistics',imageID=image.id)}}">
+					{{image.id}}
+				</a>
+			</td>
+			<td>
+				{{image.cachePath}} 
+			</td>
+			<td>
+				<img src="{{image.cachePath}}"> 
+			</td>
+		<tr>
+			{% endfor %} 
+	</tbody>
+</table>
+{% endblock %}

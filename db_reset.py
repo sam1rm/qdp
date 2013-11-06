@@ -12,7 +12,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.security import Security, SQLAlchemyUserDatastore
 from flask.ext.security.utils import encrypt_password
 
-from app.models import User, Role, Question, ClassInfo, Image, encrypt
+from app.models import User, Role, Question, ClassInfo, Image, encrypt, generateIV
 
 def resetDatabase(db):
     
@@ -140,30 +140,35 @@ def resetDatabase(db):
     ##########
     
     def add_question(classID,classAbbr,quiz,tags,instructions,question,example,answer,user_id,reviewers,isOKFlags):
-        encryptedTags, encryptedTagsIV = encrypt(tags)
+        tagIV, tagIVb64 = generateIV()
+        questionIV, questionIVb64 = generateIV()
+        _, commentIVb64 = generateIV()
+        encryptedTags = encrypt(tags, tagIV)
         if instructions:
-            encryptedInstructions, encryptedInstructionsIV = encrypt(instructions)
+            encryptedInstructions = encrypt(instructions, questionIV)
         else:
-            encryptedInstructions, encryptedInstructionsIV = None, None
-        encryptedQuestion, encryptedQuestionIV = encrypt(question)
+            encryptedInstructions = None
+        encryptedQuestion = encrypt(question, questionIV)
         if example:
-            encryptedExample, encryptedExampleIV = encrypt(example)
+            encryptedExample = encrypt(example, questionIV)
         else:
-            encryptedExample, encryptedExampleIV = None, None
-        encryptedAnswer, encryptedAnswerIV = encrypt(answer)
+            encryptedExample = None
+        encryptedAnswer = encrypt(answer, questionIV)
         question = Question(classID = classID, classAbbr = classAbbr, \
                             created = datetime.datetime.now(), modified = datetime.datetime.now(), \
                             quiz = quiz,   \
-                            tags=encryptedTags, tagsIV=encryptedTagsIV, \
-                            instructions=encryptedInstructions, instructionsIV=encryptedInstructionsIV, \
+                            tags=encryptedTags, \
+                            instructions=encryptedInstructions, \
                             question = encryptedQuestion, \
-                            examples = encryptedExample, examplesIV =encryptedExampleIV, \
-                            answer = encryptedAnswer, answerIV = encryptedAnswerIV, \
-                            questionIV=encryptedQuestionIV,           \
+                            examples = encryptedExample, \
+                            answer = encryptedAnswer, \
+                            questionIV=questionIVb64, \
+                            commentsIV = commentIVb64, \
+                            tagsIV=tagIVb64, \
                             user_id = user_id, \
                             reviewers = reviewers, \
                             isOKFlags = isOKFlags  )
-        db.session.add(question)    
+        db.session.add(question)   
     
     ###############
     # 9A : MATLAB #
@@ -212,7 +217,7 @@ def resetDatabase(db):
         [], \
         0 )
     
-    add_question(classInfo9F.startingID,classInfo9F.classAbbr, \
+    add_question(classInfo9F.startingID+1,classInfo9F.classAbbr, \
         1, \
         u"Fundamentals,Operators,Expressions", \
         u"Circle the correct expression. Assume default meanings for each operator.", \
@@ -223,7 +228,7 @@ def resetDatabase(db):
         [], \
         0)
         
-    add_question(classInfo9F.startingID,classInfo9F.classAbbr, \
+    add_question(classInfo9F.startingID+2,classInfo9F.classAbbr, \
         3, \
         u"Dynamically allocated data", \
         u"Given the following declaration:\n\tclass ListNode {\n\tpublic:\n\t\tListNode (const int k);\n\t\tListNode (const int k, const ListNode* ptr);\n\t\t...\n\tprivate:\n\t\tint value;\n\t\tListNode *next;\n\t};", \

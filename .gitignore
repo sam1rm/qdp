@@ -1,6 +1,6 @@
-*.pyc
 .DS_Store
-pushher.sh
+.pydevproject
+*.pyc
 tmp/
-*populate*
+db_*
 app.db

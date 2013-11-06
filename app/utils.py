@@ -46,7 +46,7 @@ def makeTempFileResp(filename):
         resp = make_response(data)
         if (data[:3]=="GIF"):
             resp.content_type = "image/GIF"
-        elif (data[4:8]=="JFIF"):
+        elif (data[6:10]=="JFIF"):
             resp.content_type = "image/JPEG"
     except IOError as ex:
         print 'Unable to open file for reading in makeTempFileResp: %s' % path
@@ -87,7 +87,7 @@ def replaceImageTags(text):
     return flask.Markup(result), imagesToCache
 
 def convertToHTML(text):
-    """ Simple convert some text into HTML code .. dds <br />'s correctly to text which contains 
+    """ Simple convert some text into HTML code .. appends <br />'s correctly to text which contains 
         a newline (necessary to display multi-line text correctly).
     >>> print convertToHTML("test")
     test
@@ -101,18 +101,23 @@ def convertToHTML(text):
         result = result[:-6]
     return result
 
-def encrypt(message):
+def generateIV():
+    """ Generate a 16-byte, random IV, then return the raw data as well as the base64 encoded version (for saving in the DB) """
+    iv = Random.new().read(AES.block_size)
+    return iv, base64.b64encode(iv)
+
+def encrypt(message, IV):
     """ Encrypt a 16-byte, length-prefixed, padded message using AES.
         Returned message is base64 encoded.
-    >>> message,iv=encrypt("this is a test"); decrypt(message,iv)
+    >>> iv,b64iv=generateIV(); message=encrypt("this is a test",iv); decrypt(message,b64iv)
     'this is a test'
     """
-    iv = Random.new().read(AES.block_size)
-    OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
+    assert(len(IV)==16)
+    OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, IV)
     numToPad = 16 - ( len(message) + 4 ) % 16
     paddedMessage = "%04d%s%s" % (len(message),message,config.PADDING[:numToPad])
     encryptedMessage = OBJ.encrypt(paddedMessage)
-    return(base64.b64encode(encryptedMessage),base64.b64encode(iv))
+    return(base64.b64encode(encryptedMessage))
 
 def decrypt(b64Message, IV):
     """ Decode a base64 message using AES. Returned is original message minus the padding,

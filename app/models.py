@@ -6,7 +6,7 @@ from flask import flash
 from flask.ext.security import UserMixin, RoleMixin
 from werkzeug import generate_password_hash, check_password_hash
 
-from utils import decrypt, encrypt, convertToHTML, replaceImageTags, readTempFile, writeTempFile
+from app.utils import decrypt, encrypt, generateIV, convertToHTML, replaceImageTags, readTempFile, writeTempFile
 
 roles_users = db.Table( 'roles_users',
         db.Column( 'users_id', db.Integer(), db.ForeignKey( 'user.id' ) ),
@@ -16,11 +16,19 @@ users_questions = db.Table( 'users_questions',
         db.Column( 'users_id', db.Integer(), db.ForeignKey( 'user.id' ) ),
         db.Column( 'questions_id', db.Integer(), db.ForeignKey( 'question.id' ) ) )
 
+# TODO: Implement
 questions_histories = db.Table( 'questions_histories',
         db.Column( 'questions_id', db.Integer(), db.ForeignKey( 'question.id' ) ),
         db.Column( 'history_id', db.Integer(), db.ForeignKey( 'history.id' ) ) )
 
+# TODO: Implement
+images_questions = db.Table( 'images_questions',
+        db.Column( 'images_id', db.Integer(), db.ForeignKey( 'image.id' ) ),
+        db.Column( 'questions_id', db.Integer(), db.ForeignKey( 'question.id' ) ) )
+
 class Role( db.Model, RoleMixin ):
+    """ Stores the various User's roles (for use in the relational table between Roles and Users)
+        (e.g., "User," "Admin,") """
     id = db.Column( db.Integer(), primary_key = True )
     name = db.Column( db.String( 80 ), unique = True )
     description = db.Column( db.String( 255 ) )
@@ -29,7 +37,7 @@ class Role( db.Model, RoleMixin ):
         return '<Role %d>' % self.id
 
 class User( db.Model, UserMixin ):
-    """ Class that stores user information, including the password in encrypted form. Also handles session cookies
+    """ Stores user information, including the password in encrypted form. Also handles session cookies
         for the 'remember me' option. Also keeps track of the Role of the user (e.g. 'Admin') as well as the
         questions that the user has written. """
     id = db.Column( db.Integer, primary_key = True )
@@ -144,29 +152,20 @@ class Question( db.Model ):
     classAbbr = db.Column( db.String( 4 ) )
     quiz = db.Column( db.Integer )
     tags = db.Column( db.String( 256 ) )
-    tagsIV = db.Column( db.String( 16 ) )
     tagsComments = db.Column( db.Text )
-    tagsCommentsIV = db.Column( db.String( 16 ) )
     instructions = db.Column( db.Text )
-    instructionsIV = db.Column( db.String( 16 ) )
     instructionsComments = db.Column( db.Text )
-    instructionsCommentsIV = db.Column( db.String( 16 ) )
     question = db.Column( db.Text )
-    questionIV = db.Column( db.String( 16 ) )
     questionComments = db.Column( db.Text )
-    questionCommentsIV = db.Column( db.String( 16 ) )
     examples = db.Column( db.Text )
-    examplesIV = db.Column( db.String( 16 ) )
     examplesComments = db.Column( db.Text )
-    examplesCommentsIV = db.Column( db.String( 16 ) )
     hints = db.Column( db.Text )
-    hintsIV = db.Column( db.String( 16 ) )
     hintsComments = db.Column( db.Text )
-    hintsCommentsIV = db.Column( db.String( 16 ) )
     answer = db.Column( db.Text )
-    answerIV = db.Column( db.String( 16 ) )
     answerComments = db.Column( db.Text )
-    answerCommentsIV = db.Column( db.String( 16 ) )
+    tagsIV = db.Column( db.String( 16 ) )
+    questionIV = db.Column( db.String( 16 ) )
+    commentsIV = db.Column( db.String( 16 ) )
     user_id = db.Column( db.Integer, db.ForeignKey( 'user.id' ) )
     # Relationships with other models
     reviewers = db.relationship( 'User', secondary = users_questions, backref = db.backref( 'reviewers', lazy = 'dynamic' ) )
@@ -244,7 +243,7 @@ class Question( db.Model ):
         assert ( type( offsetNumber ) == type( 1 ) ), "offsetNumber (%r) != int??" % offsetNumber
         return offsetNumber
 
-    def findSimilarQuestions( self ):
+    def retrieveAndDecryptSimilarQuestions( self ):
         """ Find questions "similar" to this one. Uses quiz # and tags.
             TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
         existing = []
@@ -278,59 +277,54 @@ class Question( db.Model ):
         else:
             self.reviewers[userIndex] = user
 
-    @staticmethod
-    def addMarkupToQuestionText( question, decryptTags = False, decryptQuestion = False, decryptComments = False ):
+    def makeMarkedUpVersion( self ):
         """ Add HTML markup to all of the question text, including tags and comments.
             This is mostly used for: \n -> <br /> as well as replacing the [[image]] tags. """
-        convertedQuestion = copy.copy( question )
+        convertedQuestion = self.makeDecryptedTextVersion()
         overallImagesToCache = set( [] )
-        if decryptTags:
-            if convertedQuestion.tags:
-                convertedQuestion.tags, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.tags ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-        if decryptQuestion:
-            if convertedQuestion.instructions:
-                convertedQuestion.instructions, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructions ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-            if convertedQuestion.question:
-                convertedQuestion.question, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.question ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-            if convertedQuestion.examples:
-                convertedQuestion.examples, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examples ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-            if convertedQuestion.hints:
-                convertedQuestion.hints, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hints ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-            if convertedQuestion.answer:
-                convertedQuestion.answer, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answer ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-        if decryptComments:
-            if convertedQuestion.instructionsComments:
-                convertedQuestion.instructionsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructionsComments ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-            if convertedQuestion.questionComments:
-                convertedQuestion.questionComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.questionComments ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-            if convertedQuestion.examplesComments:
-                convertedQuestion.examplesComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examplesComments ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-            if convertedQuestion.hintsComments:
-                convertedQuestion.hintsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hintsComments ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
-            if convertedQuestion.answerComments:
-                convertedQuestion.answerComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answerComments ) )
-                overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.tags:
+            convertedQuestion.tags, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.tags ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.instructions:
+            convertedQuestion.instructions, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructions ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.question:
+            convertedQuestion.question, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.question ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.examples:
+            convertedQuestion.examples, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examples ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.hints:
+            convertedQuestion.hints, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hints ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.answer:
+            convertedQuestion.answer, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answer ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.instructionsComments:
+            convertedQuestion.instructionsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructionsComments ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.questionComments:
+            convertedQuestion.questionComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.questionComments ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.examplesComments:
+            convertedQuestion.examplesComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examplesComments ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.hintsComments:
+            convertedQuestion.hintsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hintsComments ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+        if convertedQuestion.answerComments:
+            convertedQuestion.answerComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answerComments ) )
+            overallImagesToCache = overallImagesToCache.union( imagesToCache )
         for filename in overallImagesToCache:
-            _, _ = Image.getAndCacheByName( filename )
+            _ = Image.getAndCacheByName( filename )
         return convertedQuestion
 
     # Encryption and decryption
 
-    @staticmethod
-    def copyAndDecryptText( question, decryptTags = True, decryptQuestion = True, decryptComments = True ):
+    def makeDecryptedTextVersion(self, decryptTags = True, decryptQuestion = True, decryptComments = True ):
         """ Decrypt all of the question text, including tags and comments. """
-        convertedQuestion = copy.copy( question )
-        convertedQuestion.decryptText(decryptTags, decryptQuestion, decryptComments )
+        convertedQuestion = copy.copy( self )
+        convertedQuestion.decryptText( decryptTags, decryptQuestion, decryptComments )
         return convertedQuestion
 
     def decryptText( self, decryptTags = True, decryptQuestion = True, decryptComments = True ):
@@ -353,53 +347,56 @@ class Question( db.Model ):
         """ Decrypt a question's text parts (if they exist) if they aren't already decrypted. """
         if self.questionTextIsEncrypted:
             if self.instructions:
-                self.instructions = decrypt( self.instructions, self.instructionsIV )
+                self.instructions = decrypt( self.instructions, self.questionIV )
             if self.question:
                 self.question = decrypt( self.question, self.questionIV )
             if self.examples:
-                self.examples = decrypt( self.examples, self.examplesIV )
+                self.examples = decrypt( self.examples, self.questionIV )
             if self.hints:
-                self.hints = decrypt( self.hints, self.hintsIV )
+                self.hints = decrypt( self.hints, self.questionIV )
             if self.answer:
-                self.answer = decrypt( self.answer, self.answerIV )
+                self.answer = decrypt( self.answer, self.questionIV )
             self.questionTextIsEncrypted = False
 
     def decryptCommentText(self):
         """ Decrypt a question's comments (if they exist) if they aren't already decrypted. """
         if self.commentTextIsEncrypted:
             if self.tagsComments:
-                self.tagsComments = decrypt( self.tagsComments, self.tagsCommentsIV )
+                self.tagsComments = decrypt( self.tagsComments, self.commentsIV )
             if self.instructionsComments:
-                self.instructionsComments = decrypt( self.instructionsComments, self.instructionsCommentsIV )
+                self.instructionsComments = decrypt( self.instructionsComments, self.commentsIV )
             if self.questionComments:
-                self.questionComments = decrypt( self.questionComments, self.questionCommentsIV )
+                self.questionComments = decrypt( self.questionComments, self.commentsIV )
             if self.examplesComments:
-                self.examplesComments = decrypt( self.examplesComments, self.examplesIV )
+                self.examplesComments = decrypt( self.examplesComments, self.commentsIV )
             if self.hintsComments:
-                self.hintsComments = decrypt( self.hintsComments, self.hintsCommentsIV )
+                self.hintsComments = decrypt( self.hintsComments, self.commentsIV )
             if self.answerComments:
-                self.answerComments = decrypt( self.answerComments, self.answerCommentsIV )
+                self.answerComments = decrypt( self.answerComments, self.commentsIV )
             self.commentTextIsEncrypted = False
 
     def encryptText( self, encryptTags = True, encryptQuestion = True, encryptComments = True ):
         """ Encrypt all of the question text, including tags and comments. """
         if ((encryptTags) and (self.tagTextIsEncrypted == False)):
-            self.tags, self.tagsIV = encrypt( self.tags )
+            iv, self.tagsIV = generateIV()
+            self.tags = encrypt( self.tags, iv )
             self.tagTextIsEncrypted = True
         if ((encryptQuestion) and (self.questionTextIsEncrypted == False)):
-            self.instructions, self.instructionsIV = encrypt( self.instructions )
-            self.question, self.questionIV = encrypt( self.question )
-            self.examples, self.examplesIV = encrypt( self.examples )
-            self.hints, self.hintsIV = encrypt( self.hints )
-            self.answer, self.answerIV = encrypt( self.answer )
+            iv, self.questionIV = generateIV()
+            self.instructions = encrypt( self.instructions, iv )
+            self.question = encrypt( self.question, iv )
+            self.examples = encrypt( self.examples, iv )
+            self.hints = encrypt( self.hints, iv )
+            self.answer = encrypt( self.answer, iv )
             self.questionTextIsEncrypted = True
         if ((encryptComments) and (self.commentTextIsEncrypted == False)):
-            self.tagsComments, self.tagsCommentsIV = encrypt( self.tagsComments )
-            self.instructionsComments, self.instructionsCommentsIV = encrypt( self.instructionsComments )
-            self.questionComments, self.questionCommentsIV = encrypt( self.questionComments )
-            self.examplesComments, self.examplesCommentsIV = encrypt( self.examplesComments )
-            self.hintsComments, self.hintsCommentsIV = encrypt( self.hintsComments )
-            self.answerComments, self.answerCommentsIV = encrypt( self.answerComments )
+            iv, self.commentsIV = generateIV()
+            self.tagsComments = encrypt( self.tagsComments, iv )
+            self.instructionsComments = encrypt( self.instructionsComments, iv )
+            self.questionComments = encrypt( self.questionComments, iv )
+            self.examplesComments = encrypt( self.examplesComments, iv )
+            self.hintsComments = encrypt( self.hintsComments, iv )
+            self.answerComments = encrypt( self.answerComments, iv )
             self.commentTextIsEncrypted = True
 
     # Generate Quizzes and Exams
@@ -413,7 +410,7 @@ class Question( db.Model ):
         # questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
             if ( question.quiz == quizNumber ):
-                markedUpQuestion = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question, decryptComments = False ) )
+                markedUpQuestion = question.makeMarkedUpVersion()
                 quizQuestions.append( markedUpQuestion )
                 if ( len( quizQuestions ) > maxNumberOfQuestions ):
                     break
@@ -427,7 +424,7 @@ class Question( db.Model ):
         examQuestions = []
         # questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
-            markedUpQuestion = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question, decryptComments = False ) )
+            markedUpQuestion = question.makeMarkedUpVersion()
             examQuestions.append( markedUpQuestion )
             if ( len( examQuestions ) > 5 ):
                 break
@@ -458,6 +455,7 @@ class Question( db.Model ):
         validIDSymbols = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len( validIDSymbols )
         questions = []
+        classInfo = None
         questionNumbers = idSymbols.split( '.' )
         if ( len( questionNumbers ) < 2 ):
             flash( "ID (%s) doesn't have any question IDs??" % idSymbols, category = "error" )
@@ -493,7 +491,7 @@ class Question( db.Model ):
                     except Exception as ex:
                         flash ( "ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % ( questionNumbers[index], questionClassID, questionNumbers[index], idSymbols ), category = "warning" )
                         continue
-        return questions
+        return questions, classInfo
 
     def __repr__( self ):
         return '<Question %r>' % ( self.id )
@@ -502,11 +500,14 @@ class Question( db.Model ):
         return "Question #%d (classID: %d): %s" % ( self.id, self.classID, self.decryptAndShortenQuestion() )
 
 class Image( db.Model ):
-    """ Class to encapsulate the storage and retrieval of images from the database. """
+    """ Class to encapsulate the storage and retrieval of images from the database. 
+        TODO: Categorize (for speed) by classAbbr. """
     id = db.Column( db.Integer(), primary_key = True )
     name = db.Column( db.String( 80 ), unique = True )
+    classAbbr = db.Column( db.String( 4 ) )
     data = db.Column( db.LargeBinary( 4096 ), unique = True )
-
+    cachePath = None
+    
     @staticmethod
     def getByName( filename ):
         images = None
@@ -520,6 +521,7 @@ class Image( db.Model ):
 
     @staticmethod
     def getAndCacheByName( filename ):
+        """ Get image from cache if it exists, if not, get it from the database and cache it (to a temporary file). """
         path = None
         try:
             data, path = readTempFile( filename )
@@ -530,19 +532,24 @@ class Image( db.Model ):
             if image:
                 data = image.data
                 if data:
-                    path = writeTempFile( filename, data )
-        return data, path
+                    image.cacheByName()
+        return data
+
+    def cacheByName( self ):
+        """ Write data to /path/to/tmp/filename (and store the generated path) """
+        self.cachePath = writeTempFile( self.name, self.data )
 
     def __repr__( self ):
         return '<Image %r>' % ( self.id )
 
     def __str__( self ):
-        return "Image #%d (size=%d): %s" % ( self.id, len( self.data ), self.name )
+        return "Image #%d: %s (cachePath=%s) (size=%d)" % ( self.id, self.name, len( self.data ), self.cachePath )
     
 class History( db.Model ):
     """ A general way to store previously generated data, which, for now, is a workaround for long, 
         clunky IDs to retrieve previously generated quizzes and exams. Class abbreviation (e.g., 9F) and
-        quiz number are to aid in retrieval and display. """
+        quiz number are to aid in retrieval and display.
+        TODO: Implement """
     id = db.Column( db.Integer(), primary_key = True )
     classAbbr = db.Column( db.String( 4 ) )
     quiz = db.Column( db.Integer )   

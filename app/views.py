@@ -41,9 +41,7 @@ def helpMain():
         TODO: Make help dynamic (e.g. __page__Help.html)"""
     return render_template( 'helpMain.html' )
 
-############
-# CHOOSERS #
-############
+# CHOOSERS
 
 @app.route( '/chooseClass' )
 @login_required
@@ -65,7 +63,7 @@ def chooseQuestionToEdit():
     """ Primary point for editing a question which begins with choosing questions that
         exist for a previously chosen class.
         TODO: Allow admins to edit _all_ questions. """
-    if session['classAbbr']:
+    if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         questions = []
         for instance in Question.query.filter( Question.classAbbr == session['classAbbr'] ).order_by( Question.id ):
@@ -92,11 +90,33 @@ def chooseQuiz():
     g_CachedQuestions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).all()
     for question in g_CachedQuestions:
         quizzesFound.add( question.quiz )
-    return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz For " + session['classAbbr'] + " (" + classInfo.longName + ")" )
+    return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz for " + session['classAbbr'] + " (" + classInfo.longName + ")" )
 
-#############
-# CHOSE-ERS # <-- Steps following choosers (above)
-#############
+@app.route( "/manageMedia" )
+@login_required
+@user_permission.require()
+def manageMedia():
+    """ Display uploaded media files, or upload a new one. 
+        TODO: Filter (optimization) by classAbbr. """
+    if (('classAbbr' in session) and (session['classAbbr'])):
+        classInfo = ClassInfo.get( session['classAbbr'] )
+        images = []
+        instances = Image.query.order_by( Image.id ).all()
+        for instance in instances:
+            instance.cacheByName()
+            images.append( instance )
+        if ( len( images ) > 0 ):
+            return render_template('manageMedia.html', title="Manage Media for " + session['classAbbr'] + " (" + classInfo.longName + ")", imagesToDisplay = images )
+        else:
+            flash( "%s, you don't have any images to edit for %s!" % ( currentUserFirstName(), classInfo ) )
+    elif 'mode' in session:
+        flash( "Please choose a class first." )
+        return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
+    else:
+        flash( "Please choose a task (e.g., 'review') first." )
+        return redirect( url_for( '/' ) )
+
+# CHOSE-ERS <-- Steps following choosers (above)
 
 @app.route( '/choseClass' )
 @login_required
@@ -114,6 +134,8 @@ def choseClass():
             return redirect( url_for( 'requestReviewQuestion' ) )
         elif ( session['mode'] == "Generate" ):
             return redirect( url_for( 'chooseQuiz' ) )
+        elif ( session['mode'] == "Media" ):
+            return redirect( url_for( 'manageMedia' ) )
         else:
             raise Exception( "Unknown mode choice: %s" % ( session['mode'] ) )
     else:
@@ -124,7 +146,7 @@ def choseClass():
 @login_required
 @user_permission.require()
 def writeQuestion():
-    if session['classAbbr']:
+    if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         question = Question( created = datetime.datetime.now(), classAbbr = session['classAbbr'], classID = classInfo.currentID )
         db.session.add( question )
@@ -140,7 +162,7 @@ def writeQuestion():
 @login_required
 @user_permission.require()
 def editQuestion():
-    if session['classAbbr']:
+    if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         assert classInfo, "classInfo wasn't passed to editQuestion??"
         rawQuestionIDAsString = request.args.get( 'questionID' )
@@ -148,7 +170,7 @@ def editQuestion():
         question = Question.get( int( rawQuestionIDAsString ) )
         if question:  # Can be None if there was a problem retrieving this question
             question.decryptText()
-            similarQuestions = question.findSimilarQuestions()
+            similarQuestions = question.retrieveAndDecryptSimilarQuestions()
             form = QuestionForm( request.form, question )
             if request.method == 'POST':
                 if ( request.form['button'] == 'delete' ):
@@ -173,6 +195,9 @@ def editQuestion():
                     flash( 'There was a problem handling the form POST for Question ID:%d' % ( question.id ) )
             return render_template( 'editQuestion.html', form = form, similarQuestionsToDisplay = similarQuestions, questionToDisplay = question, \
                                title = "%s Question #%d For %s" % ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), classInfo.longName ) )
+        else:
+            flash("Unable to find Question ID: "+rawQuestionIDAsString)
+            return redirect( url_for( 'chooseQuestionToEdit' ) )
     else:
         flash( "Please choose a class first." )
     return redirect( url_for( "chooseClass", mode = session['mode'] ) )
@@ -183,7 +208,7 @@ def editQuestion():
 def requestReviewQuestion():
     """ Retrieve a question that's been least reviewed for a chosen class.
         Least reviewed is found by looking for 0, 1, 2, etc. up to 10 prior reviews."""
-    if session['classAbbr']:
+    if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         if ( Question.query.filter( Question.classAbbr == session['classAbbr'] ).count() > 0 ):
             questionsToReview = Question.query.filter( Question.classAbbr == session['classAbbr'] ).all()
@@ -213,7 +238,7 @@ def reviewQuestion():
     """ Handler for the "Review question" functionality. Redisplays the original question text as
         uneditable and includes editable comment sections.
         TODO: Show/hide comment sections"""
-    if session['classAbbr']:
+    if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         # Handle a question review form
         reviewQuestionIDAsString = request.args.get( 'questionID' )
@@ -221,7 +246,7 @@ def reviewQuestion():
         question = Question.get( int( reviewQuestionIDAsString ) )
         if question:
             question.decryptCommentText()
-            similarQuestions = question.findSimilarQuestions()
+            similarQuestions = question.retrieveAndDecryptSimilarQuestions()
             form = ReviewQuestionForm( request.form, question )
             if request.method == 'POST':
                 form.populate_obj( question )
@@ -243,7 +268,7 @@ def reviewQuestion():
             for n in range( len( question.reviewers ) ):
                 reviewersSaidOK.append( question.isOKFlags & 1 << n )
             return render_template( 'reviewQuestion.html', form = form, similarQuestionsToDisplay = similarQuestions, \
-                                   questionToDisplay = Question.addMarkupToQuestionText( Question.copyAndDecryptText( question ) ), \
+                                   questionToDisplay = question.makeMarkedUpVersion(), \
                                    title = "%s Question #%d For %s (%s)" % ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), session['classAbbr'], classInfo.longName ), \
                                                                         reviewersSaidOKToDisplay = reviewersSaidOK )
         else:
@@ -256,7 +281,7 @@ def reviewQuestion():
 @login_required
 @admin_permission.require()
 def generateQuiz():
-    if session['classAbbr']:
+    if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         if g_CachedQuestions:
             quizNumber = request.args.get( 'quizID' )
@@ -275,7 +300,7 @@ def generateQuiz():
 @login_required
 @admin_permission.require()
 def generateExam():
-    if session['classAbbr']:
+    if (('classAbbr' in session) and (session['classAbbr'])):
         if g_CachedQuestions:
             classInfo = ClassInfo.get( session['classAbbr'] )
             generatedExam, generatedID = Question.generateFinalExam( classInfo, g_CachedQuestions )
@@ -294,9 +319,8 @@ def generateExam():
 def retrieveQuizOrExam():
     from flask.helpers import get_flashed_messages
     if request.method == 'POST':
-        classInfo = ClassInfo.get( session['classAbbr'] )
         code = request.form['code']
-        questions = Question.getQuestionsFromID( code, addMarkupToQuestionTextToo = True )
+        questions, classInfo = Question.getQuestionsFromID( code, addMarkupToQuestionTextToo = True )
         messages = get_flashed_messages()
         if ( len( messages ) == 0 ):
             if ( len( questions ) == 0 ):
@@ -306,9 +330,20 @@ def retrieveQuizOrExam():
            generatedQuestionsToDisplay = questions, classInfoToDisplay = classInfo )
     return render_template( 'retrieveQuizOrExam.html' )
 
-#########
-# ADMIN #
-#########
+@app.route( "/imageStatistics" )
+@login_required
+@user_permission.require()
+def imageStatistics():
+    rawImageIDAsString = request.args.get( 'imageID' )
+    assert rawImageIDAsString, "rawImageIDAsString wasn't passed to imageStatistics??"
+    image = Image.get( int( rawImageIDAsString ) )
+    if image:  # Can be None if there was a problem retrieving this image
+        return render_template( 'imageStatistics.html', title = "Image Statistics for "+image.name, imageToDisplay = image)
+    else:
+        flash("Unable to find Image ID: "+rawImageIDAsString)
+        return redirect( url_for( 'manageMedia' ) )
+    
+# ADMIN
 
 @app.route( "/adminDatabaseReset" )
 @login_required
@@ -334,18 +369,23 @@ def adminDatabaseReset():
 @login_required
 @admin_permission.require()
 def adminTesting():
-    return render_template( 'adminOutput.html', messageToDisplay = app.config['UPLOAD_FOLDER'] )
-#     import os
-#     messages=[]
-#     image1,path1=Image.getAndCacheByName("9c.3.1.gif")
-#     app.logger.debug(path1)
-#     image2,path2=Image.getAndCacheByName("9c.3.1.jpg")
-#     app.logger.debug(path2)
-#     return render_template("adminTesting.html", imagesToDisplay = ["/tmp/9c.3.1.gif","/tmp/9c.3.1.jpg"])
+    messages = []
+    image1=Image.getAndCacheByName("9f.3.1.gif")
+    messages.append(image1.cachePath)
+    image2=Image.getAndCacheByName("9f.3.1.jpg")
+    messages.append(path2.cachePath)
+    try:
+        import subprocess
+        p = subprocess.Popen(["ls","/tmp"], stdout=subprocess.PIPE)
+        result = p.communicate()[0]
+        app.logger.debug(result)
+        messages.append(result)
+    except OSError as ex:
+        print "OSError({0}): {1}".format(ex.errno, ex.strerror)
+    messages.append(app.config['UPLOAD_FOLDER'])
+    return render_template("adminTesting.html", imagesToDisplay = [path1,path2], messageToDisplay = messages)
 
-############
-# UTILITES #
-############
+# UTILITES
 
 @app.route( "/tmp/<path:path>" )
 def tempPath( path ):
@@ -362,9 +402,7 @@ def currentUserFirstName():
             return "?? anonymous ??"
     return "?? NO GLOBAL USER ??"
 
-############
-# SECURITY #
-############
+# SECURITY
 
 @app.route( "/verifyUsers" )
 @login_required
