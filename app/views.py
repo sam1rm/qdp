@@ -2,7 +2,6 @@ import datetime
 import os
 import random
 import subprocess
-import db_reset
 from app import app, db, lm, login_serializer
 from app.forms import QuestionForm, ReviewQuestionForm
 from app.models import User, Role, ClassInfo, Question, Image
@@ -414,6 +413,7 @@ def imageStatistics():
 @login_required
 @admin_permission.require()
 def adminDatabaseReset():
+    import db_reset
     messageList = []
 #     for entry in Question.query.all():
 #         messageList.append( "Deleting Question id: %d (class id: %d) (%s)" % ( entry.id, entry.classID, entry.shortenedDecryptedQuestionWithMarkup() ) )
