@@ -11,9 +11,9 @@ class CustomRegisterForm(RegisterForm):
     fullname = TextField('Full Name', validators = [Required()])
    
 class QuestionForm(Form):
-    quiz = SelectField('quiz', choices=[('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')])
-    tags = TextField('tags')
-    instructions = TextAreaField('instructions', validators = [Required()])
+    quiz = SelectField('quiz', choices=[('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5'), ('6', '6')], validators = [Required()])
+    tags = TextField('tags', validators = [Required()])
+    instructions = TextAreaField('instructions')
     question = TextAreaField('question', validators = [Required()])
     examples = TextAreaField('examples')
     hints = TextAreaField('hints')
@@ -33,3 +33,6 @@ class ReviewQuestionForm(Form):
     examplesComments = TextAreaField('examplesComments')
     hintsComments = TextAreaField('hintsComments')
     answerComments = TextAreaField('answerComments')
+    
+# class UploadImageForm(Form):
+#     name = TextAreaField('name')

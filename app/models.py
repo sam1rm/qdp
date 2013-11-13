@@ -170,13 +170,13 @@ class Question( db.Model ):
     # Relationships with other models
     reviewers = db.relationship( 'User', secondary = users_questions, backref = db.backref( 'reviewers', lazy = 'dynamic' ) )
     isOKFlags = db.Column( db.Integer )
-    tagTextIsEncrypted = True
+    tagTextIsEncrypted = True # The question's tags, text, and comments are initially (stored in DB) encrypted
     questionTextIsEncrypted = True
     commentTextIsEncrypted = True
 
     @staticmethod
     def get( id ):
-        """ Retrieve a question from the database by raw id. Also flag the question text as being initially encrypted. """
+        """ Retrieve a question from the database by raw id. """
         questions = None
         questions = Question.query.filter_by( id = id )
         if ( ( questions == None ) or ( questions.count() == 0 ) ):
@@ -448,7 +448,7 @@ class Question( db.Model ):
         return idSymbols
 
     @staticmethod
-    def getQuestionsFromID( idSymbols, addMarkupToQuestionTextToo ):
+    def getQuestionsFromID( idSymbols ):
         """ Retrieve quiz question from an ID. Question IDs in the database
             are offsets from the ClassInfo starting IDs.
             TODO: Turn this into a History instead. """
@@ -460,37 +460,31 @@ class Question( db.Model ):
         if ( len( questionNumbers ) < 2 ):
             flash( "ID (%s) doesn't have any question IDs??" % idSymbols, category = "error" )
         else:
+            classAbbr = questionNumbers[0].upper()
+            del questionNumbers[0]
+            try:
+                classInfo = ClassInfo.get( classAbbr )
+            except Exception as _:
+                flash ( "idSymbol (%s) isn't a valid class abbreviation." % classAbbr, category = "error" )
+                return None, None
             for index in range( 0, len( questionNumbers ) ):
-                if ( index == 0 ):
-                    try:
-                        classInfo = ClassInfo.get( questionNumbers[index] )
-                    except Exception as ex:
-                        flash ( "idSymbol (%s) isn't a valid class abbreviation." % questionNumbers[index], category = "error" )
-                        break
-                else:
-                    symbol = questionNumbers[index][0]
+                questionNumber = 0
+                while (len(questionNumbers[index])>0):
+                    symbol = questionNumbers[index][0].upper()
                     if symbol in validIDSymbols:
-                        questionNumber = validIDSymbols.find( symbol )
-                        if ( len( questionNumbers[index] ) > 1 ):
-                            symbol = questionNumbers[index][1]
-                            if symbol in validIDSymbols:
-                                questionNumber = questionNumber * numIDSymbols + validIDSymbols.find( symbol )
-                            else:
-                                flash( "ID '%s' is invalid in code: %s" % ( questionNumbers[index], idSymbols ), category = "warning" )
-                                continue
+                        questionNumber = questionNumber * numIDSymbols + validIDSymbols.find( symbol )
                     else:
-                        flash( "ID '%s' is invalid in code: %s" % ( questionNumbers[index], idSymbols ), category = "warning" )
-                        continue
-                    questionClassID = classInfo.startingID + questionNumber
-                    try:
-                        question = Question.getUsingClassID( questionClassID )
-                        decryptedQuestion = Question.copyAndDecryptText( question, decryptComments = False )
-                        if addMarkupToQuestionTextToo:
-                            decryptedQuestion = Question.addMarkupToQuestionText( decryptedQuestion, questionOnly = True )
-                        questions.append( decryptedQuestion )
-                    except Exception as ex:
-                        flash ( "ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % ( questionNumbers[index], questionClassID, questionNumbers[index], idSymbols ), category = "warning" )
-                        continue
+                        flash( "Invalid code '%s' in: %s" % ( questionNumbers[index][0], idSymbols ), category = "warning" )
+                        break
+                    questionNumbers[index] = questionNumbers[index][1:]
+                questionClassID = classInfo.startingID + questionNumber
+                try:
+                    question = Question.getUsingClassID( questionClassID )
+                except Exception as ex:
+                    flash ( "ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % ( questionNumbers[index], questionClassID, questionNumbers[index], idSymbols ), category = "warning" )
+                    continue
+                decryptedQuestion = question.makeMarkedUpVersion()
+                questions.append( decryptedQuestion )
         return questions, classInfo
 
     def __repr__( self ):
@@ -501,7 +495,8 @@ class Question( db.Model ):
 
 class Image( db.Model ):
     """ Class to encapsulate the storage and retrieval of images from the database. 
-        TODO: Categorize (for speed) by classAbbr. """
+        TODO: Categorize (for speed) by classAbbr.
+        TODO: Handle PNGs """
     id = db.Column( db.Integer(), primary_key = True )
     name = db.Column( db.String( 80 ), unique = True )
     classAbbr = db.Column( db.String( 4 ) )
@@ -534,6 +529,15 @@ class Image( db.Model ):
                 if data:
                     image.cacheByName()
         return data
+    
+    @staticmethod
+    def imageFromUploadedFile(file, filepath, humanReadableName, classAbbr):
+        file.save(filepath)
+        fref = open(filepath,"rb")
+        data = fref.read()
+        fref.close()
+        image = Image(name=humanReadableName, classAbbr=classAbbr, data=data)
+        return image
 
     def cacheByName( self ):
         """ Write data to /path/to/tmp/filename (and store the generated path) """

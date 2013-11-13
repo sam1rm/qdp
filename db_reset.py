@@ -139,7 +139,7 @@ def resetDatabase(db):
     # HELPER #
     ##########
     
-    def add_question(classID,classAbbr,quiz,tags,instructions,question,example,answer,user_id,reviewers,isOKFlags):
+    def add_question(classID,classAbbr,quiz,tags,instructions,question,example,hints,answer,user_id,reviewers,isOKFlags):
         tagIV, tagIVb64 = generateIV()
         questionIV, questionIVb64 = generateIV()
         _, commentIVb64 = generateIV()
@@ -153,6 +153,10 @@ def resetDatabase(db):
             encryptedExample = encrypt(example, questionIV)
         else:
             encryptedExample = None
+        if hints:
+            encryptedHints = encrypt(hints, questionIV)
+        else:
+            encryptedHints = None
         encryptedAnswer = encrypt(answer, questionIV)
         question = Question(classID = classID, classAbbr = classAbbr, \
                             created = datetime.datetime.now(), modified = datetime.datetime.now(), \
@@ -161,10 +165,11 @@ def resetDatabase(db):
                             instructions=encryptedInstructions, \
                             question = encryptedQuestion, \
                             examples = encryptedExample, \
+                            hints = encryptedHints, \
                             answer = encryptedAnswer, \
+                            tagsIV = tagIVb64, \
                             questionIV=questionIVb64, \
                             commentsIV = commentIVb64, \
-                            tagsIV=tagIVb64, \
                             user_id = user_id, \
                             reviewers = reviewers, \
                             isOKFlags = isOKFlags  )
@@ -182,6 +187,7 @@ def resetDatabase(db):
         None, \
         u"Suppose that A is a vector. Give two ways to define a vector that is as long as A and whose elements are all 1.", \
         None, \
+        None, \
         u"<ask Arie>", \
         1, \
         [], \
@@ -197,6 +203,7 @@ def resetDatabase(db):
         None, \
         u'''In a single statement, define and initialize a seven-element table of day names named dayNames. The first element of dayNames is "Sunday", the second "Monday", and so on.''', \
         None, \
+        None, \
         u'''char* dayNames[7]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};''', \
         1, \
         [], \
@@ -210,9 +217,10 @@ def resetDatabase(db):
         2, \
         u"Arrays,Streams", \
         None, \
-        u"Write a boolean function AreIncreasing that determines whether the integers in its vector argument are in strictly increasing order. Your function should work for vectors of any length. Watch out for off-by-one errors.", \
+        u"Write a boolean function AreIncreasing that determines whether the integers in its vector argument are in strictly increasing order. Your function should work for vectors of any length.", \
         None, \
-        u"bool AreIncreasing(vector<int> integers) {\n\tfor (int i = 0; i < integers.size()-1; i++) {\n\t\tif (integers[i] <= integers[i+i]) {\n\t\t\t, return false; }\n\t\treturn true; }", \
+        u"Watch out for off-by-one errors.", \
+        u"bool AreIncreasing(vector<int> integers) {\n\tfor (int i = 0; i < integers.size()-1; i++) {\n\t\tif (integers[i] <= integers[i+i]) {\n\t\t\treturn false; } }\n\t\treturn true; }", \
         1, \
         [], \
         0 )
@@ -222,6 +230,7 @@ def resetDatabase(db):
         u"Fundamentals,Operators,Expressions", \
         u"Circle the correct expression. Assume default meanings for each operator.", \
         u"cin >> x or cin << x\ncout << \"value for n?\" or cout << \'value for n?\'", \
+        None, \
         None, \
         u"cin >> x\ncout << \"value for n?\"", \
         1, \
@@ -233,6 +242,7 @@ def resetDatabase(db):
         u"Dynamically allocated data", \
         u"Given the following declaration:\n\tclass ListNode {\n\tpublic:\n\t\tListNode (const int k);\n\t\tListNode (const int k, const ListNode* ptr);\n\t\t...\n\tprivate:\n\t\tint value;\n\t\tListNode *next;\n\t};", \
         u"Suppose that p, list1, and list2 are variables of type ListNode *, and that list1 and list2 point to the following structures.\n\t[[9f.3.1.gif]]\nDraw the diagram that results from executing the following code segment.\n\tp = list1->next;\n\tlist1->next->next = list2;\n\tp->next->next = list1;\n\tlist2->next->value = 5;", \
+        None, \
         None, \
         "[[9f.3.1.jpg]],", \
         1, \

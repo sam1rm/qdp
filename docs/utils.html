@@ -132,7 +132,7 @@ tmp/test.txt
             <span class="n">resp</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s">&quot;image/GIF&quot;</span>
         <span class="k">elif</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span><span class="o">==</span><span class="s">&quot;JFIF&quot;</span><span class="p">):</span>
             <span class="n">resp</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="s">&quot;image/JPEG&quot;</span>
-    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">_</span><span class="p">:</span>
         <span class="k">print</span> <span class="s">&#39;Unable to open file for reading in makeTempFileResp: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">path</span>
         <span class="n">resp</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span><span class="n">render_template</span><span class="p">(</span><span class="s">&#39;404.shtml&#39;</span><span class="p">),</span> <span class="mi">404</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">resp</span></pre></div>
@@ -227,6 +227,7 @@ his<br />is<br />a<br />test.</p>
         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">):</span>
             <span class="n">result</span> <span class="o">+=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="o">.</span><span class="n">escape</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">+</span> <span class="n">flask</span><span class="o">.</span><span class="n">Markup</span><span class="p">(</span><span class="s">&#39;&lt;br /&gt;&#39;</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[:</span><span class="o">-</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">,</span><span class="s">&quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span></pre></div>
     </div>
   </div>
@@ -312,7 +313,7 @@ this is a test'</p>
    (see sister function encrypt for tests). """
 ry:
    iv = base64.b64decode(IV)
-xcept TypeError as ex:
+xcept TypeError as _:
    return "INVALID IV for decryption"
 BJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
 ry:

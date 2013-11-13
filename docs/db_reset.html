@@ -313,7 +313,7 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">add_question</span><span class="p">(</span><span class="n">classID</span><span class="p">,</span><span class="n">classAbbr</span><span class="p">,</span><span class="n">quiz</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">instructions</span><span class="p">,</span><span class="n">question</span><span class="p">,</span><span class="n">example</span><span class="p">,</span><span class="n">answer</span><span class="p">,</span><span class="n">user_id</span><span class="p">,</span><span class="n">reviewers</span><span class="p">,</span><span class="n">isOKFlags</span><span class="p">):</span>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">add_question</span><span class="p">(</span><span class="n">classID</span><span class="p">,</span><span class="n">classAbbr</span><span class="p">,</span><span class="n">quiz</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">instructions</span><span class="p">,</span><span class="n">question</span><span class="p">,</span><span class="n">example</span><span class="p">,</span><span class="n">hints</span><span class="p">,</span><span class="n">answer</span><span class="p">,</span><span class="n">user_id</span><span class="p">,</span><span class="n">reviewers</span><span class="p">,</span><span class="n">isOKFlags</span><span class="p">):</span>
         <span class="n">tagIV</span><span class="p">,</span> <span class="n">tagIVb64</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
         <span class="n">questionIV</span><span class="p">,</span> <span class="n">questionIVb64</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">commentIVb64</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
@@ -327,6 +327,10 @@
             <span class="n">encryptedExample</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">example</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">encryptedExample</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">hints</span><span class="p">:</span>
+            <span class="n">encryptedHints</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">hints</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">encryptedHints</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="n">encryptedAnswer</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
         <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">classID</span> <span class="o">=</span> <span class="n">classID</span><span class="p">,</span> <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">classAbbr</span><span class="p">,</span> \
                             <span class="n">created</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> \
@@ -335,10 +339,11 @@
                             <span class="n">instructions</span><span class="o">=</span><span class="n">encryptedInstructions</span><span class="p">,</span> \
                             <span class="n">question</span> <span class="o">=</span> <span class="n">encryptedQuestion</span><span class="p">,</span> \
                             <span class="n">examples</span> <span class="o">=</span> <span class="n">encryptedExample</span><span class="p">,</span> \
+                            <span class="n">hints</span> <span class="o">=</span> <span class="n">encryptedHints</span><span class="p">,</span> \
                             <span class="n">answer</span> <span class="o">=</span> <span class="n">encryptedAnswer</span><span class="p">,</span> \
+                            <span class="n">tagsIV</span> <span class="o">=</span> <span class="n">tagIVb64</span><span class="p">,</span> \
                             <span class="n">questionIV</span><span class="o">=</span><span class="n">questionIVb64</span><span class="p">,</span> \
                             <span class="n">commentsIV</span> <span class="o">=</span> <span class="n">commentIVb64</span><span class="p">,</span> \
-                            <span class="n">tagsIV</span><span class="o">=</span><span class="n">tagIVb64</span><span class="p">,</span> \
                             <span class="n">user_id</span> <span class="o">=</span> <span class="n">user_id</span><span class="p">,</span> \
                             <span class="n">reviewers</span> <span class="o">=</span> <span class="n">reviewers</span><span class="p">,</span> \
                             <span class="n">isOKFlags</span> <span class="o">=</span> <span class="n">isOKFlags</span>  <span class="p">)</span>
@@ -365,6 +370,7 @@
         <span class="bp">None</span><span class="p">,</span> \
         <span class="s">u&quot;Suppose that A is a vector. Give two ways to define a vector that is as long as A and whose elements are all 1.&quot;</span><span class="p">,</span> \
         <span class="bp">None</span><span class="p">,</span> \
+        <span class="bp">None</span><span class="p">,</span> \
         <span class="s">u&quot;&lt;ask Arie&gt;&quot;</span><span class="p">,</span> \
         <span class="mi">1</span><span class="p">,</span> \
         <span class="p">[],</span> \
@@ -389,6 +395,7 @@
         <span class="bp">None</span><span class="p">,</span> \
         <span class="sd">u&#39;&#39;&#39;In a single statement, define and initialize a seven-element table of day names named dayNames. The first element of dayNames is &quot;Sunday&quot;, the second &quot;Monday&quot;, and so on.&#39;&#39;&#39;</span><span class="p">,</span> \
         <span class="bp">None</span><span class="p">,</span> \
+        <span class="bp">None</span><span class="p">,</span> \
         <span class="sd">u&#39;&#39;&#39;char* dayNames[7]={&quot;Monday&quot;,&quot;Tuesday&quot;,&quot;Wednesday&quot;,&quot;Thursday&quot;,&quot;Friday&quot;,&quot;Saturday&quot;,&quot;Sunday&quot;};&#39;&#39;&#39;</span><span class="p">,</span> \
         <span class="mi">1</span><span class="p">,</span> \
         <span class="p">[],</span> \
@@ -411,9 +418,10 @@
         <span class="mi">2</span><span class="p">,</span> \
         <span class="s">u&quot;Arrays,Streams&quot;</span><span class="p">,</span> \
         <span class="bp">None</span><span class="p">,</span> \
-        <span class="s">u&quot;Write a boolean function AreIncreasing that determines whether the integers in its vector argument are in strictly increasing order. Your function should work for vectors of any length. Watch out for off-by-one errors.&quot;</span><span class="p">,</span> \
+        <span class="s">u&quot;Write a boolean function AreIncreasing that determines whether the integers in its vector argument are in strictly increasing order. Your function should work for vectors of any length.&quot;</span><span class="p">,</span> \
         <span class="bp">None</span><span class="p">,</span> \
-        <span class="s">u&quot;bool AreIncreasing(vector&lt;int&gt; integers) {</span><span class="se">\n\t</span><span class="s">for (int i = 0; i &lt; integers.size()-1; i++) {</span><span class="se">\n\t\t</span><span class="s">if (integers[i] &lt;= integers[i+i]) {</span><span class="se">\n\t\t\t</span><span class="s">, return false; }</span><span class="se">\n\t\t</span><span class="s">return true; }&quot;</span><span class="p">,</span> \
+        <span class="s">u&quot;Watch out for off-by-one errors.&quot;</span><span class="p">,</span> \
+        <span class="s">u&quot;bool AreIncreasing(vector&lt;int&gt; integers) {</span><span class="se">\n\t</span><span class="s">for (int i = 0; i &lt; integers.size()-1; i++) {</span><span class="se">\n\t\t</span><span class="s">if (integers[i] &lt;= integers[i+i]) {</span><span class="se">\n\t\t\t</span><span class="s">return false; } }</span><span class="se">\n\t\t</span><span class="s">return true; }&quot;</span><span class="p">,</span> \
         <span class="mi">1</span><span class="p">,</span> \
         <span class="p">[],</span> \
         <span class="mi">0</span> <span class="p">)</span>
@@ -423,6 +431,7 @@
         <span class="s">u&quot;Fundamentals,Operators,Expressions&quot;</span><span class="p">,</span> \
         <span class="s">u&quot;Circle the correct expression. Assume default meanings for each operator.&quot;</span><span class="p">,</span> \
         <span class="s">u&quot;cin &gt;&gt; x or cin &lt;&lt; x</span><span class="se">\n</span><span class="s">cout &lt;&lt; </span><span class="se">\&quot;</span><span class="s">value for n?</span><span class="se">\&quot;</span><span class="s"> or cout &lt;&lt; </span><span class="se">\&#39;</span><span class="s">value for n?</span><span class="se">\&#39;</span><span class="s">&quot;</span><span class="p">,</span> \
+        <span class="bp">None</span><span class="p">,</span> \
         <span class="bp">None</span><span class="p">,</span> \
         <span class="s">u&quot;cin &gt;&gt; x</span><span class="se">\n</span><span class="s">cout &lt;&lt; </span><span class="se">\&quot;</span><span class="s">value for n?</span><span class="se">\&quot;</span><span class="s">&quot;</span><span class="p">,</span> \
         <span class="mi">1</span><span class="p">,</span> \
@@ -434,6 +443,7 @@
         <span class="s">u&quot;Dynamically allocated data&quot;</span><span class="p">,</span> \
         <span class="s">u&quot;Given the following declaration:</span><span class="se">\n\t</span><span class="s">class ListNode {</span><span class="se">\n\t</span><span class="s">public:</span><span class="se">\n\t\t</span><span class="s">ListNode (const int k);</span><span class="se">\n\t\t</span><span class="s">ListNode (const int k, const ListNode* ptr);</span><span class="se">\n\t\t</span><span class="s">...</span><span class="se">\n\t</span><span class="s">private:</span><span class="se">\n\t\t</span><span class="s">int value;</span><span class="se">\n\t\t</span><span class="s">ListNode *next;</span><span class="se">\n\t</span><span class="s">};&quot;</span><span class="p">,</span> \
         <span class="s">u&quot;Suppose that p, list1, and list2 are variables of type ListNode *, and that list1 and list2 point to the following structures.</span><span class="se">\n\t</span><span class="s">[[9f.3.1.gif]]</span><span class="se">\n</span><span class="s">Draw the diagram that results from executing the following code segment.</span><span class="se">\n\t</span><span class="s">p = list1-&gt;next;</span><span class="se">\n\t</span><span class="s">list1-&gt;next-&gt;next = list2;</span><span class="se">\n\t</span><span class="s">p-&gt;next-&gt;next = list1;</span><span class="se">\n\t</span><span class="s">list2-&gt;next-&gt;value = 5;&quot;</span><span class="p">,</span> \
+        <span class="bp">None</span><span class="p">,</span> \
         <span class="bp">None</span><span class="p">,</span> \
         <span class="s">&quot;[[9f.3.1.jpg]],&quot;</span><span class="p">,</span> \
         <span class="mi">1</span><span class="p">,</span> \

@@ -74,9 +74,9 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">class</span> <span class="nc">QuestionForm</span><span class="p">(</span><span class="n">Form</span><span class="p">):</span>
-    <span class="n">quiz</span> <span class="o">=</span> <span class="n">SelectField</span><span class="p">(</span><span class="s">&#39;quiz&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;3&#39;</span><span class="p">,</span> <span class="s">&#39;3&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;4&#39;</span><span class="p">,</span> <span class="s">&#39;4&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;5&#39;</span><span class="p">,</span> <span class="s">&#39;5&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;6&#39;</span><span class="p">,</span> <span class="s">&#39;6&#39;</span><span class="p">)])</span>
-    <span class="n">tags</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">(</span><span class="s">&#39;tags&#39;</span><span class="p">)</span>
-    <span class="n">instructions</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;instructions&#39;</span><span class="p">,</span> <span class="n">validators</span> <span class="o">=</span> <span class="p">[</span><span class="n">Required</span><span class="p">()])</span>
+    <span class="n">quiz</span> <span class="o">=</span> <span class="n">SelectField</span><span class="p">(</span><span class="s">&#39;quiz&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;3&#39;</span><span class="p">,</span> <span class="s">&#39;3&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;4&#39;</span><span class="p">,</span> <span class="s">&#39;4&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;5&#39;</span><span class="p">,</span> <span class="s">&#39;5&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;6&#39;</span><span class="p">,</span> <span class="s">&#39;6&#39;</span><span class="p">)],</span> <span class="n">validators</span> <span class="o">=</span> <span class="p">[</span><span class="n">Required</span><span class="p">()])</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">(</span><span class="s">&#39;tags&#39;</span><span class="p">,</span> <span class="n">validators</span> <span class="o">=</span> <span class="p">[</span><span class="n">Required</span><span class="p">()])</span>
+    <span class="n">instructions</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;instructions&#39;</span><span class="p">)</span>
     <span class="n">question</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;question&#39;</span><span class="p">,</span> <span class="n">validators</span> <span class="o">=</span> <span class="p">[</span><span class="n">Required</span><span class="p">()])</span>
     <span class="n">examples</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;examples&#39;</span><span class="p">)</span>
     <span class="n">hints</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;hints&#39;</span><span class="p">)</span>
@@ -105,9 +105,20 @@
     <span class="n">questionComments</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;questionComments&#39;</span><span class="p">)</span>
     <span class="n">examplesComments</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;examplesComments&#39;</span><span class="p">)</span>
     <span class="n">hintsComments</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;hintsComments&#39;</span><span class="p">)</span>
-    <span class="n">answerComments</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;answerComments&#39;</span><span class="p">)</span>
-
-</pre></div>
+    <span class="n">answerComments</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;answerComments&#39;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>class UploadImageForm(Form):
+    name = TextAreaField('name')</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>

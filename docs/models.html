@@ -225,7 +225,7 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">#DIVIDER</span>
 <span class="s">    reviewers = db.relationship( &#39;User&#39;, secondary = users_questions, backref = db.backref( &#39;reviewers&#39;, lazy = &#39;dynamic&#39; ) )</span>
 <span class="s">    isOKFlags = db.Column( db.Integer )</span>
-<span class="s">    tagTextIsEncrypted = True</span>
+<span class="s">    tagTextIsEncrypted = True # The question&#39;s tags, text, and comments are initially (stored in DB) encrypted</span>
 <span class="s">    questionTextIsEncrypted = True</span>
 <span class="s">    commentTextIsEncrypted = True</span>
 <span class="s">#DIVIDER</span>
@@ -525,7 +525,7 @@ Stores user information, including the password in encrypted form. Also handles 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-19'>#</a>
       </div>
-      <p>Retrieve a question from the database by raw id. Also flag the question text as being initially encrypted.</p>
+      <p>Retrieve a question from the database by raw id.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>            <span class="n">TODO</span><span class="p">:</span> <span class="n">Find</span> <span class="n">questions</span> <span class="k">with</span><span class="p">:</span> <span class="n">most</span> <span class="n">reviews</span><span class="p">,</span> <span class="n">then</span> <span class="n">different</span> <span class="n">tags</span>
@@ -552,37 +552,31 @@ Stores user information, including the password in encrypted form. Also handles 
         <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="n">questionNumbers</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="p">):</span>
             <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;ID (</span><span class="si">%s</span><span class="s">) doesn&#39;t have any question IDs??&quot;</span> <span class="o">%</span> <span class="n">idSymbols</span><span class="p">,</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;error&quot;</span> <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="k">del</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">classAbbr</span> <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">_</span><span class="p">:</span>
+                <span class="n">flash</span> <span class="p">(</span> <span class="s">&quot;idSymbol (</span><span class="si">%s</span><span class="s">) isn&#39;t a valid class abbreviation.&quot;</span> <span class="o">%</span> <span class="n">classAbbr</span><span class="p">,</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;error&quot;</span> <span class="p">)</span>
+                <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
             <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="n">questionNumbers</span> <span class="p">)</span> <span class="p">):</span>
-                <span class="k">if</span> <span class="p">(</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">):</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                        <span class="n">flash</span> <span class="p">(</span> <span class="s">&quot;idSymbol (</span><span class="si">%s</span><span class="s">) isn&#39;t a valid class abbreviation.&quot;</span> <span class="o">%</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;error&quot;</span> <span class="p">)</span>
-                        <span class="k">break</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">symbol</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">questionNumber</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">while</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
+                    <span class="n">symbol</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
                     <span class="k">if</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">validIDSymbols</span><span class="p">:</span>
-                        <span class="n">questionNumber</span> <span class="o">=</span> <span class="n">validIDSymbols</span><span class="o">.</span><span class="n">find</span><span class="p">(</span> <span class="n">symbol</span> <span class="p">)</span>
-                        <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">):</span>
-                            <span class="n">symbol</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-                            <span class="k">if</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">validIDSymbols</span><span class="p">:</span>
-                                <span class="n">questionNumber</span> <span class="o">=</span> <span class="n">questionNumber</span> <span class="o">*</span> <span class="n">numIDSymbols</span> <span class="o">+</span> <span class="n">validIDSymbols</span><span class="o">.</span><span class="n">find</span><span class="p">(</span> <span class="n">symbol</span> <span class="p">)</span>
-                            <span class="k">else</span><span class="p">:</span>
-                                <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; is invalid in code: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">idSymbols</span> <span class="p">),</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;warning&quot;</span> <span class="p">)</span>
-                                <span class="k">continue</span>
+                        <span class="n">questionNumber</span> <span class="o">=</span> <span class="n">questionNumber</span> <span class="o">*</span> <span class="n">numIDSymbols</span> <span class="o">+</span> <span class="n">validIDSymbols</span><span class="o">.</span><span class="n">find</span><span class="p">(</span> <span class="n">symbol</span> <span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; is invalid in code: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">idSymbols</span> <span class="p">),</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;warning&quot;</span> <span class="p">)</span>
-                        <span class="k">continue</span>
-                    <span class="n">questionClassID</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="o">+</span> <span class="n">questionNumber</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">getUsingClassID</span><span class="p">(</span> <span class="n">questionClassID</span> <span class="p">)</span>
-                        <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">copyAndDecryptText</span><span class="p">(</span> <span class="n">question</span><span class="p">,</span> <span class="n">decryptComments</span> <span class="o">=</span> <span class="bp">False</span> <span class="p">)</span>
-                        <span class="k">if</span> <span class="n">addMarkupToQuestionTextToo</span><span class="p">:</span>
-                            <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">addMarkupToQuestionText</span><span class="p">(</span> <span class="n">decryptedQuestion</span><span class="p">,</span> <span class="n">questionOnly</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">)</span>
-                        <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">decryptedQuestion</span> <span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                        <span class="n">flash</span> <span class="p">(</span> <span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; isn&#39;t a valid question [class] id (</span><span class="si">%d</span><span class="s">) for class: </span><span class="si">%s</span><span class="s"> in code: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">questionClassID</span><span class="p">,</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">idSymbols</span> <span class="p">),</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;warning&quot;</span> <span class="p">)</span>
-                        <span class="k">continue</span>
+                        <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;Invalid code &#39;</span><span class="si">%s</span><span class="s">&#39; in: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">idSymbols</span> <span class="p">),</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;warning&quot;</span> <span class="p">)</span>
+                        <span class="k">break</span>
+                    <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="n">questionClassID</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="o">+</span> <span class="n">questionNumber</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">getUsingClassID</span><span class="p">(</span> <span class="n">questionClassID</span> <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                    <span class="n">flash</span> <span class="p">(</span> <span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; isn&#39;t a valid question [class] id (</span><span class="si">%d</span><span class="s">) for class: </span><span class="si">%s</span><span class="s"> in code: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">questionClassID</span><span class="p">,</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">idSymbols</span> <span class="p">),</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;warning&quot;</span> <span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">makeMarkedUpVersion</span><span class="p">()</span>
+                <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">decryptedQuestion</span> <span class="p">)</span>
         <span class="k">return</span> <span class="n">questions</span><span class="p">,</span> <span class="n">classInfo</span></pre></div>
     </div>
   </div>
@@ -678,7 +672,16 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">cacheByName</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span></pre></div>
+      <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">imageFromUploadedFile</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">humanReadableName</span><span class="p">,</span> <span class="n">classAbbr</span><span class="p">):</span>
+        <span class="nb">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">fref</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span><span class="s">&quot;rb&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">fref</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">humanReadableName</span><span class="p">,</span> <span class="n">classAbbr</span><span class="o">=</span><span class="n">classAbbr</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">image</span>
+
+    <span class="k">def</span> <span class="nf">cacheByName</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1019,7 +1022,7 @@ or question in questions:
    idSymbols += validIDSymbols[qid % numIDSymbols]
 eturn idSymbols</p>
 <p>icmethod
-etQuestionsFromID( idSymbols, addMarkupToQuestionTextToo ):
+etQuestionsFromID( idSymbols ):
 Retrieve quiz question from an ID. Question IDs in the database</p>
     </div>
     <div class='code'>
@@ -1068,7 +1071,8 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-50'>#</a>
       </div>
-      <p>TODO: Categorize (for speed) by classAbbr. """
+      <p>TODO: Categorize (for speed) by classAbbr.
+   TODO: Handle PNGs """
 d = db.Column( db.Integer(), primary_key = True )
 ame = db.Column( db.String( 80 ), unique = True )
 lassAbbr = db.Column( db.String( 4 ) )

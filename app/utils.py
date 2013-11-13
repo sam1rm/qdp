@@ -48,7 +48,7 @@ def makeTempFileResp(filename):
             resp.content_type = "image/GIF"
         elif (data[6:10]=="JFIF"):
             resp.content_type = "image/JPEG"
-    except IOError as ex:
+    except IOError as _:
         print 'Unable to open file for reading in makeTempFileResp: %s' % path
         resp = make_response(render_template('404.shtml'), 404)
     return resp
@@ -99,6 +99,7 @@ def convertToHTML(text):
         for line in text.split('\n'):
             result += flask.Markup.escape(line) + flask.Markup('<br />')
         result = result[:-6]
+        result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
     return result
 
 def generateIV():
@@ -125,7 +126,7 @@ def decrypt(b64Message, IV):
         (see sister function encrypt for tests). """
     try:
         iv = base64.b64decode(IV)
-    except TypeError as ex:
+    except TypeError as _:
         return "INVALID IV for decryption"
     OBJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
     try:

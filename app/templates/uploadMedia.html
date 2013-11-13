@@ -1,0 +1,27 @@
+{% extends "layout.html" %} {% block head %} 
+<style>
+    td {text-align:center;vertical-align:middle;}
+    img {height:64px;}
+</style>
+<script type="text/javascript">
+
+    $('.table-hover tr').click(function () { question = $(this).data("image"); window.location.href = {{url_for('imageStatistics',imageID=image)}}; })
+</script>
+{% endblock %} {% block content %} 
+<ul>
+	<li>Keep the images <strong>SMALL</strong>. Compress them as much as possible (1-bit GIF is best!)</li>
+	<br />
+	<li>Allowed file types are: {{allowedFileTypes}}</li>
+	<br />
+</ul>
+<form action="uploadMedia" method=post enctype="multipart/form-data">
+	<p>
+		<input type=file name="file">
+		<br />
+		<br />
+		<input type="text" class="form-control" name="name" id="name" placeholder="HumanReadableName">
+		<br />
+		<br />
+		<input type=submit value=upload>
+</form>
+{% endblock %}

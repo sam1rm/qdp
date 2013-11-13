@@ -1,9 +1,12 @@
 <!doctype html>
 <head>
-	<title>
-		QDP 
-	</title>
-	<link rel="stylesheet" media="screen" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}"> <script src="{{ url_for('static', filename='js/jquery.js') }}"></script> <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script> <style type="text/css">
+	<title> QDP </title>
+	<link rel="stylesheet" media="screen" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+	<script src="{{ url_for('static', filename='js/jquery.js') }}">
+	</script>
+	<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}">
+	</script>
+	<style type="text/css">
         .upcenter{position:absolute;top:10px;left:30%;margin:0px 0px 0px 0px;padding:0px 0px;}
         .upleft1{position:absolute;top:10px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
         .upleft2{position:absolute;top:42px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
@@ -22,134 +25,131 @@
             font-family: Consolas, Lucida Console, monospace;
             }
         div { display: block; page-break-before: always; }
-    </style> 
+    </style>
 </head>
 <body>
-	<span class="upleft1">
-		NAME____________________ 
-	</span>
-	<span class="upleft2">
-		DATE____________________ 
-	</span>
-	<h3 class="upright1 text-muted">
-		PASS&nbsp;&nbsp;|&nbsp;&nbsp;RETAKE 
-	</h3>
-	<h3 class="upright3 text-muted">
-		TUTOR _____ 
-	</h3>
-	<h3 class="upcenter strong">
-	{% if quizNumberToDisplay %} 
-		Quiz #{{quizNumberToDisplay}}<br />{{session['classAbbr']}} ({{classInfoToDisplay.longName}}) 
-	{% else %}
-	    {{session['classAbbr']}} ({{classInfoToDisplay.longName}}) Final Exam 
-	{% endif %}
-	{% for question in generatedQuestionsToDisplay %} 
-	</h3>
-	<b>
-		<u>
-			Question #{{loop.index}} 
-		</u>
-	</b>
-	<p>
-	</p>
-	{% if question.instructions %} 
-	<p>
-		{{question.instructions}} 
-	</p>
-	{% endif %} {% if question.question %} 
-	<p>
-		{{question.question}} 
-	</p>
-	{% endif %} {% if question.examples %} 
-	<p>
-		{{question.examples}} 
-	</p>
-	{% endif %} {% if question.hints %} 
-	<p>
-		{{question.hints}} 
-	</p>
-	{% endif %} 
-	<p>
-	</p>
-	<p>
-	</p>
-	<p>
-	</p>
-	<p>
-	</p>
-	<p>
-	</p>
-	{% endfor %} 
-	<span class="lowright text-muted">
-		ID #{{generatedIDToDisplay}} 
-	</span>
+<span class="upleft1"> NAME____________________ </span> <span class="upleft2"> DATE____________________ </span> 
+<h3 class="upright1 text-muted">
+	PASS&nbsp;&nbsp;|&nbsp;&nbsp;RETAKE 
+</h3>
+<h3 class="upright3 text-muted">
+	TUTOR _____ 
+</h3>
+<h3 class="upcenter strong">
+{% if quizNumberToDisplay %}
+ Quiz #{{quizNumberToDisplay}}<br />
+	{{classInfoToDisplay.classAbbr}} ({{classInfoToDisplay.longName}}) 
+{% else %}
+ {{classInfoToDisplay.classAbbr}} ({{classInfoToDisplay.longName}}) Final Exam 
+{% endif %}
+{% for question in generatedQuestionsToDisplay %}
+</h3>
+<b> <u> Question #{{loop.index}} </u> </b> 
+<p>
+</p>
+{% if question.instructions %}
+<p>
+	{{question.instructions}} 
+</p>
+{% endif %}
+{% if question.question %}
+<p>
+	{{question.question}} 
+</p>
+{% endif %}
+{% if question.examples %}
+<p>
+	{{question.examples}} 
+</p>
+{% endif %}
+{% if question.hints %}
+<p>
+	{{question.hints}} 
+</p>
+{% endif %}
+<p>
+</p>
+<p>
+</p>
+<p>
+</p>
+<p>
+</p>
+<p>
+</p>
+{% endfor %}
+ <span class="lowright text-muted"> ID #{{generatedIDToDisplay}} </span> 
 <!-- ANSWER KEY -->
-	<div class="page-break">
-		<center>
-			<h3 class="strong">
-                {{session['classAbbr']}} ({{classInfoToDisplay.longName}})
-				{% if quizNumberToDisplay %}
-				Quiz #{{quizNumberToDisplay}}
-				{% else %} Final Exam
-				{% endif %}
-    			<br />ANSWER KEY
-			</h3>
-		</center>
-		{% for question in generatedQuestionsToDisplay %} 
-		<b>
-			<u>
-				Question #{{loop.index}} 
-			</u>
-		</b>
-		<p>
-		</p>
-		{% if question.instructions %} 
+<div class="page-break">
+	<center>
+		<h3 class="strong">
+			{{classInfoToDisplay.classAbbr}} ({{classInfoToDisplay.longName}}) 
+{% if quizNumberToDisplay %}
+ Quiz #{{quizNumberToDisplay}} 
+{% else %}
+ Final Exam 
+{% endif %}
+ <br />
+			ANSWER KEY 
+		</h3>
+	</center>
+{% for question in generatedQuestionsToDisplay %}
+ <b> <u> Question #{{loop.index}} </u> </b> 
+	<p>
+	</p>
+<!--
+		
+{% if question.instructions %}
 		<p>
 			{{question.instructions}} 
 		</p>
-		{% endif %} {% if question.question %} 
-		<p>
-			{{question.question}} 
-		</p>
-		{% endif %} {% if question.examples %} 
+		
+{% endif %}
+-->
+{% if question.question %}
+	<p>
+		{{question.shortenedQuestionWithMarkup()}} 
+	</p>
+{% endif %}
+<!--
+		
+{% if question.examples %}
 		<p>
 			{{question.examples}} 
 		</p>
-		{% endif %} {% if question.hints %} 
+		
+{% endif %}
+{% if question.hints %}
 		<p>
 			{{question.hints}} 
 		</p>
-		{% endif %} 
-		<b>
-			<u>
-				ANSWER
-			</u>
-		</b>
-		<p>
-		</p>
-		{% if question.answer %} 
-		<p>
-			{{question.answer}} 
-		</p>
-		{% else %} 
-		<p class="text-danger">
-			NO ANSWER PROVIDED IN DATABASE 
-		</p>
-		{% endif %} 
-		<p>
-		</p>
-		<p>
-		</p>
-		<p>
-		</p>
-		<p>
-		</p>
-		<p>
-		</p>
-		{% endfor %} 
-		<span class="lowright text-muted">
-			ID #{{generatedIDToDisplay}} 
-		</span>
-	</div>
+		
+{% endif %}
+-->
+	<b> <u> ANSWER </u> </b> 
+	<p>
+	</p>
+{% if question.answer %}
+	<p>
+		{{question.answer}} 
+	</p>
+{% else %}
+	<p class="text-danger">
+		NO ANSWER PROVIDED IN DATABASE 
+	</p>
+{% endif %}
+	<p>
+	</p>
+	<p>
+	</p>
+	<p>
+	</p>
+	<p>
+	</p>
+	<p>
+	</p>
+{% endfor %}
+ <span class="lowright text-muted"> ID #{{generatedIDToDisplay}} </span> 
+</div>
 </body>
 </html>

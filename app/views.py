@@ -1,13 +1,18 @@
+import datetime
+import os
+import random
+import subprocess
+import db_reset
 from app import app, db, lm, login_serializer
 from app.forms import QuestionForm, ReviewQuestionForm
 from app.models import User, Role, ClassInfo, Question, Image
-import datetime
 from flask import render_template, flash, redirect, session, url_for, request, g
 from flask.ext.login import current_user, login_required
 from flask.ext.principal import Permission, RoleNeed, UserNeed, identity_loaded
 from flask.ext.security import SQLAlchemyUserDatastore
-import random
-from utils import readTempFile, writeTempFile, makeTempFileResp
+from flask.helpers import get_flashed_messages
+from utils import makeTempFileResp
+from werkzeug import secure_filename
 
 g_CachedQuestions = []
 
@@ -54,7 +59,7 @@ def chooseClass():
         return render_template( 'chooseClass.html', title = session['mode'] + ": Choose Class" )
     else:
         flash( "Please choose a task (e.g., 'review') first." )
-        return redirect( url_for( '/' ) )
+        return redirect( url_for( 'index' ) )
 
 @app.route( '/chooseQuestionToEdit' )
 @login_required
@@ -73,25 +78,36 @@ def chooseQuestionToEdit():
                                    title = "Choose Question to Edit for " + classInfo.classAbbr + "(" + classInfo.longName + ")" )
         else:
             flash( "%s, you don't have any questions to edit for %s!" % ( currentUserFirstName(), classInfo ) )
-    else:
+    elif 'mode' in session:
         flash( "Please choose a class first." )
-    return redirect( url_for( "chooseClass", mode = session['mode'] ) )
-
+        return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
+    else:
+        flash( "Please choose a task (e.g., 'review') first." )
+        return redirect( url_for( 'index' ) )
+    
 @app.route( '/chooseQuiz' )
 @login_required
 @admin_permission.require()
 def chooseQuiz():
     """ Choose from existing unique quiz numbers available
         TODO: Super-inefficient, but tries to cache questions for a generated quiz... """
-    assert session['classAbbr'], "Couldn't find previous classAbbr (ClassInfo)"
-    classInfo = ClassInfo.get( session['classAbbr'] )
-    global g_CachedQuestions
-    quizzesFound = set()
-    g_CachedQuestions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).all()
-    for question in g_CachedQuestions:
-        quizzesFound.add( question.quiz )
-    return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz for " + session['classAbbr'] + " (" + classInfo.longName + ")" )
-
+    if (('classAbbr' in session) and (session['classAbbr'])):
+        classInfo = ClassInfo.get( session['classAbbr'] )
+        global g_CachedQuestions
+        quizzesFound = set()
+        g_CachedQuestions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).all()
+        for question in g_CachedQuestions:
+            quizzesFound.add( question.quiz )
+        return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz for " + session['classAbbr'] + " (" + classInfo.longName + ")" )
+    elif 'mode' in session:
+        flash( "Please choose a class first." )
+        return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
+    else:
+        flash( "Please choose a task (e.g., 'review') first." )
+        return redirect( url_for( 'index' ) )
+    
+# Media upload
+    
 @app.route( "/manageMedia" )
 @login_required
 @user_permission.require()
@@ -106,7 +122,10 @@ def manageMedia():
             instance.cacheByName()
             images.append( instance )
         if ( len( images ) > 0 ):
-            return render_template('manageMedia.html', title="Manage Media for " + session['classAbbr'] + " (" + classInfo.longName + ")", imagesToDisplay = images )
+            return render_template('manageMedia.html', \
+                                   title="Manage Media for " + session['classAbbr'] + " (" + classInfo.longName + ")", \
+                                   imagesToDisplay = images, \
+                                   isDebugging = app.config['DEBUG'] )
         else:
             flash( "%s, you don't have any images to edit for %s!" % ( currentUserFirstName(), classInfo ) )
     elif 'mode' in session:
@@ -114,7 +133,38 @@ def manageMedia():
         return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
     else:
         flash( "Please choose a task (e.g., 'review') first." )
-        return redirect( url_for( '/' ) )
+        return redirect( url_for( 'index' ) )
+    
+@app.route( "/uploadMedia", methods=['GET', 'POST'] )
+@login_required
+@user_permission.require()
+def uploadMedia():
+    """ Upload a file (image), encrypt it, and store it in the database. """
+    if (('classAbbr' in session) and (session['classAbbr'])):
+        classInfo = ClassInfo.get( session['classAbbr'] )
+        if request.method == 'POST':
+                file = request.files['file']
+                humanReadableName = request.form['name']
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    image = Image.imageFromUploadedFile(file, filepath, humanReadableName, classInfo.classAbbr)
+                    db.session.add(image)
+                    db.session.commit()
+                    flash('Saved: ' + filename)
+                    return redirect(url_for('manageMedia', filename=filename))   
+        else:
+            return render_template('uploadMedia.html', allowedFileTypes = app.config['ALLOWED_EXTENSIONS'], title="Upload File (Image)")
+    elif 'mode' in session:
+        flash( "Please choose a class first." )
+        return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
+    else:
+        flash( "Please choose a task (e.g., 'review') first." )
+        return redirect( url_for( 'index' ) )
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
 
 # CHOSE-ERS <-- Steps following choosers (above)
 
@@ -140,7 +190,7 @@ def choseClass():
             raise Exception( "Unknown mode choice: %s" % ( session['mode'] ) )
     else:
         flash( "Please choose a task (e.g., 'review') first." )
-        return redirect( url_for( '/' ) )
+        return redirect( url_for( 'index' ) )
 
 @app.route( '/writeQuestion' )
 @login_required
@@ -273,9 +323,12 @@ def reviewQuestion():
                                                                         reviewersSaidOKToDisplay = reviewersSaidOK )
         else:
             flash( "Couldn't find question ID: %s??" % reviewQuestionIDAsString )
-    else:
+    elif 'mode' in session:
         flash( "Please choose a class first." )
-    return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
+        return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
+    else:
+        flash( "Please choose a task (e.g., 'review') first." )
+        return redirect( url_for( 'index' ) )
 
 @app.route( '/generateQuiz' )
 @login_required
@@ -317,17 +370,21 @@ def generateExam():
 @login_required
 @admin_permission.require()
 def retrieveQuizOrExam():
-    from flask.helpers import get_flashed_messages
+    """ Retrieve and render a previous quiz or final exam given a code that is displayed on generated quizzes or finals.
+        TODO: Fix "Quiz" or "Final Exam" titles """
     if request.method == 'POST':
         code = request.form['code']
-        questions, classInfo = Question.getQuestionsFromID( code, addMarkupToQuestionTextToo = True )
+        questions, classInfo = Question.getQuestionsFromID( code  )
         messages = get_flashed_messages()
         if ( len( messages ) == 0 ):
             if ( len( questions ) == 0 ):
                 flash ( "No valid questions found for code: %s??" % code )
                 return redirect( url_for( 'retrieveQuizOrExam' ) )
-        return render_template( 'generatedQuizOrExam.html', generatedIDToDisplay = code, \
-           generatedQuestionsToDisplay = questions, classInfoToDisplay = classInfo )
+            return render_template( 'generatedQuizOrExam.html', generatedIDToDisplay = code, \
+                                    generatedQuestionsToDisplay = questions, classInfoToDisplay = classInfo )
+#         else: # Re-push the flash messages (get_flashed_messages remove current flashes
+#             for message in messages:
+#                 flash(message)
     return render_template( 'retrieveQuizOrExam.html' )
 
 @app.route( "/imageStatistics" )
@@ -360,7 +417,6 @@ def adminDatabaseReset():
 #         messageList.append( "Resetting class ids for: %s (id: %d)" % ( entry.longName, entry.id ) )
 #         entry.currentID = entry.startingID
 #     db.session.commit()
-    import db_reset
     db_reset.resetDatabase(db)
     messageList.append( "...done!" )
     return render_template( 'adminOutput.html', title = "Admin. - Database Reset", messagesToDisplay = messageList )
@@ -375,7 +431,6 @@ def adminTesting():
     image2=Image.getAndCacheByName("9f.3.1.jpg")
     messages.append(path2.cachePath)
     try:
-        import subprocess
         p = subprocess.Popen(["ls","/tmp"], stdout=subprocess.PIPE)
         result = p.communicate()[0]
         app.logger.debug(result)
