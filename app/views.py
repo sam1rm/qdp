@@ -22,20 +22,23 @@ admin_permission = Permission( RoleNeed( 'admin' ) )
 
 @app.route( '/' )
 @login_required
-@user_permission.require()
 def index():
     """ Top level site location. Displays additional buttons for admin: Verify users (if there
         are any), and provide additional administration. """
     user = g.user
     if user.is_verified():
-        imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
+        try:
+            herokuPushVersion = os.environ['rel']
+        except KeyError:
+            herokuPushVersion = "(rel not set)"
+        # imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
         return render_template( 'index.html',
             user = user,
             isAdmin = user.is_admin(),
             hasUnverifiedUsers = ( user.is_admin() and User.hasUnverifiedUsers() ),  # redundant on purpose
             help = 'helpMain',
             isDebugging = app.config['DEBUG'],
-            version = os.environ['rel'] )
+            version = herokuPushVersion )
     else:
         return redirect( url_for( 'unverifiedUser' ) )
 

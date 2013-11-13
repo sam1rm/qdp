@@ -63,7 +63,6 @@
     <div class='code'>
       <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span> <span class="s">&#39;/&#39;</span> <span class="p">)</span>
 <span class="nd">@login_required</span>
-<span class="nd">@user_permission.require</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">index</span><span class="p">():</span></pre></div>
     </div>
   </div>
@@ -76,14 +75,18 @@
       <p>are any), and provide additional administration. """
 ser = g.user
 f user.is_verified():
-   imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
+   try:
+       herokuPushVersion = os.environ['rel']
+   except KeyError:
+       herokuPushVersion = "(rel not set)"
+   # imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
    return render_template( 'index.html',
        user = user,
        isAdmin = user.is_admin(),
        hasUnverifiedUsers = ( user.is_admin() and User.hasUnverifiedUsers() ),  # redundant on purpose
        help = 'helpMain',
        isDebugging = app.config['DEBUG'],
-       version = os.environ['rel'] )
+       version = herokuPushVersion )
 lse:
    return redirect( url_for( 'unverifiedUser' ) )</p>
 <p>route( '/helpMain' )
