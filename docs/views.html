@@ -73,13 +73,16 @@
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
       <p>are any), and provide additional administration. """
+pp.logger.debug("user=g.user")
 ser = g.user
+pp.logger.debug("user.is_verified()")
 f user.is_verified():
    try:
        herokuPushVersion = os.environ['rel']
    except KeyError:
        herokuPushVersion = "(rel not set)"
    # imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
+   app.logger.debug("render_template")
    return render_template( 'index.html',
        user = user,
        isAdmin = user.is_admin(),
@@ -88,6 +91,7 @@ f user.is_verified():
        isDebugging = app.config['DEBUG'],
        version = herokuPushVersion )
 lse:
+   app.logger.debug("unverifiedUser")
    return redirect( url_for( 'unverifiedUser' ) )</p>
 <p>route( '/helpMain' )
 n_required
