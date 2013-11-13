@@ -88,10 +88,15 @@ def resetDatabase(db):
     user3 = user_datastore.create_user(password=password, email = "user@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Joe User")
     
     user_datastore.add_role_to_user(user3, default_role)
-    
-    user4 = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")
+ 
+    user4 = user_datastore.create_user(password=password, email = "admin@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Joe Admin")
     
     user_datastore.add_role_to_user(user4, default_role)
+    user_datastore.add_role_to_user(user4, admin_role)
+    
+#    user4 = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")
+    
+#    user_datastore.add_role_to_user(user4, default_role)
     
     user5 = user_datastore.create_user(password=password, email = "unverified@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Unverified User")
     

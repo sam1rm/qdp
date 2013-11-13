@@ -203,14 +203,11 @@
     <span class="n">user3</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;user@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe User&quot;</span><span class="p">)</span>
     
     <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user3</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
-    
-    <span class="n">user4</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;arie.coach@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Arie Meir&quot;</span><span class="p">)</span>
+ 
+    <span class="n">user4</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;admin@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Admin&quot;</span><span class="p">)</span>
     
     <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user4</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
-    
-    <span class="n">user5</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;unverified@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Unverified User&quot;</span><span class="p">)</span>
-    
-    <span class="n">user6</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;hack666@gmail.com&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Hacker&quot;</span><span class="p">)</span></pre></div>
+    <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user4</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -218,6 +215,33 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>user4 = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>user_datastore.add_role_to_user(user4, default_role)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    
+    <span class="n">user5</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;unverified@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Unverified User&quot;</span><span class="p">)</span>
+    
+    <span class="n">user6</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;hack666@gmail.com&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Hacker&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
       </div>
       <h6></h6>
 <p>CLASS INFO #</p>
@@ -240,10 +264,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-12'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-12'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <h6></h6>
 <p>QUESTIONS #</p>
@@ -254,10 +278,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-13'>
+  <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-13'>#</a>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <h6></h6>
 <p>IMAGES #</p>
@@ -268,10 +292,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-14'>
+  <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
+        <a class='octothorpe' href='#section-16'>#</a>
       </div>
       
     </div>
@@ -291,10 +315,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-15'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       <h6></h6>
 <p>HELPER #</p>
@@ -305,10 +329,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-16'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       
     </div>
@@ -351,10 +375,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       <h6></h6>
 <p>9A : MATLAB #</p>
@@ -378,10 +402,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-18'>
+  <div class='section' id='section-20'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-20'>#</a>
       </div>
       <h6></h6>
 <p>9C : C #</p>
@@ -403,10 +427,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-19'>
+  <div class='section' id='section-21'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
+        <a class='octothorpe' href='#section-21'>#</a>
       </div>
       <h4>+</h4>
 <p>9F : C++ #</p>
