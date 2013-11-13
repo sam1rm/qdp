@@ -6,3 +6,4 @@
 #pycco db_repository/*.py
 #git push origin master
 git push heroku master
+open http://qdp.herokuapp.com
