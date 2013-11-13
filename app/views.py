@@ -14,6 +14,7 @@ from utils import makeTempFileResp
 from werkzeug import secure_filename
 
 g_CachedQuestions = []
+herokuPushVersion = None
 
 # Create a permission with a single Need, in this case a RoleNeed.
 user_permission = Permission( RoleNeed( 'user' ) )
@@ -28,10 +29,10 @@ def index():
     user = g.user
     #app.logger.debug("user.is_verified()")
     if user.is_verified():
-        try:
-            herokuPushVersion = os.environ['rel']
-        except KeyError:
-            herokuPushVersion = "(rel not set)"
+        global herokuPushVersion
+        if not herokuPushVersion:
+            fref=open("version.txt")
+            herokuPushVersion = fref.readline()[:-1]
         # imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
         #app.logger.debug("render_template")
         return render_template( 'index.html',

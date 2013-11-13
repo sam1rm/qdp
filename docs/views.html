@@ -35,7 +35,8 @@
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">makeTempFileResp</span>
 <span class="kn">from</span> <span class="nn">werkzeug</span> <span class="kn">import</span> <span class="n">secure_filename</span>
 
-<span class="n">g_CachedQuestions</span> <span class="o">=</span> <span class="p">[]</span></pre></div>
+<span class="n">g_CachedQuestions</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">herokuPushVersion</span> <span class="o">=</span> <span class="bp">None</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -76,10 +77,10 @@ app.logger.debug("user=g.user")
 ser = g.user
 app.logger.debug("user.is_verified()")
 f user.is_verified():
-   try:
-       herokuPushVersion = os.environ['rel']
-   except KeyError:
-       herokuPushVersion = "(rel not set)"
+   global herokuPushVersion
+   if not herokuPushVersion:
+       fref=open("version.txt")
+       herokuPushVersion = fref.readline()[:-1]
    # imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
    #app.logger.debug("render_template")
    return render_template( 'index.html',
