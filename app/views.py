@@ -34,7 +34,8 @@ def index():
             isAdmin = user.is_admin(),
             hasUnverifiedUsers = ( user.is_admin() and User.hasUnverifiedUsers() ),  # redundant on purpose
             help = 'helpMain',
-            isDebugging = app.config['DEBUG'] )
+            isDebugging = app.config['DEBUG'],
+            version = os.environ['rel'] )
     else:
         return redirect( url_for( 'unverifiedUser' ) )
 
