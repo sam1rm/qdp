@@ -738,10 +738,9 @@ lse:
 eturn redirect( url_for( 'verifyUsers' ) )</p>
 <p>route( "/unverifiedUser" )
 n_required
-_permission.require()
 nverifiedUser():
 eturn render_template( 'unverifiedUser.html',
-   admins = getAdmins() )</p>
+   admins = User.getAllAdmins() )</p>
 <p>ser_loader
 oad_user( uid ):
 eturn User.get( int( uid ) )</p>

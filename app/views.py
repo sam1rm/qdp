@@ -497,10 +497,9 @@ def verifyingUser():
 
 @app.route( "/unverifiedUser" )
 @login_required
-@user_permission.require()
 def unverifiedUser():
     return render_template( 'unverifiedUser.html',
-        admins = getAdmins() )
+        admins = User.getAllAdmins() )
 
 @lm.user_loader
 def load_user( uid ):

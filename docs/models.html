@@ -116,7 +116,13 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">#DIVIDER</span>
 <span class="s">    @staticmethod</span>
 <span class="s">    def get( uid ):</span>
-<span class="s">        return User.query.filter_by( id = uid ).one()</span>
+<span class="s">        users = User.query.filter_by( id = uid )</span>
+<span class="s">        if ( ( users == None ) or ( users.count() == 0 ) ):</span>
+<span class="s">            flash( &quot;Couldn&#39;t find any users in the database with (raw) ID: </span><span class="si">%d</span><span class="s">&quot; </span><span class="si">% u</span><span class="s">id )</span>
+<span class="s">            return None</span>
+<span class="s">        elif ( users.count() != 1 ):</span>
+<span class="s">            flash( &quot;Found more than one user with (raw) ID: </span><span class="si">%d</span><span class="s">!&quot; </span><span class="si">% u</span><span class="s">id )</span>
+<span class="s">        return users.one()</span>
 
 <span class="s">    def get_auth_token( self ):</span>
 <span class="s">#DIVIDER</span>
@@ -624,15 +630,15 @@ f ( questions.count() &gt; 1 ):
 uestion = questions.one()
 eturn questions.one()</p>
 <p>agsAsSet( self ):
+esult = set()
 f self.tags:
    self.decryptTagText()
-   result = set()
    if self.tags:
        for tag in self.tags.split( "," ):
-           result.add( tag.lower().strip() )
-   return result
+           result.add( tag.lower().strip() )                  <br />
 lse:
-   return "?? NO TAGS ??"</p>
+   result.add( "?? MISSING TAGS ??")
+eturn result</p>
 <p>hortenedQuestionWithMarkup( self ):
 Returned a short..ed version of the (unencrypted) question text with HTML markup</p>
     </div>
@@ -735,7 +741,8 @@ nstances = Question.query.filter( Question.classAbbr == self.classAbbr, Question
 or instance in instances:
    instanceTags = instance.tagsAsSet()
    if ( len( instanceTags.intersection( tags ) ) &gt; 0 ):
-       existing.append( Question.copyAndDecryptText(instance) )
+       # TODO: FIX!
+       existing.append( instance.makeDecryptedTextVersion() )
 eturn existing</p>
 <p>ddReviewer( self, user, isOKFlag, maxReviewers ):
 Add a user to a question's "reviewers" as well as set the "is this question OK" flag.</p>

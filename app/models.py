@@ -59,7 +59,13 @@ class User( db.Model, UserMixin ):
 
     @staticmethod
     def get( uid ):
-        return User.query.filter_by( id = uid ).one()
+        users = User.query.filter_by( id = uid )
+        if ( ( users == None ) or ( users.count() == 0 ) ):
+            flash( "Couldn't find any users in the database with (raw) ID: %d" % uid )
+            return None
+        elif ( users.count() != 1 ):
+            flash( "Found more than one user with (raw) ID: %d!" % uid )
+        return users.one()
 
     def get_auth_token( self ):
         """
@@ -203,15 +209,16 @@ class Question( db.Model ):
         return questions.one()
 
     def tagsAsSet( self ):
+        result = set()
         if self.tags:
             self.decryptTagText()
-            result = set()
             if self.tags:
                 for tag in self.tags.split( "," ):
-                    result.add( tag.lower().strip() )
-            return result
+                    result.add( tag.lower().strip() )                    
         else:
-            return "?? NO TAGS ??"
+            result.add( "?? MISSING TAGS ??")
+        return result
+
 
     def shortenedQuestionWithMarkup( self ):
         """ Returned a short..ed version of the (unencrypted) question text with HTML markup """
@@ -252,7 +259,8 @@ class Question( db.Model ):
         for instance in instances:
             instanceTags = instance.tagsAsSet()
             if ( len( instanceTags.intersection( tags ) ) > 0 ):
-                existing.append( Question.copyAndDecryptText(instance) )
+                # TODO: FIX!
+                existing.append( instance.makeDecryptedTextVersion() )
         return existing
     
     def addReviewer( self, user, isOKFlag, maxReviewers ):
