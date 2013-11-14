@@ -15,7 +15,7 @@ REMEMBER_COOKIE_DURATION = timedelta(days=30)
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 
-SECURITY_CONFIRMABLE = True
+SECURITY_CONFIRMABLE = False
 SECURITY_TRACKABLE = True
 SECURITY_REGISTERABLE = True
 SECURITY_CHANGEABLE = True
