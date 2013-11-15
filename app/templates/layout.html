@@ -54,8 +54,13 @@
 			QDP<br /> 
 		</h1>
 		<span class="upleft2 text-muted">
-			{{ version }} 
+			{{ version }}
+			{% if isDebugging %}
+			<br />
+			DEBUG MODE ENABLED
+			{% endif %}
 		</span>
+		
 		<h2 class="upcenter">
 			{{ title }} 
 		</h2>

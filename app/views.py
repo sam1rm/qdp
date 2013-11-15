@@ -1,3 +1,5 @@
+# IMPORTS
+
 import datetime
 import os
 import random
@@ -12,6 +14,8 @@ from flask.ext.security import SQLAlchemyUserDatastore
 from flask.helpers import get_flashed_messages
 from utils import makeTempFileResp
 from werkzeug import secure_filename
+
+# "GLOBALS"
 
 g_CachedQuestions = []
 herokuPushVersion = None
@@ -52,7 +56,7 @@ def index():
 def helpMain():
     """ Help page associated with the main page.
         TODO: Make help dynamic (e.g. __page__Help.html)"""
-    return render_template( 'helpMain.html' )
+    return render_template( 'helpMain.html', title = "SAMPLE HELP PAGE" )
 
 # CHOOSERS
 
