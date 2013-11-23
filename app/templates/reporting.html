@@ -1,0 +1,43 @@
+{% extends "layout.html" %} {% block content %} 
+<table>
+	<tr>
+		<td width="50%">
+			<form method="post" action={{url_for('sendOrDeleteReport',returnTo=returnToParam)}} class="well span6">
+				{{form.hidden_tag()}} 
+				<div class="control-group">
+					<label class="control-label" for="what">
+						What are you reporting? 
+					</label>
+					{{form.what}}
+				</div>
+			<div class="span6">
+					<label class="control-label" for="who">
+						Who is this?
+					</label>
+					{{form.who(rows=1,cols=100)}}
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="when">
+						When was this? 
+					</label>
+					{{form.when(rows=1,cols=100)}} 
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="report">
+						Report: 
+					</label>
+					{{form.report(rows=10,cols=100)}} 
+				</div>
+ 				<div class="control-group">
+                    <button type="submit" class="btn btn-primary center" name='button' value="done">
+                        Send 
+                    </button>
+                    <button type="submit" class="btn btn-danger center" name='button' value="delete">
+                        Delete 
+                    </button>
+				</div>
+			</form>
+		</td>
+	</tr>
+</table>
+{% endblock %}

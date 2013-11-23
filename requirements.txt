@@ -1,5 +1,6 @@
 flask-debugtoolbar
 flask-login
+Flask-Mail
 Flask-Security
 flask-sqlalchemy
 Flask-WTF

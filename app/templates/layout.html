@@ -44,6 +44,7 @@
         .upright3{position:absolute;top:58px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
         .lowleft{position:absolute;bottom:10px;left:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
         .lowright{position:absolute;bottom:10px;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
+        .midright{position:absolute;bottom:50%;right:10px;margin:0px 0px 0px 0px;padding:0px 0px;}
 	</style>
 	{% block head %}
 	{% endblock %} 
@@ -60,7 +61,13 @@
 			DEBUG MODE ENABLED
 			{% endif %}
 		</span>
-		
+		<div class="midright">
+    		<a href="{{ url_for('reporting',returnTo=request.path) }}" style="width: 80px; min-width:180px;" class="btn btn-primary btn-small">
+				<i class="glyphicon glyphicon-zoom-in">
+				</i>
+				Report Bug
+			</a>
+    	</div>
 		<h2 class="upcenter">
 			{{ title }} 
 		</h2>

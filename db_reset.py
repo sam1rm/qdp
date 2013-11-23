@@ -3,6 +3,8 @@ import doctest
 import os
 import subprocess
 
+MAKE_HACKABLE_DATABASE = False
+
 from migrate.versioning import api
 from config import SQLALCHEMY_DATABASE_URI
 from config import SQLALCHEMY_MIGRATE_REPO
@@ -14,27 +16,22 @@ from flask.ext.security.utils import encrypt_password
 
 from app.models import User, Role, Question, ClassInfo, Image, encrypt, generateIV
 
-def resetDatabase(db):
-    
-    # Remove old database
-    
+def removeOldDatabase():
     try:
         subprocess.call(["rm","app.db"])
     except OSError as ex:
         print "OSError({0}): {1}".format(ex.errno, ex.strerror)
-    
     try:
         subprocess.call(["rm","-R","db_repository"])
     except OSError as ex:
         print "OSError({0}): {1}".format(ex.errno, ex.strerror)
-    
     try:
         subprocess.call(["rm","-R","tmp"])
     except OSError as ex:
         print "OSError({0}): {1}".format(ex.errno, ex.strerror)
-    
-    # Create a new, empty database
-    
+
+def initializeDatabase(db):
+
     db.create_all()
     
     # Create a new migration repository
@@ -44,7 +41,17 @@ def resetDatabase(db):
         api.version_control(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
     else:
         api.version_control(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO, api.version(SQLALCHEMY_MIGRATE_REPO))
+
+def resetDatabase(db):
     
+    # Remove old database
+    
+    removeOldDatabase()
+    
+    # Create a new, empty database
+    
+    initializeDatabase(db)
+            
     # Load up Flask
     
     app = Flask(__name__)
@@ -76,32 +83,29 @@ def resetDatabase(db):
         #print password
     
     user1 = user_datastore.create_user(password=password, email = "headcrash@berkeley.edu", fullname = "Glenn Sugden", confirmed_at=datetime.datetime.now())
-    
     user_datastore.add_role_to_user(user1, default_role)
     user_datastore.add_role_to_user(user1, admin_role)
-    
-    user2 = user_datastore.create_user(password=password, email = "carolm@EECS.berkeley.edu", confirmed_at=datetime.datetime.now(), fullname = "Carol Marshall")
-    
-    user_datastore.add_role_to_user(user2, default_role)
-    user_datastore.add_role_to_user(user2, admin_role)
-    
+
     user3 = user_datastore.create_user(password=password, email = "user@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Joe User")
-    
     user_datastore.add_role_to_user(user3, default_role)
- 
-    user4 = user_datastore.create_user(password=password, email = "admin@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Joe Admin")
-    
-    user_datastore.add_role_to_user(user4, default_role)
-    user_datastore.add_role_to_user(user4, admin_role)
-    
-#    user4 = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")
-    
-#    user_datastore.add_role_to_user(user4, default_role)
-    
-    user5 = user_datastore.create_user(password=password, email = "unverified@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Unverified User")
-    
+
     user6 = user_datastore.create_user(password=password, email = "hack666@gmail.com", fullname = "Joe Hacker")
+
+    if (MAKE_HACKABLE_DATABASE == False):
+        
+        user2 = user_datastore.create_user(password=password, email = "carolm@EECS.berkeley.edu", confirmed_at=datetime.datetime.now(), fullname = "Carol Marshall")
+        user_datastore.add_role_to_user(user2, default_role)
+        user_datastore.add_role_to_user(user2, admin_role)
+             
+        user4 = user_datastore.create_user(password=password, email = "admin@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Joe Admin")
+        user_datastore.add_role_to_user(user4, default_role)
+        user_datastore.add_role_to_user(user4, admin_role)
     
+#           user4 = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")        
+#           user_datastore.add_role_to_user(user4, default_role)
+    
+        user5 = user_datastore.create_user(password=password, email = "unverified@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Unverified User")
+        
     ##############
     # CLASS INFO #
     ##############
@@ -188,77 +192,96 @@ def resetDatabase(db):
         classInfo9A.startingID, \
         classInfo9A.classAbbr, \
         1, \
-        u"Matrix Basics,Vectors", \
+        u"Indexing", \
         None, \
-        u"Suppose that A is a vector. Give two ways to define a vector that is as long as A and whose elements are all 1.", \
+        u"What is the difference between a cell array and a regular vector/matrix?",
+        u"x = {1,2,3}\ry = [1,2,3]", \
         None, \
-        None, \
-        u"<ask Arie>", \
+        u"2 primary things:\n1. A cell array may contain any arbitrary type of element in each cell; while a matrix/vector requires the types of its elements to be homogeneous i.e. of the same type.\n2. Memory layout : arrays are contiguous in memory while cell arrays are not necessary contiguous.", \
         1, \
         [], \
         0 )
+
+    if (MAKE_HACKABLE_DATABASE == False):
+        
+        add_question(
+            classInfo9A.startingID, \
+            classInfo9A.classAbbr, \
+            1, \
+            u"Matrix Basics,Vectors", \
+            None, \
+            u"Suppose that A is a vector. Give two ways to define a vector that is as long as A and whose elements are all 1.", \
+            None, \
+            None, \
+            u"<ask Arie>", \
+            1, \
+            [], \
+            0 )
     
     ##########
     # 9C : C #
     ##########
     
-    add_question( classInfo9C.startingID, classInfo9C.classAbbr, \
-        3, \
-        u"Arrays,Files,Struct,Typedef", \
-        None, \
-        u'''In a single statement, define and initialize a seven-element table of day names named dayNames. The first element of dayNames is "Sunday", the second "Monday", and so on.''', \
-        None, \
-        None, \
-        u'''char* dayNames[7]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};''', \
-        1, \
-        [], \
-        0 )
+        add_question( classInfo9C.startingID, classInfo9C.classAbbr, \
+            3, \
+            u"Arrays,Files,Struct,Typedef", \
+            None, \
+            u'''In a single statement, define and initialize a seven-element table of day names named dayNames. The first element of dayNames is "Sunday", the second "Monday", and so on.''', \
+            None, \
+            None, \
+            u'''char* dayNames[7]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};''', \
+            1, \
+            [], \
+            0 )
     
     #####+######
     # 9F : C++ #
     ############
     
-    add_question( classInfo9F.startingID, classInfo9F.classAbbr, \
-        2, \
-        u"Arrays,Streams", \
-        None, \
-        u"Write a boolean function AreIncreasing that determines whether the integers in its vector argument are in strictly increasing order. Your function should work for vectors of any length.", \
-        None, \
-        u"Watch out for off-by-one errors.", \
-        u"bool AreIncreasing(vector<int> integers) {\n\tfor (int i = 0; i < integers.size()-1; i++) {\n\t\tif (integers[i] <= integers[i+i]) {\n\t\t\treturn false; } }\n\t\treturn true; }", \
-        1, \
-        [], \
-        0 )
-    
-    add_question(classInfo9F.startingID+1,classInfo9F.classAbbr, \
-        1, \
-        u"Fundamentals,Operators,Expressions", \
-        u"Circle the correct expression. Assume default meanings for each operator.", \
-        u"cin >> x or cin << x\ncout << \"value for n?\" or cout << \'value for n?\'", \
-        None, \
-        None, \
-        u"cin >> x\ncout << \"value for n?\"", \
-        1, \
-        [], \
-        0)
+        add_question( classInfo9F.startingID, classInfo9F.classAbbr, \
+            2, \
+            u"Arrays,Streams", \
+            None, \
+            u"Write a boolean function AreIncreasing that determines whether the integers in its vector argument are in strictly increasing order. Your function should work for vectors of any length.", \
+            None, \
+            u"Watch out for off-by-one errors.", \
+            u"bool AreIncreasing(vector<int> integers) {\n\tfor (int i = 0; i < integers.size()-1; i++) {\n\t\tif (integers[i] <= integers[i+i]) {\n\t\t\treturn false; } }\n\t\treturn true; }", \
+            1, \
+            [], \
+            0 )
         
-    add_question(classInfo9F.startingID+2,classInfo9F.classAbbr, \
-        3, \
-        u"Dynamically allocated data", \
-        u"Given the following declaration:\n\tclass ListNode {\n\tpublic:\n\t\tListNode (const int k);\n\t\tListNode (const int k, const ListNode* ptr);\n\t\t...\n\tprivate:\n\t\tint value;\n\t\tListNode *next;\n\t};", \
-        u"Suppose that p, list1, and list2 are variables of type ListNode *, and that list1 and list2 point to the following structures.\n\t[[9f.3.1.gif]]\nDraw the diagram that results from executing the following code segment.\n\tp = list1->next;\n\tlist1->next->next = list2;\n\tp->next->next = list1;\n\tlist2->next->value = 5;", \
-        None, \
-        None, \
-        "[[9f.3.1.jpg]],", \
-        1, \
-        [], \
-        0)
+        add_question(classInfo9F.startingID+1,classInfo9F.classAbbr, \
+            1, \
+            u"Fundamentals,Operators,Expressions", \
+            u"Circle the correct expression. Assume default meanings for each operator.", \
+            u"cin >> x or cin << x\ncout << \"value for n?\" or cout << \'value for n?\'", \
+            None, \
+            None, \
+            u"cin >> x\ncout << \"value for n?\"", \
+            1, \
+            [], \
+            0)
+            
+        add_question(classInfo9F.startingID+2,classInfo9F.classAbbr, \
+            3, \
+            u"Dynamically allocated data", \
+            u"Given the following declaration:\n\tclass ListNode {\n\tpublic:\n\t\tListNode (const int k);\n\t\tListNode (const int k, const ListNode* ptr);\n\t\t...\n\tprivate:\n\t\tint value;\n\t\tListNode *next;\n\t};", \
+            u"Suppose that p, list1, and list2 are variables of type ListNode *, and that list1 and list2 point to the following structures.\n\t[[9f.3.1.gif]]\nDraw the diagram that results from executing the following code segment.\n\tp = list1->next;\n\tlist1->next->next = list2;\n\tp->next->next = list1;\n\tlist2->next->value = 5;", \
+            None, \
+            None, \
+            "[[9f.3.1.jpg]],", \
+            1, \
+            [], \
+            0)
     
     db.session.commit()
-    
-    print "Done!"
-    
+  
+########
+# MAIN #
+########
+  
 if __name__ == "__main__":
     from app import db
     doctest.testmod()
     resetDatabase(db)
+    print "Done!"

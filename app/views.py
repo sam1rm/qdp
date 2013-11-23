@@ -4,11 +4,12 @@ import datetime
 import os
 import random
 import subprocess
-from app import app, db, lm, login_serializer
-from app.forms import QuestionForm, ReviewQuestionForm
+from app import app, db, lm, login_serializer, mail
+from app.forms import QuestionForm, ReviewQuestionForm, ReportForm
 from app.models import User, Role, ClassInfo, Question, Image
 from flask import render_template, flash, redirect, session, url_for, request, g
 from flask.ext.login import current_user, login_required
+from flask.ext.mail import Message
 from flask.ext.principal import Permission, RoleNeed, UserNeed, identity_loaded
 from flask.ext.security import SQLAlchemyUserDatastore
 from flask.helpers import get_flashed_messages
@@ -81,10 +82,12 @@ def chooseQuestionToEdit():
         exist for a previously chosen class.
         TODO: Allow admins to edit _all_ questions. """
     if (('classAbbr' in session) and (session['classAbbr'])):
+        user = g.user
         classInfo = ClassInfo.get( session['classAbbr'] )
-        questions = []
-        for instance in Question.query.filter( Question.classAbbr == session['classAbbr'] ).order_by( Question.id ):
-            questions.append( instance )
+        if (user.is_admin()):
+            questions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
+        else:
+            questions = Question.query.filter( Question.user_id == user.id, Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
         if ( len( questions ) > 0 ):
             return render_template( 'chooseQuestion.html', questions = questions, \
                                    title = "Choose Question to Edit for " + classInfo.classAbbr + "(" + classInfo.longName + ")" )
@@ -452,6 +455,26 @@ def adminTesting():
         print "OSError({0}): {1}".format(ex.errno, ex.strerror)
     messages.append(app.config['UPLOAD_FOLDER'])
     return render_template("adminTesting.html", imagesToDisplay = [path1,path2], messageToDisplay = messages)
+
+@app.route( "/reporting" )
+def reporting():
+    returnTo = request.args.get( 'returnTo' )
+    form = ReportForm(who=currentUserFirstName(),when=datetime.datetime.now())
+    return render_template("reporting.html", form=form, returnToParam = returnTo)
+
+@app.route( "/sendOrDeleteReport", methods = ['POST'] )
+def sendOrDeleteReport():
+    returnTo = request.args.get( 'returnTo' )
+    if request.method == 'POST':
+        if ( request.form['button'] == 'delete' ):
+            flash( 'Report cancelled')
+        else:
+            msg = Message("Who: %s\nWhen: %s\nWhere: %s\nReport: %s" % (request.form['who'], request.form['when'], returnTo, request.form['report']),
+                  sender=g.user.email,
+                  recipients=["headcrash@berkeley.edu"])
+            mail.send(msg)
+            flash( 'Report sent! Thank you!')
+    return redirect( url_for( returnTo ) )
 
 # UTILITES
 

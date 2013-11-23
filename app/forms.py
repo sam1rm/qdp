@@ -34,5 +34,12 @@ class ReviewQuestionForm(Form):
     hintsComments = TextAreaField('hintsComments')
     answerComments = TextAreaField('answerComments')
     
+class ReportForm(Form):
+    what = SelectField('what', choices=[('bug',"Bug"),('feature',"Suggest a Feature")], validators = [Required()])
+    who = TextField('who')
+    where = TextField('where')
+    when = TextField('when')
+    report = TextAreaField('report')
+    
 # class UploadImageForm(Form):
 #     name = TextAreaField('name')
