@@ -32,12 +32,12 @@
 <span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;6FxLM4DBMHbkgqKty2YRCyfS&#39;</span>
 <span class="n">PADDING</span> <span class="o">=</span> <span class="s">&quot;0123456789abcdef&quot;</span>
 
-<span class="n">REMEMBER_COOKIE_DURATION</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">REMEMBER_COOKIE_DURATION</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="n">SQLALCHEMY_DATABASE_URI</span> <span class="o">=</span> <span class="s">&#39;sqlite:///&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;app.db&#39;</span><span class="p">)</span>
 <span class="n">SQLALCHEMY_MIGRATE_REPO</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;db_repository&#39;</span><span class="p">)</span>
 
-<span class="n">SECURITY_CONFIRMABLE</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">SECURITY_CONFIRMABLE</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="n">SECURITY_TRACKABLE</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="n">SECURITY_REGISTERABLE</span> <span class="o">=</span> <span class="bp">True</span>
 <span class="n">SECURITY_CHANGEABLE</span> <span class="o">=</span> <span class="bp">True</span>

@@ -24,11 +24,12 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">lm</span><span class="p">,</span> <span class="n">login_serializer</span>
-<span class="kn">from</span> <span class="nn">app.forms</span> <span class="kn">import</span> <span class="n">QuestionForm</span><span class="p">,</span> <span class="n">ReviewQuestionForm</span>
+<span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">lm</span><span class="p">,</span> <span class="n">login_serializer</span><span class="p">,</span> <span class="n">mail</span>
+<span class="kn">from</span> <span class="nn">app.forms</span> <span class="kn">import</span> <span class="n">QuestionForm</span><span class="p">,</span> <span class="n">ReviewQuestionForm</span><span class="p">,</span> <span class="n">ReportForm</span>
 <span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">ClassInfo</span><span class="p">,</span> <span class="n">Question</span><span class="p">,</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">flash</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">g</span>
 <span class="kn">from</span> <span class="nn">flask.ext.login</span> <span class="kn">import</span> <span class="n">current_user</span><span class="p">,</span> <span class="n">login_required</span>
+<span class="kn">from</span> <span class="nn">flask.ext.mail</span> <span class="kn">import</span> <span class="n">Message</span>
 <span class="kn">from</span> <span class="nn">flask.ext.principal</span> <span class="kn">import</span> <span class="n">Permission</span><span class="p">,</span> <span class="n">RoleNeed</span><span class="p">,</span> <span class="n">UserNeed</span><span class="p">,</span> <span class="n">identity_loaded</span>
 <span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">SQLAlchemyUserDatastore</span>
 <span class="kn">from</span> <span class="nn">flask.helpers</span> <span class="kn">import</span> <span class="n">get_flashed_messages</span>
@@ -232,10 +233,12 @@ Help page associated with the main page.</p>
       <p>exist for a previously chosen class.
    TODO: Allow admins to edit <em>all</em> questions. """
 f (('classAbbr' in session) and (session['classAbbr'])):
+   user = g.user
    classInfo = ClassInfo.get( session['classAbbr'] )
-   questions = []
-   for instance in Question.query.filter( Question.classAbbr == session['classAbbr'] ).order_by( Question.id ):
-       questions.append( instance )
+   if (user.is_admin()):
+       questions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
+   else:
+       questions = Question.query.filter( Question.user_id == user.id, Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
    if ( len( questions ) &gt; 0 ):
        return render_template( 'chooseQuestion.html', questions = questions, \
                               title = "Choose Question to Edit for " + classInfo.classAbbr + "(" + classInfo.longName + ")" )
@@ -706,6 +709,24 @@ xcept OSError as ex:
    print "OSError({0}): {1}".format(ex.errno, ex.strerror)
 essages.append(app.config['UPLOAD_FOLDER'])
 eturn render_template("adminTesting.html", imagesToDisplay = [path1,path2], messageToDisplay = messages)</p>
+<p>route( "/reporting" )
+eporting():
+eturnTo = request.args.get( 'returnTo' )
+orm = ReportForm(who=currentUserFirstName(),when=datetime.datetime.now())
+eturn render_template("reporting.html", form=form, returnToParam = returnTo)</p>
+<p>route( "/sendOrDeleteReport", methods = ['POST'] )
+endOrDeleteReport():
+eturnTo = request.args.get( 'returnTo' )
+f request.method == 'POST':
+   if ( request.form['button'] == 'delete' ):
+       flash( 'Report cancelled')
+   else:
+       msg = Message("Who: %s\nWhen: %s\nWhere: %s\nReport: %s" % (request.form['who'], request.form['when'], returnTo, request.form['report']),
+             sender=g.user.email,
+             recipients=["headcrash@berkeley.edu"])
+       mail.send(msg)
+       flash( 'Report sent! Thank you!')
+eturn redirect( url_for( returnTo ) )</p>
 <p>LITES</p>
 <p>route( "/tmp/<path:path>" )
 empPath( path ):

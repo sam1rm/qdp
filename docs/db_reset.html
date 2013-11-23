@@ -25,6 +25,8 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 
+<span class="n">MAKE_HACKABLE_DATABASE</span> <span class="o">=</span> <span class="bp">False</span>
+
 <span class="kn">from</span> <span class="nn">migrate.versioning</span> <span class="kn">import</span> <span class="n">api</span>
 <span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">SQLALCHEMY_DATABASE_URI</span>
 <span class="kn">from</span> <span class="nn">config</span> <span class="kn">import</span> <span class="n">SQLALCHEMY_MIGRATE_REPO</span>
@@ -46,7 +48,19 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">resetDatabase</span><span class="p">(</span><span class="n">db</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">removeOldDatabase</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">&quot;rm&quot;</span><span class="p">,</span><span class="s">&quot;app.db&quot;</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;OSError({0}): {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">strerror</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">&quot;rm&quot;</span><span class="p">,</span><span class="s">&quot;-R&quot;</span><span class="p">,</span><span class="s">&quot;db_repository&quot;</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;OSError({0}): {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">strerror</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">&quot;rm&quot;</span><span class="p">,</span><span class="s">&quot;-R&quot;</span><span class="p">,</span><span class="s">&quot;tmp&quot;</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;OSError({0}): {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">strerror</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -55,24 +69,12 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
       </div>
-      <p>Remove old database</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">&quot;rm&quot;</span><span class="p">,</span><span class="s">&quot;app.db&quot;</span><span class="p">])</span>
-    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s">&quot;OSError({0}): {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">strerror</span><span class="p">)</span>
-    
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">&quot;rm&quot;</span><span class="p">,</span><span class="s">&quot;-R&quot;</span><span class="p">,</span><span class="s">&quot;db_repository&quot;</span><span class="p">])</span>
-    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s">&quot;OSError({0}): {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">strerror</span><span class="p">)</span>
-    
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s">&quot;rm&quot;</span><span class="p">,</span><span class="s">&quot;-R&quot;</span><span class="p">,</span><span class="s">&quot;tmp&quot;</span><span class="p">])</span>
-    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s">&quot;OSError({0}): {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">errno</span><span class="p">,</span> <span class="n">ex</span><span class="o">.</span><span class="n">strerror</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">initializeDatabase</span><span class="p">(</span><span class="n">db</span><span class="p">):</span>
+
+    <span class="n">db</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -80,19 +82,6 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
-      </div>
-      <p>Create a new, empty database</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    
-    <span class="n">db</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-4'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-4'>#</a>
       </div>
       <p>Create a new migration repository</p>
     </div>
@@ -106,10 +95,48 @@
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">resetDatabase</span><span class="p">(</span><span class="n">db</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-5'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>Remove old database</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    
+    <span class="n">removeOldDatabase</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>Create a new, empty database</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    
+    <span class="n">initializeDatabase</span><span class="p">(</span><span class="n">db</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
       </div>
       <p>Load up Flask</p>
     </div>
@@ -122,10 +149,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-6'>
+  <div class='section' id='section-8'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-6'>#</a>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
       <p>Setup Flask-Security</p>
     </div>
@@ -136,10 +163,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-7'>
+  <div class='section' id='section-9'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <p>Populate the database</p>
     </div>
@@ -148,10 +175,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-8'>
+  <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
+        <a class='octothorpe' href='#section-10'>#</a>
       </div>
       <h6></h6>
 <p>ROLES #</p>
@@ -165,10 +192,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-11'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <h6></h6>
 <p>USERS #</p>
@@ -181,60 +208,33 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-10'>
+  <div class='section' id='section-12'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-10'>#</a>
+        <a class='octothorpe' href='#section-12'>#</a>
       </div>
       <p>print password</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    
     <span class="n">user1</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;headcrash@berkeley.edu&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Glenn Sugden&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
-    
     <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user1</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
     <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user1</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span>
-    
-    <span class="n">user2</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;carolm@EECS.berkeley.edu&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Carol Marshall&quot;</span><span class="p">)</span>
-    
-    <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user2</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
-    <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user2</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span>
-    
+
     <span class="n">user3</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;user@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe User&quot;</span><span class="p">)</span>
-    
     <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user3</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
- 
-    <span class="n">user4</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;admin@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Admin&quot;</span><span class="p">)</span>
-    
-    <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user4</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
-    <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user4</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-11'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-11'>#</a>
-      </div>
-      <p>user4 = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-12'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-12'>#</a>
-      </div>
-      <p>user_datastore.add_role_to_user(user4, default_role)</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    
-    <span class="n">user5</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;unverified@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Unverified User&quot;</span><span class="p">)</span>
-    
-    <span class="n">user6</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;hack666@gmail.com&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Hacker&quot;</span><span class="p">)</span></pre></div>
+
+    <span class="n">user6</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;hack666@gmail.com&quot;</span><span class="p">,</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Hacker&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">MAKE_HACKABLE_DATABASE</span> <span class="o">==</span> <span class="bp">False</span><span class="p">):</span>
+        
+        <span class="n">user2</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;carolm@EECS.berkeley.edu&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Carol Marshall&quot;</span><span class="p">)</span>
+        <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user2</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
+        <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user2</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span>
+             
+        <span class="n">user4</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;admin@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Joe Admin&quot;</span><span class="p">)</span>
+        <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user4</span><span class="p">,</span> <span class="n">default_role</span><span class="p">)</span>
+        <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span><span class="n">user4</span><span class="p">,</span> <span class="n">admin_role</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -242,6 +242,21 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <pre><code>      user4 = user_datastore.create_user(password=password, email = "arie.coach@gmail.com", confirmed_at=datetime.datetime.now(), fullname = "Arie Meir")        
+      user_datastore.add_role_to_user(user4, default_role)
+</code></pre>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    
+        <span class="n">user5</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">create_user</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">email</span> <span class="o">=</span> <span class="s">&quot;unverified@gmail.com&quot;</span><span class="p">,</span> <span class="n">confirmed_at</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">fullname</span> <span class="o">=</span> <span class="s">&quot;Unverified User&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <h6></h6>
 <p>CLASS INFO #</p>
@@ -264,27 +279,13 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-14'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
-      </div>
-      <h6></h6>
-<p>QUESTIONS #</p>
-<h6></h6>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
   <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <h6></h6>
-<p>IMAGES #</p>
+<p>QUESTIONS #</p>
 <h6></h6>
     </div>
     <div class='code'>
@@ -296,6 +297,20 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <h6></h6>
+<p>IMAGES #</p>
+<h6></h6>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       
     </div>
@@ -315,10 +330,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       <h6></h6>
 <p>HELPER #</p>
@@ -329,10 +344,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-18'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       
     </div>
@@ -375,10 +390,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-19'>
+  <div class='section' id='section-20'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
+        <a class='octothorpe' href='#section-20'>#</a>
       </div>
       <h6></h6>
 <p>9A : MATLAB #</p>
@@ -390,40 +405,31 @@
         <span class="n">classInfo9A</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> \
         <span class="n">classInfo9A</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
         <span class="mi">1</span><span class="p">,</span> \
-        <span class="s">u&quot;Matrix Basics,Vectors&quot;</span><span class="p">,</span> \
+        <span class="s">u&quot;Indexing&quot;</span><span class="p">,</span> \
         <span class="bp">None</span><span class="p">,</span> \
-        <span class="s">u&quot;Suppose that A is a vector. Give two ways to define a vector that is as long as A and whose elements are all 1.&quot;</span><span class="p">,</span> \
+        <span class="s">u&quot;What is the difference between a cell array and a regular vector/matrix?&quot;</span><span class="p">,</span>
+        <span class="s">u&quot;x = {1,2,3}</span><span class="se">\r</span><span class="s">y = [1,2,3]&quot;</span><span class="p">,</span> \
         <span class="bp">None</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="s">u&quot;&lt;ask Arie&gt;&quot;</span><span class="p">,</span> \
+        <span class="s">u&quot;2 primary things:</span><span class="se">\n</span><span class="s">1. A cell array may contain any arbitrary type of element in each cell; while a matrix/vector requires the types of its elements to be homogeneous i.e. of the same type.</span><span class="se">\n</span><span class="s">2. Memory layout : arrays are contiguous in memory while cell arrays are not necessary contiguous.&quot;</span><span class="p">,</span> \
         <span class="mi">1</span><span class="p">,</span> \
         <span class="p">[],</span> \
-        <span class="mi">0</span> <span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-20'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-20'>#</a>
-      </div>
-      <h6></h6>
-<p>9C : C #</p>
-<h6></h6>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    
-    <span class="n">add_question</span><span class="p">(</span> <span class="n">classInfo9C</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> <span class="n">classInfo9C</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
-        <span class="mi">3</span><span class="p">,</span> \
-        <span class="s">u&quot;Arrays,Files,Struct,Typedef&quot;</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="sd">u&#39;&#39;&#39;In a single statement, define and initialize a seven-element table of day names named dayNames. The first element of dayNames is &quot;Sunday&quot;, the second &quot;Monday&quot;, and so on.&#39;&#39;&#39;</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="sd">u&#39;&#39;&#39;char* dayNames[7]={&quot;Monday&quot;,&quot;Tuesday&quot;,&quot;Wednesday&quot;,&quot;Thursday&quot;,&quot;Friday&quot;,&quot;Saturday&quot;,&quot;Sunday&quot;};&#39;&#39;&#39;</span><span class="p">,</span> \
-        <span class="mi">1</span><span class="p">,</span> \
-        <span class="p">[],</span> \
-        <span class="mi">0</span> <span class="p">)</span></pre></div>
+        <span class="mi">0</span> <span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">MAKE_HACKABLE_DATABASE</span> <span class="o">==</span> <span class="bp">False</span><span class="p">):</span>
+        
+        <span class="n">add_question</span><span class="p">(</span>
+            <span class="n">classInfo9A</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> \
+            <span class="n">classInfo9A</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
+            <span class="mi">1</span><span class="p">,</span> \
+            <span class="s">u&quot;Matrix Basics,Vectors&quot;</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="s">u&quot;Suppose that A is a vector. Give two ways to define a vector that is as long as A and whose elements are all 1.&quot;</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="s">u&quot;&lt;ask Arie&gt;&quot;</span><span class="p">,</span> \
+            <span class="mi">1</span><span class="p">,</span> \
+            <span class="p">[],</span> \
+            <span class="mi">0</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -432,56 +438,93 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-21'>#</a>
       </div>
+      <h6></h6>
+<p>9C : C #</p>
+<h6></h6>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    
+        <span class="n">add_question</span><span class="p">(</span> <span class="n">classInfo9C</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> <span class="n">classInfo9C</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
+            <span class="mi">3</span><span class="p">,</span> \
+            <span class="s">u&quot;Arrays,Files,Struct,Typedef&quot;</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="sd">u&#39;&#39;&#39;In a single statement, define and initialize a seven-element table of day names named dayNames. The first element of dayNames is &quot;Sunday&quot;, the second &quot;Monday&quot;, and so on.&#39;&#39;&#39;</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="sd">u&#39;&#39;&#39;char* dayNames[7]={&quot;Monday&quot;,&quot;Tuesday&quot;,&quot;Wednesday&quot;,&quot;Thursday&quot;,&quot;Friday&quot;,&quot;Saturday&quot;,&quot;Sunday&quot;};&#39;&#39;&#39;</span><span class="p">,</span> \
+            <span class="mi">1</span><span class="p">,</span> \
+            <span class="p">[],</span> \
+            <span class="mi">0</span> <span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
       <h4>+</h4>
 <p>9F : C++ #</p>
 <h6></h6>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    
-    <span class="n">add_question</span><span class="p">(</span> <span class="n">classInfo9F</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> <span class="n">classInfo9F</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
-        <span class="mi">2</span><span class="p">,</span> \
-        <span class="s">u&quot;Arrays,Streams&quot;</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="s">u&quot;Write a boolean function AreIncreasing that determines whether the integers in its vector argument are in strictly increasing order. Your function should work for vectors of any length.&quot;</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="s">u&quot;Watch out for off-by-one errors.&quot;</span><span class="p">,</span> \
-        <span class="s">u&quot;bool AreIncreasing(vector&lt;int&gt; integers) {</span><span class="se">\n\t</span><span class="s">for (int i = 0; i &lt; integers.size()-1; i++) {</span><span class="se">\n\t\t</span><span class="s">if (integers[i] &lt;= integers[i+i]) {</span><span class="se">\n\t\t\t</span><span class="s">return false; } }</span><span class="se">\n\t\t</span><span class="s">return true; }&quot;</span><span class="p">,</span> \
-        <span class="mi">1</span><span class="p">,</span> \
-        <span class="p">[],</span> \
-        <span class="mi">0</span> <span class="p">)</span>
-    
-    <span class="n">add_question</span><span class="p">(</span><span class="n">classInfo9F</span><span class="o">.</span><span class="n">startingID</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">classInfo9F</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
-        <span class="mi">1</span><span class="p">,</span> \
-        <span class="s">u&quot;Fundamentals,Operators,Expressions&quot;</span><span class="p">,</span> \
-        <span class="s">u&quot;Circle the correct expression. Assume default meanings for each operator.&quot;</span><span class="p">,</span> \
-        <span class="s">u&quot;cin &gt;&gt; x or cin &lt;&lt; x</span><span class="se">\n</span><span class="s">cout &lt;&lt; </span><span class="se">\&quot;</span><span class="s">value for n?</span><span class="se">\&quot;</span><span class="s"> or cout &lt;&lt; </span><span class="se">\&#39;</span><span class="s">value for n?</span><span class="se">\&#39;</span><span class="s">&quot;</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="s">u&quot;cin &gt;&gt; x</span><span class="se">\n</span><span class="s">cout &lt;&lt; </span><span class="se">\&quot;</span><span class="s">value for n?</span><span class="se">\&quot;</span><span class="s">&quot;</span><span class="p">,</span> \
-        <span class="mi">1</span><span class="p">,</span> \
-        <span class="p">[],</span> \
-        <span class="mi">0</span><span class="p">)</span>
+        <span class="n">add_question</span><span class="p">(</span> <span class="n">classInfo9F</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> <span class="n">classInfo9F</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
+            <span class="mi">2</span><span class="p">,</span> \
+            <span class="s">u&quot;Arrays,Streams&quot;</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="s">u&quot;Write a boolean function AreIncreasing that determines whether the integers in its vector argument are in strictly increasing order. Your function should work for vectors of any length.&quot;</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="s">u&quot;Watch out for off-by-one errors.&quot;</span><span class="p">,</span> \
+            <span class="s">u&quot;bool AreIncreasing(vector&lt;int&gt; integers) {</span><span class="se">\n\t</span><span class="s">for (int i = 0; i &lt; integers.size()-1; i++) {</span><span class="se">\n\t\t</span><span class="s">if (integers[i] &lt;= integers[i+i]) {</span><span class="se">\n\t\t\t</span><span class="s">return false; } }</span><span class="se">\n\t\t</span><span class="s">return true; }&quot;</span><span class="p">,</span> \
+            <span class="mi">1</span><span class="p">,</span> \
+            <span class="p">[],</span> \
+            <span class="mi">0</span> <span class="p">)</span>
         
-    <span class="n">add_question</span><span class="p">(</span><span class="n">classInfo9F</span><span class="o">.</span><span class="n">startingID</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">classInfo9F</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
-        <span class="mi">3</span><span class="p">,</span> \
-        <span class="s">u&quot;Dynamically allocated data&quot;</span><span class="p">,</span> \
-        <span class="s">u&quot;Given the following declaration:</span><span class="se">\n\t</span><span class="s">class ListNode {</span><span class="se">\n\t</span><span class="s">public:</span><span class="se">\n\t\t</span><span class="s">ListNode (const int k);</span><span class="se">\n\t\t</span><span class="s">ListNode (const int k, const ListNode* ptr);</span><span class="se">\n\t\t</span><span class="s">...</span><span class="se">\n\t</span><span class="s">private:</span><span class="se">\n\t\t</span><span class="s">int value;</span><span class="se">\n\t\t</span><span class="s">ListNode *next;</span><span class="se">\n\t</span><span class="s">};&quot;</span><span class="p">,</span> \
-        <span class="s">u&quot;Suppose that p, list1, and list2 are variables of type ListNode *, and that list1 and list2 point to the following structures.</span><span class="se">\n\t</span><span class="s">[[9f.3.1.gif]]</span><span class="se">\n</span><span class="s">Draw the diagram that results from executing the following code segment.</span><span class="se">\n\t</span><span class="s">p = list1-&gt;next;</span><span class="se">\n\t</span><span class="s">list1-&gt;next-&gt;next = list2;</span><span class="se">\n\t</span><span class="s">p-&gt;next-&gt;next = list1;</span><span class="se">\n\t</span><span class="s">list2-&gt;next-&gt;value = 5;&quot;</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="bp">None</span><span class="p">,</span> \
-        <span class="s">&quot;[[9f.3.1.jpg]],&quot;</span><span class="p">,</span> \
-        <span class="mi">1</span><span class="p">,</span> \
-        <span class="p">[],</span> \
-        <span class="mi">0</span><span class="p">)</span>
+        <span class="n">add_question</span><span class="p">(</span><span class="n">classInfo9F</span><span class="o">.</span><span class="n">startingID</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">classInfo9F</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
+            <span class="mi">1</span><span class="p">,</span> \
+            <span class="s">u&quot;Fundamentals,Operators,Expressions&quot;</span><span class="p">,</span> \
+            <span class="s">u&quot;Circle the correct expression. Assume default meanings for each operator.&quot;</span><span class="p">,</span> \
+            <span class="s">u&quot;cin &gt;&gt; x or cin &lt;&lt; x</span><span class="se">\n</span><span class="s">cout &lt;&lt; </span><span class="se">\&quot;</span><span class="s">value for n?</span><span class="se">\&quot;</span><span class="s"> or cout &lt;&lt; </span><span class="se">\&#39;</span><span class="s">value for n?</span><span class="se">\&#39;</span><span class="s">&quot;</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="s">u&quot;cin &gt;&gt; x</span><span class="se">\n</span><span class="s">cout &lt;&lt; </span><span class="se">\&quot;</span><span class="s">value for n?</span><span class="se">\&quot;</span><span class="s">&quot;</span><span class="p">,</span> \
+            <span class="mi">1</span><span class="p">,</span> \
+            <span class="p">[],</span> \
+            <span class="mi">0</span><span class="p">)</span>
+            
+        <span class="n">add_question</span><span class="p">(</span><span class="n">classInfo9F</span><span class="o">.</span><span class="n">startingID</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">classInfo9F</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
+            <span class="mi">3</span><span class="p">,</span> \
+            <span class="s">u&quot;Dynamically allocated data&quot;</span><span class="p">,</span> \
+            <span class="s">u&quot;Given the following declaration:</span><span class="se">\n\t</span><span class="s">class ListNode {</span><span class="se">\n\t</span><span class="s">public:</span><span class="se">\n\t\t</span><span class="s">ListNode (const int k);</span><span class="se">\n\t\t</span><span class="s">ListNode (const int k, const ListNode* ptr);</span><span class="se">\n\t\t</span><span class="s">...</span><span class="se">\n\t</span><span class="s">private:</span><span class="se">\n\t\t</span><span class="s">int value;</span><span class="se">\n\t\t</span><span class="s">ListNode *next;</span><span class="se">\n\t</span><span class="s">};&quot;</span><span class="p">,</span> \
+            <span class="s">u&quot;Suppose that p, list1, and list2 are variables of type ListNode *, and that list1 and list2 point to the following structures.</span><span class="se">\n\t</span><span class="s">[[9f.3.1.gif]]</span><span class="se">\n</span><span class="s">Draw the diagram that results from executing the following code segment.</span><span class="se">\n\t</span><span class="s">p = list1-&gt;next;</span><span class="se">\n\t</span><span class="s">list1-&gt;next-&gt;next = list2;</span><span class="se">\n\t</span><span class="s">p-&gt;next-&gt;next = list1;</span><span class="se">\n\t</span><span class="s">list2-&gt;next-&gt;value = 5;&quot;</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="bp">None</span><span class="p">,</span> \
+            <span class="s">&quot;[[9f.3.1.jpg]],&quot;</span><span class="p">,</span> \
+            <span class="mi">1</span><span class="p">,</span> \
+            <span class="p">[],</span> \
+            <span class="mi">0</span><span class="p">)</span>
     
-    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-    
-    <span class="k">print</span> <span class="s">&quot;Done!&quot;</span>
-    
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      <h6></h6>
+<p>MAIN #</p>
+<h6></h6>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>  
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">db</span>
     <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
     <span class="n">resetDatabase</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot;Done!&quot;</span>
 
 </pre></div>
     </div>

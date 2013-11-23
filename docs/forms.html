@@ -114,6 +114,23 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-6'>#</a>
       </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">ReportForm</span><span class="p">(</span><span class="n">Form</span><span class="p">):</span>
+    <span class="n">what</span> <span class="o">=</span> <span class="n">SelectField</span><span class="p">(</span><span class="s">&#39;what&#39;</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[(</span><span class="s">&#39;bug&#39;</span><span class="p">,</span><span class="s">&quot;Bug&quot;</span><span class="p">),(</span><span class="s">&#39;feature&#39;</span><span class="p">,</span><span class="s">&quot;Suggest a Feature&quot;</span><span class="p">)],</span> <span class="n">validators</span> <span class="o">=</span> <span class="p">[</span><span class="n">Required</span><span class="p">()])</span>
+    <span class="n">who</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">(</span><span class="s">&#39;who&#39;</span><span class="p">)</span>
+    <span class="n">where</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">(</span><span class="s">&#39;where&#39;</span><span class="p">)</span>
+    <span class="n">when</span> <span class="o">=</span> <span class="n">TextField</span><span class="p">(</span><span class="s">&#39;when&#39;</span><span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">TextAreaField</span><span class="p">(</span><span class="s">&#39;report&#39;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
       <p>class UploadImageForm(Form):
     name = TextAreaField('name')</p>
     </div>
