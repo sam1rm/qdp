@@ -551,7 +551,7 @@ def on_identity_loaded( sender, identity ):
         for role in current_user.roles:
             identity.provides.add( RoleNeed( role.name ) )
 
-# # This processor is added to only the register view
+# This processor is added to only the register view
 # @security.register_context_processor
 # def security_register_processor():
 #     app.logger.debug("security_register_processor")
