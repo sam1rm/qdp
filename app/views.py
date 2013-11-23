@@ -469,12 +469,14 @@ def sendOrDeleteReport():
         if ( request.form['button'] == 'delete' ):
             flash( 'Report cancelled')
         else:
-            msg = Message("Who: %s\nWhen: %s\nWhere: %s\nReport: %s" % (request.form['who'], request.form['when'], returnTo, request.form['report']),
-                  sender=g.user.email,
-                  recipients=["headcrash@berkeley.edu"])
+            msg = Message("QDP BUG REPORT",
+                          body="Who: %s\nWhen: %s\nWhere: %s\nReport: %s" % \
+                            (request.form['who'], request.form['when'], returnTo, request.form['report']),
+                          sender=g.user.email,
+                          recipients=["headcrash@berkeley.edu"])
             mail.send(msg)
             flash( 'Report sent! Thank you!')
-    return redirect( url_for( returnTo ) )
+    return redirect( returnTo )
 
 # UTILITES
 

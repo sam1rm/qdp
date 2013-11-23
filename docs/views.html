@@ -721,12 +721,14 @@ f request.method == 'POST':
    if ( request.form['button'] == 'delete' ):
        flash( 'Report cancelled')
    else:
-       msg = Message("Who: %s\nWhen: %s\nWhere: %s\nReport: %s" % (request.form['who'], request.form['when'], returnTo, request.form['report']),
-             sender=g.user.email,
-             recipients=["headcrash@berkeley.edu"])
+       msg = Message("QDP BUG REPORT",
+                     body="Who: %s\nWhen: %s\nWhere: %s\nReport: %s" % \
+                       (request.form['who'], request.form['when'], returnTo, request.form['report']),
+                     sender=g.user.email,
+                     recipients=["headcrash@berkeley.edu"])
        mail.send(msg)
        flash( 'Report sent! Thank you!')
-eturn redirect( url_for( returnTo ) )</p>
+eturn redirect( returnTo )</p>
 <p>LITES</p>
 <p>route( "/tmp/<path:path>" )
 empPath( path ):
