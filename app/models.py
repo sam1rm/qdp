@@ -176,9 +176,6 @@ class Question( db.Model ):
     # Relationships with other models
     reviewers = db.relationship( 'User', secondary = users_questions, backref = db.backref( 'reviewers', lazy = 'dynamic' ) )
     isOKFlags = db.Column( db.Integer )
-    tagTextIsEncrypted = True # The question's tags, text, and comments are initially (stored in DB) encrypted
-    questionTextIsEncrypted = True
-    commentTextIsEncrypted = True
 
     @staticmethod
     def get( id ):
@@ -191,6 +188,10 @@ class Question( db.Model ):
         if ( questions.count() > 1 ):
             flash( "Found more than one question (%d) in the database with (raw) ID: %d" % ( questions.count(), id ) )
         question = questions.one()
+        # Question text is stored in the database encrypted 
+        question.tagTextIsEncrypted = True
+        question.questionTextIsEncrypted = True
+        question.commentTextIsEncrypted = True
         return question
 
     @staticmethod
@@ -206,7 +207,19 @@ class Question( db.Model ):
         if ( questions.count() > 1 ):
             flash( "Found more than one question (%d) in the database with (class) ID: %d" % ( questions.count(), classID ) )
         question = questions.one()
+        # Question text is stored in the database encrypted 
+        question.markAsEncrypted(True)
         return questions.one()
+        
+    def markAsEncrypted(self,isEncrypted):
+        self.tagTextIsEncrypted = isEncrypted
+        self.questionTextIsEncrypted = isEncrypted
+        self.commentTextIsEncrypted = isEncrypted
+
+    def populateFromFormFields(self, form):
+        """ TODO: Somewhat hacky .. used to synchronize the form's data with encryption process. """
+        form.populate_obj(self)
+        self.markAsEncrypted(False)
 
     def tagsAsSet( self ):
         result = set()
@@ -218,7 +231,6 @@ class Question( db.Model ):
         else:
             result.add( "?? MISSING TAGS ??")
         return result
-
 
     def shortenedQuestionWithMarkup( self ):
         """ Returned a short..ed version of the (unencrypted) question text with HTML markup """
@@ -254,13 +266,16 @@ class Question( db.Model ):
         """ Find questions "similar" to this one. Uses quiz # and tags.
             TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
         existing = []
-        tags = self.tagsAsSet()
-        instances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
-        for instance in instances:
-            instanceTags = instance.tagsAsSet()
-            if ( len( instanceTags.intersection( tags ) ) > 0 ):
-                # TODO: FIX!
-                existing.append( instance.makeDecryptedTextVersion() )
+        if self.tags:
+            tags = self.tagsAsSet()
+            instances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
+            for instance in instances:
+                # Question text is stored in the database encrypted 
+                instance.markAsEncrypted(True)
+                instanceTags = instance.tagsAsSet()
+                if ( len( instanceTags.intersection( tags ) ) > 0 ):
+                    # TODO: FIX!
+                    existing.append( instance.makeDecryptedTextVersion() )
         return existing
     
     def addReviewer( self, user, isOKFlag, maxReviewers ):

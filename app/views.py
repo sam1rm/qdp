@@ -89,6 +89,9 @@ def chooseQuestionToEdit():
         else:
             questions = Question.query.filter( Question.user_id == user.id, Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
         if ( len( questions ) > 0 ):
+                # TODO: This is SUCH a hack .. clean up encrypted synchronization!
+            for question in questions:
+                question.markAsEncrypted(True)
             return render_template( 'chooseQuestion.html', questions = questions, \
                                    title = "Choose Question to Edit for " + classInfo.classAbbr + "(" + classInfo.longName + ")" )
         else:
@@ -112,6 +115,7 @@ def chooseQuiz():
         quizzesFound = set()
         g_CachedQuestions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).all()
         for question in g_CachedQuestions:
+            question.markAsEncrypted(True)
             quizzesFound.add( question.quiz )
         return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz for " + session['classAbbr'] + " (" + classInfo.longName + ")" )
     elif 'mode' in session:
@@ -192,7 +196,7 @@ def choseClass():
         argForClass = request.args.get( 'classAbbr' )
         session['classAbbr'] = argForClass
         if ( session['mode'] == "Write" ):
-            return redirect( url_for( 'writeQuestion' ) )
+            return redirect( url_for( 'writeNewQuestion' ) )
         elif ( session['mode'] == "Edit" ):
             return redirect( url_for( 'chooseQuestionToEdit' ) )
         elif ( session['mode'] == "Review" ):
@@ -207,10 +211,10 @@ def choseClass():
         flash( "Please choose a task (e.g., 'review') first." )
         return redirect( url_for( 'index' ) )
 
-@app.route( '/writeQuestion' )
+@app.route( '/writeNewQuestion' )
 @login_required
 @user_permission.require()
-def writeQuestion():
+def writeNewQuestion():
     if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         question = Question( created = datetime.datetime.now(), classAbbr = session['classAbbr'], classID = classInfo.currentID )
@@ -223,41 +227,20 @@ def writeQuestion():
         flash( "Please choose a class first." )
     return redirect( url_for( "chooseClass", mode = session['mode'] ) )
 
-@app.route( '/editQuestion', methods = ['POST', 'GET'] )
+@app.route( '/editQuestion')
 @login_required
 @user_permission.require()
 def editQuestion():
     if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
-        assert classInfo, "classInfo wasn't passed to editQuestion??"
         rawQuestionIDAsString = request.args.get( 'questionID' )
         assert rawQuestionIDAsString, "rawQuestionID wasn't passed to editQuestion??"
         question = Question.get( int( rawQuestionIDAsString ) )
         if question:  # Can be None if there was a problem retrieving this question
             question.decryptText()
+            # TODO: Handle bad questions (errors on next line) gracefully!
             similarQuestions = question.retrieveAndDecryptSimilarQuestions()
             form = QuestionForm( request.form, question )
-            if request.method == 'POST':
-                if ( request.form['button'] == 'delete' ):
-                    # TODO: Add confirmation!
-                    db.session.delete( question )
-                    if ( ( question.classID + 1 ) == classInfo.currentID ):
-                        classInfo.currentID = classInfo.currentID - 1
-                        db.session.merge( classInfo )
-                    db.session.commit()
-                    flash( 'Question #%d deleted.' % ( question.offsetNumberFromClass( classInfo ) + 1 ) )
-                    return redirect( url_for( "/" ) )
-                elif form.validate():
-                    form.populate_obj( question )
-                    question.modified = datetime.datetime.now()
-                    question.encryptText( encryptComments = False )
-                    db.session.merge( question )
-                    db.session.commit()
-                    flash( 'Question #%d saved.' % ( question.offsetNumberFromClass( classInfo ) + 1 ) )
-                    session['mode'] = 'Edit'
-                    return redirect( url_for( "editQuestion", questionID = question.id ) )
-                else:
-                    flash( 'There was a problem handling the form POST for Question ID:%d' % ( question.id ) )
             return render_template( 'editQuestion.html', form = form, similarQuestionsToDisplay = similarQuestions, questionToDisplay = question, \
                                title = "%s Question #%d For %s" % ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), classInfo.longName ) )
         else:
@@ -266,6 +249,44 @@ def editQuestion():
     else:
         flash( "Please choose a class first." )
     return redirect( url_for( "chooseClass", mode = session['mode'] ) )
+
+@app.route( '/saveQuestion', methods = ['POST', 'GET'] )
+@login_required
+@user_permission.require()
+def saveQuestion():
+    if (('classAbbr' in session) and (session['classAbbr'])):
+        classInfo = ClassInfo.get( session['classAbbr'] )
+        assert classInfo, "classInfo wasn't already stored for saveQuestion??"
+        rawQuestionIDAsString = request.args.get( 'questionID' )
+        assert rawQuestionIDAsString, "rawQuestionID wasn't passed to saveQuestion??"
+        question = Question.get( int( rawQuestionIDAsString ) )
+        if request.method == 'POST':
+            form = QuestionForm( request.form, question )
+            if ( request.form['button'] == 'delete' ):
+                # TODO: Add confirmation!
+                db.session.delete( question )
+                if ( ( question.classID + 1 ) == classInfo.currentID ):
+                    classInfo.currentID = classInfo.currentID - 1
+                    db.session.merge( classInfo )
+                db.session.commit()
+                flash( 'Question #%d deleted.' % ( question.offsetNumberFromClass( classInfo ) + 1 ) )
+                return redirect( url_for( "/" ) )
+            elif form.validate():
+                question.populateFromFormFields(form)
+                form.populate_obj( question )
+                assert question.id == int( rawQuestionIDAsString ), "question.id should be the same as int( rawQuestionIDAsString )!"
+                question.modified = datetime.datetime.now()
+                question.encryptText( encryptComments = False )
+                db.session.merge( question )
+                db.session.commit()
+                flash( 'Question #%d saved.' % ( question.offsetNumberFromClass( classInfo ) + 1 ) )
+                session['mode'] = 'Edit'
+                return redirect( url_for( "editQuestion", questionID = question.id ) )
+            else:
+                flash( 'There was a problem handling the form POST (save) for Question ID:%d' % ( question.id ) )
+    else:
+        flash( 'There was a problem getting the classInfo for the session.' )
+    return redirect( url_for( "editQuestion", questionID = question.id ) )
 
 @app.route( '/requestReviewQuestion' )
 @login_required
@@ -280,6 +301,7 @@ def requestReviewQuestion():
             leastReviewed = app.config["REVIEWS_BEFORE_OK_TO_USE"]
             assert( leastReviewed > -1 )
             for questionToReview in questionsToReview:
+                questionToReview.markAsEncrypted(True)
                 numTimesReviewed = len( questionToReview.reviewers )
                 if ( numTimesReviewed < leastReviewed ):
                     leastReviewed = numTimesReviewed
