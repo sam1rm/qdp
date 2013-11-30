@@ -2,12 +2,13 @@ flask-debugtoolbar
 flask-login
 Flask-Mail
 Flask-Security
-flask-sqlalchemy==0.7.6
+flask-sqlalchemy
 Flask-WTF
 Flask
 gunicorn
 itsdangerous
 Jinja2
 PyCrypto
+sqlalchemy==0.7.6
 sqlalchemy-migrate
 Werkzeug
