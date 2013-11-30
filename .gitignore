@@ -2,6 +2,6 @@
 .pydevproject
 *.pyc
 #app.db
-db_populate_images/*
+#db_populate_images/*
 db_populate_sources/*
 tmp/
