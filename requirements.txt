@@ -2,7 +2,7 @@ flask-debugtoolbar
 flask-login
 Flask-Mail
 Flask-Security
-flask-sqlalchemy
+flask-sqlalchemy==0.7.2
 Flask-WTF
 Flask
 gunicorn
