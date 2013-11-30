@@ -27,13 +27,13 @@
 <span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">lm</span><span class="p">,</span> <span class="n">login_serializer</span><span class="p">,</span> <span class="n">mail</span>
 <span class="kn">from</span> <span class="nn">app.forms</span> <span class="kn">import</span> <span class="n">QuestionForm</span><span class="p">,</span> <span class="n">ReviewQuestionForm</span><span class="p">,</span> <span class="n">ReportForm</span>
 <span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">ClassInfo</span><span class="p">,</span> <span class="n">Question</span><span class="p">,</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">app.utils</span> <span class="kn">import</span> <span class="n">makeTempFileResp</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">render_template</span><span class="p">,</span> <span class="n">flash</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">url_for</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">g</span>
 <span class="kn">from</span> <span class="nn">flask.ext.login</span> <span class="kn">import</span> <span class="n">current_user</span><span class="p">,</span> <span class="n">login_required</span>
 <span class="kn">from</span> <span class="nn">flask.ext.mail</span> <span class="kn">import</span> <span class="n">Message</span>
 <span class="kn">from</span> <span class="nn">flask.ext.principal</span> <span class="kn">import</span> <span class="n">Permission</span><span class="p">,</span> <span class="n">RoleNeed</span><span class="p">,</span> <span class="n">UserNeed</span><span class="p">,</span> <span class="n">identity_loaded</span>
 <span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">SQLAlchemyUserDatastore</span>
 <span class="kn">from</span> <span class="nn">flask.helpers</span> <span class="kn">import</span> <span class="n">get_flashed_messages</span>
-<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">makeTempFileResp</span>
 <span class="kn">from</span> <span class="nn">werkzeug</span> <span class="kn">import</span> <span class="n">secure_filename</span></pre></div>
     </div>
   </div>
@@ -47,7 +47,7 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="n">g_CachedQuestions</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">herokuPushVersion</span> <span class="o">=</span> <span class="bp">None</span></pre></div>
+<span class="n">g_HerokuPushVersion</span> <span class="o">=</span> <span class="bp">None</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -88,10 +88,10 @@ app.logger.debug("user=g.user")
 ser = g.user
 app.logger.debug("user.is_verified()")
 f user.is_verified():
-   global herokuPushVersion
-   if not herokuPushVersion:
+   global g_HerokuPushVersion
+   if not g_HerokuPushVersion:
        fref=open("version.txt")
-       herokuPushVersion = fref.readline()[:-1]
+       g_HerokuPushVersion = fref.readline()[:-1]
    # imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
    #app.logger.debug("render_template")
    return render_template( 'index.html',
@@ -100,7 +100,7 @@ f user.is_verified():
        hasUnverifiedUsers = ( user.is_admin() and User.hasUnverifiedUsers() ),  # redundant on purpose
        help = 'helpMain',
        isDebugging = app.config['DEBUG'],
-       version = herokuPushVersion )
+       version = g_HerokuPushVersion )
 lse:
    #app.logger.debug("unverifiedUser")
    return redirect( url_for( 'unverifiedUser' ) )</p>
@@ -141,7 +141,6 @@ Help page associated with the main page.</p>
         <span class="n">quizzesFound</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">g_CachedQuestions</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span> <span class="n">Question</span><span class="o">.</span><span class="n">classAbbr</span> <span class="o">==</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]</span> <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">question</span> <span class="ow">in</span> <span class="n">g_CachedQuestions</span><span class="p">:</span>
-            <span class="n">question</span><span class="o">.</span><span class="n">markAsEncrypted</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
             <span class="n">quizzesFound</span><span class="o">.</span><span class="n">add</span><span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">quiz</span> <span class="p">)</span>
         <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;chooseQuiz.html&#39;</span><span class="p">,</span> <span class="n">quizzes</span> <span class="o">=</span> <span class="n">quizzesFound</span><span class="p">,</span> <span class="n">finalExamAvailable</span> <span class="o">=</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="n">quizzesFound</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">),</span> <span class="n">title</span> <span class="o">=</span> <span class="s">&quot;Choose Quiz for &quot;</span> <span class="o">+</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;classAbbr&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; (&quot;</span> <span class="o">+</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span> <span class="p">)</span>
     <span class="k">elif</span> <span class="s">&#39;mode&#39;</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
@@ -242,8 +241,6 @@ f (('classAbbr' in session) and (session['classAbbr'])):
        questions = Question.query.filter( Question.user_id == user.id, Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
    if ( len( questions ) &gt; 0 ):
            # TODO: This is SUCH a hack .. clean up encrypted synchronization!
-       for question in questions:
-           question.markAsEncrypted(True)
        return render_template( 'chooseQuestion.html', questions = questions, \
                               title = "Choose Question to Edit for " + classInfo.classAbbr + "(" + classInfo.longName + ")" )
    else:
@@ -368,7 +365,8 @@ Upload a file (image), encrypt it, and store it in the database.</p>
         <span class="k">assert</span> <span class="n">rawQuestionIDAsString</span><span class="p">,</span> <span class="s">&quot;rawQuestionID wasn&#39;t passed to editQuestion??&quot;</span>
         <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="nb">int</span><span class="p">(</span> <span class="n">rawQuestionIDAsString</span> <span class="p">)</span> <span class="p">)</span>
         <span class="k">if</span> <span class="n">question</span><span class="p">:</span>  <span class="c"># Can be None if there was a problem retrieving this question</span>
-            <span class="n">question</span><span class="o">.</span><span class="n">decryptText</span><span class="p">()</span></pre></div>
+            <span class="n">question</span><span class="o">.</span><span class="n">decryptText</span><span class="p">()</span>
+            <span class="n">rowCounts</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">calculateRows</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -382,8 +380,13 @@ Upload a file (image), encrypt it, and store it in the database.</p>
     <div class='code'>
       <div class="highlight"><pre>            <span class="n">similarQuestions</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">retrieveAndDecryptSimilarQuestions</span><span class="p">()</span>
             <span class="n">form</span> <span class="o">=</span> <span class="n">QuestionForm</span><span class="p">(</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,</span> <span class="n">question</span> <span class="p">)</span>
-            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;editQuestion.html&#39;</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">,</span> <span class="n">similarQuestionsToDisplay</span> <span class="o">=</span> <span class="n">similarQuestions</span><span class="p">,</span> <span class="n">questionToDisplay</span> <span class="o">=</span> <span class="n">question</span><span class="p">,</span> \
-                               <span class="n">title</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">],</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span> <span class="n">classInfo</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">),</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;editQuestion.html&#39;</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">,</span> \
+                                    <span class="n">similarQuestionsToDisplay</span> <span class="o">=</span> <span class="n">similarQuestions</span><span class="p">,</span> \
+                                    <span class="n">questionToDisplay</span> <span class="o">=</span> <span class="n">question</span><span class="p">,</span> \
+                                    <span class="n">rowCountsToDisplay</span> <span class="o">=</span> <span class="n">rowCounts</span><span class="p">,</span> \
+                                    <span class="n">title</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+                                        <span class="p">(</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">],</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span> <span class="n">classInfo</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">),</span> \
+                                    <span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="p">)</span> <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Unable to find Question ID: &quot;</span><span class="o">+</span><span class="n">rawQuestionIDAsString</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span> <span class="n">url_for</span><span class="p">(</span> <span class="s">&#39;chooseQuestionToEdit&#39;</span> <span class="p">)</span> <span class="p">)</span>
@@ -401,7 +404,7 @@ Upload a file (image), encrypt it, and store it in the database.</p>
       <p>CHOSE-ERS &lt;-- Steps following choosers (above)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span> <span class="s">&#39;/saveQuestion&#39;</span><span class="p">,</span> <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">,</span> <span class="s">&#39;GET&#39;</span><span class="p">]</span> <span class="p">)</span>
+      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span> <span class="s">&#39;/saveQuestion&#39;</span><span class="p">,</span> <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;POST&#39;</span><span class="p">]</span> <span class="p">)</span>
 <span class="nd">@login_required</span>
 <span class="nd">@user_permission.require</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">saveQuestion</span><span class="p">():</span>
@@ -431,9 +434,8 @@ Upload a file (image), encrypt it, and store it in the database.</p>
                     <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span> <span class="n">classInfo</span> <span class="p">)</span>
                 <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
                 <span class="n">flash</span><span class="p">(</span> <span class="s">&#39;Question #</span><span class="si">%d</span><span class="s"> deleted.&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span> <span class="n">classInfo</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span>
-                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span> <span class="n">url_for</span><span class="p">(</span> <span class="s">&quot;/&quot;</span> <span class="p">)</span> <span class="p">)</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span> <span class="n">url_for</span><span class="p">(</span> <span class="s">&quot;index&quot;</span> <span class="p">)</span> <span class="p">)</span>
             <span class="k">elif</span> <span class="n">form</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
-                <span class="n">question</span><span class="o">.</span><span class="n">populateFromFormFields</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
                 <span class="n">form</span><span class="o">.</span><span class="n">populate_obj</span><span class="p">(</span> <span class="n">question</span> <span class="p">)</span>
                 <span class="k">assert</span> <span class="n">question</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span> <span class="n">rawQuestionIDAsString</span> <span class="p">),</span> <span class="s">&quot;question.id should be the same as int( rawQuestionIDAsString )!&quot;</span>
                 <span class="n">question</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
@@ -484,6 +486,7 @@ Upload a file (image), encrypt it, and store it in the database.</p>
 <span class="s">        question = Question.get( int( reviewQuestionIDAsString ) )</span>
 <span class="s">        if question:</span>
 <span class="s">            question.decryptCommentText()</span>
+<span class="s">            rowCounts = question.calculateRows()</span>
 <span class="s">            similarQuestions = question.retrieveAndDecryptSimilarQuestions()</span>
 <span class="s">            form = ReviewQuestionForm( request.form, question )</span>
 <span class="s">            if request.method == &#39;POST&#39;:</span>
@@ -505,10 +508,13 @@ Upload a file (image), encrypt it, and store it in the database.</p>
 <span class="s">            reviewersSaidOK = [0]  # loop.index starts index at 1</span>
 <span class="s">            for n in range( len( question.reviewers ) ):</span>
 <span class="s">                reviewersSaidOK.append( question.isOKFlags &amp; 1 &lt;&lt; n )</span>
-<span class="s">            return render_template( &#39;reviewQuestion.html&#39;, form = form, similarQuestionsToDisplay = similarQuestions, </span><span class="se">\</span>
-<span class="s">                                   questionToDisplay = question.makeMarkedUpVersion(), </span><span class="se">\</span>
-<span class="s">                                   title = &quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot; % ( session[&#39;mode&#39;], ( question.offsetNumberFromClass( classInfo ) + 1 ), session[&#39;classAbbr&#39;], classInfo.longName ), </span><span class="se">\</span>
-<span class="s">                                                                        reviewersSaidOKToDisplay = reviewersSaidOK )</span>
+<span class="s">            return render_template( &#39;reviewQuestion.html&#39;, </span><span class="se">\</span>
+<span class="s">                                    form = form, similarQuestionsToDisplay = similarQuestions, </span><span class="se">\</span>
+<span class="s">                                    questionToDisplay = question.makeMarkedUpVersion(), </span><span class="se">\</span>
+<span class="s">                                    rowCountsToDisplay = rowCounts, </span><span class="se">\</span>
+<span class="s">                                    title = &quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot; % </span><span class="se">\</span>
+<span class="s">                                        ( session[&#39;mode&#39;], ( question.offsetNumberFromClass( classInfo ) + 1 ), session[&#39;classAbbr&#39;], classInfo.longName ), </span><span class="se">\</span>
+<span class="s">                                    reviewersSaidOKToDisplay = reviewersSaidOK )</span>
 <span class="s">        else:</span>
 <span class="s">            flash( &quot;Couldn&#39;t find question ID: </span><span class="si">%s</span><span class="s">??&quot; </span><span class="si">% r</span><span class="s">eviewQuestionIDAsString )</span>
 <span class="s">    elif &#39;mode&#39; in session:</span>
@@ -630,7 +636,6 @@ f (('classAbbr' in session) and (session['classAbbr'])):
        leastReviewed = app.config["REVIEWS_BEFORE_OK_TO_USE"]
        assert( leastReviewed &gt; -1 )
        for questionToReview in questionsToReview:
-           questionToReview.markAsEncrypted(True)
            numTimesReviewed = len( questionToReview.reviewers )
            if ( numTimesReviewed &lt; leastReviewed ):
                leastReviewed = numTimesReviewed
@@ -775,7 +780,6 @@ eturn redirect( returnTo )</p>
 <p>route( "/tmp/<path:path>" )
 empPath( path ):
 '' Shiv (to utils) to handle tmp/FILE URL requests. '''
- app.logger.debug(path)
 esp = makeTempFileResp( path )
 eturn resp</p>
 <p>urrentUserFirstName():

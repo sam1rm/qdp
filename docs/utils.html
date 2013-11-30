@@ -21,7 +21,6 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="kn">import</span> <span class="nn">base64</span>
-<span class="kn">import</span> <span class="nn">config</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
@@ -237,10 +236,10 @@ his<br />is<br />a<br />test.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-11'>#</a>
       </div>
-      <p>Generate a 16-byte, random IV, then return the raw data as well as the base64 encoded version (for saving in the DB)</p>
+      <p>Encryption and decryption 'Oracle.' Primarily created to store an 'encryptedPrefixFlag,'</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">generateIV</span><span class="p">():</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Oracle</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -249,11 +248,21 @@ his<br />is<br />a<br />test.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-12'>#</a>
       </div>
-      
+      <p>which allows us to (more) accurately determine if a message is encrypted or not. 
+   A regex expression doesn't seem accurate enough: 
+   (e.g. http://stackoverflow.com/questions/8571501/how-to-check-whether-the-string-is-base64-encoded-or-not) """
+ef <strong>init</strong>(self, key, encryptedPrefixFlag, padding= "0123456789abcdef"):
+   if ((len(key) != 16) and (len(key) != 24) and (len(key) != 32)):
+       raise Exception("AES key must be either 16, 24, or 32 bytes long")
+   self.key = key
+   self.encryptedPrefixFlag = encryptedPrefixFlag
+   self.padding = padding
+ef generateIV(self):
+Generate a 16-byte, random IV, then return the raw data as well as the base64 encoded version (for saving in the DB)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">iv</span> <span class="o">=</span> <span class="n">Random</span><span class="o">.</span><span class="n">new</span><span class="p">()</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">AES</span><span class="o">.</span><span class="n">block_size</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">iv</span><span class="p">,</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">iv</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">iv</span> <span class="o">=</span> <span class="n">Random</span><span class="o">.</span><span class="n">new</span><span class="p">()</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">AES</span><span class="o">.</span><span class="n">block_size</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">iv</span><span class="p">,</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">iv</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -265,7 +274,7 @@ his<br />is<br />a<br />test.</p>
       <p>Encrypt a 16-byte, length-prefixed, padded message using AES.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">IV</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">IV</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -277,18 +286,26 @@ his<br />is<br />a<br />test.</p>
       <p>Returned message is base64 encoded.</p>
 <blockquote>
 <blockquote>
-<p>iv,b64iv=generateIV(); message=encrypt("this is a test",iv); decrypt(message,b64iv)
-this is a test'</p>
+<p>oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("this is a test",iv); oracle.decrypt(message,b64iv)
+this is a test'
+oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("this is a test",iv); oracle.decrypt(message,b64iv)
+this is a test'
+oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("THIS 0 IS 1 A 2 TEST 3",iv); oracle.decrypt(message,b64iv)
+THIS 0 IS 1 A 2 TEST 3'
+oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("  THIS 0 IS 1 A 2 TEST 3  ",iv); oracle.decrypt(message,b64iv)
+  THIS 0 IS 1 A 2 TEST 3  '
+oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("QDPTHIS_IS_A_TESTQDP",iv); oracle.decrypt(message,b64iv)
+QDPTHIS_IS_A_TESTQDP'</p>
 </blockquote>
 </blockquote>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">IV</span><span class="p">)</span><span class="o">==</span><span class="mi">16</span><span class="p">)</span>
-    <span class="n">OBJ</span> <span class="o">=</span> <span class="n">AES</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">SECRET_KEY</span><span class="p">,</span> <span class="n">AES</span><span class="o">.</span><span class="n">MODE_CBC</span><span class="p">,</span> <span class="n">IV</span><span class="p">)</span>
-    <span class="n">numToPad</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">-</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">)</span> <span class="o">%</span> <span class="mi">16</span>
-    <span class="n">paddedMessage</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%04d%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">),</span><span class="n">message</span><span class="p">,</span><span class="n">config</span><span class="o">.</span><span class="n">PADDING</span><span class="p">[:</span><span class="n">numToPad</span><span class="p">])</span>
-    <span class="n">encryptedMessage</span> <span class="o">=</span> <span class="n">OBJ</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">paddedMessage</span><span class="p">)</span>
-    <span class="k">return</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">encryptedMessage</span><span class="p">))</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">IV</span><span class="p">)</span><span class="o">==</span><span class="mi">16</span><span class="p">),</span><span class="s">&quot;Length of IV is incorrect&quot;</span>
+        <span class="n">OBJ</span> <span class="o">=</span> <span class="n">AES</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">AES</span><span class="o">.</span><span class="n">MODE_CBC</span><span class="p">,</span> <span class="n">IV</span><span class="p">)</span>
+        <span class="n">numToPad</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">-</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">)</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">)</span> <span class="o">%</span> <span class="mi">16</span>
+        <span class="n">paddedMessage</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%04d%s%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">),</span><span class="n">message</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">[:</span><span class="n">numToPad</span><span class="p">])</span>
+        <span class="n">encryptedMessage</span> <span class="o">=</span> <span class="n">OBJ</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">paddedMessage</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encryptedPrefixFlag</span><span class="o">+</span><span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">encryptedMessage</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -297,10 +314,10 @@ this is a test'</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-15'>#</a>
       </div>
-      <p>Decode a base64 message using AES. Returned is original message minus the padding,</p>
+      <p>Prefix message to allow detection for encrypted messages. More reliable than some crazy</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="n">b64Message</span><span class="p">,</span> <span class="n">IV</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -309,30 +326,73 @@ this is a test'</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-16'>#</a>
       </div>
+      <p>regex expression trying to determine if the message fits a pattern (e.g. base64 encoded)
+   TODO: Allow the prefix to be changed!</p>
+<blockquote>
+<blockquote>
+<p>oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='QDP'); print oracle.isEncrypted("QDPblahblahblah")
+rue
+oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='QDP'); print oracle.isEncrypted("blahblahblahQDP")
+alse
+oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='QDP'); print oracle.isEncrypted("qdpblahblahblahQDP")
+alse</p>
+</blockquote>
+</blockquote>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">message</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">message</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encryptedPrefixFlag</span><span class="p">)]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">encryptedPrefixFlag</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>Decode a base64 message using AES. Returned is original message minus the padding,</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encodedMessage</span><span class="p">,</span> <span class="n">IV</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
       <p>which is checked for integrity (the length is also a prefix integrity checker) 
    (see sister function encrypt for tests). """
-ry:
-   iv = base64.b64decode(IV)
-xcept TypeError as _:
-   return "INVALID IV for decryption"
-BJ = AES.new(config.SECRET_KEY, AES.MODE_CBC, iv)
-ry:
-   message = base64.b64decode(b64Message)
-xcept TypeError as ex:
-   return "INVALID b64Message to decrypt"
-addedMessage = OBJ.decrypt(message)
-ry:
-   messageLen = int(paddedMessage[:4])
-xcept ValueError as ex:
-   return "INVALID LENGTH"
-umToPad = 16 - ( messageLen + 4 ) % 16
-essage = paddedMessage[4:messageLen+4]
-f (paddedMessage[messageLen+4:] != config.PADDING[:numToPad]):
-   return "INVALID PADDING"
+essage = None
+f self.isEncrypted(encodedMessage):
+   b64Message = encodedMessage[len(self.encryptedPrefixFlag):]
+   try:
+       iv = base64.b64decode(IV)
+   except TypeError as ex:
+       raise Exception("INVALID IV for decryption: "+str(ex))
+   OBJ = AES.new(self.key, AES.MODE_CBC, iv)
+   try:
+       message = base64.b64decode(b64Message)
+   except TypeError as ex:
+       raise Exception("INVALID b64Message to decrypt: "+str(ex))
+   paddedMessage = OBJ.decrypt(message)
+   try:
+       messageLen = int(paddedMessage[:4])
+   except ValueError as ex:
+       raise Exception("INVALID LENGTH in paddedMessage: "+str(ex))
+   numToPad = 16 - ( messageLen + 4 ) % 16
+   message = paddedMessage[4:messageLen+4]
+   if (paddedMessage[messageLen+4:] != self.padding[:numToPad]):
+       raise Exception("INVALID PADDING in paddedMessage: "+str(ex))
+lse:
+   raise Exception("INVALID isEncrypted prefix (trying to decrypt something already decrypted?)")
 eturn(message)</p>
-<p>name<strong> == "</strong>main__":
-mport doctest
-octest.testmod()</p>
+<p><strong> == "</strong>main__":
+t doctest
+st.testmod()</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

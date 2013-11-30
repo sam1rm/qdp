@@ -1,8 +1,16 @@
-{% extends "layout.html" %} {% block content %} 
+{% extends "layout.html" %} 
+{% block head %}
+<style>
+#_form {
+    position: relative;
+}
+</style>
+{% endblock %}
+{% block content %} 
 <table>
 	<tr>
 		<td width="50%">
-			<form method="post" action="saveQuestion?questionID={{questionToDisplay.id}}" class="well span6">
+			<form method="post" action="saveQuestion?questionID={{questionToDisplay.id}}" class="well span6" id="_form">
 				{{form.hidden_tag()}} 
 				<div class="control-group">
 					<label class="control-label" for="quiz">
@@ -10,6 +18,7 @@
 					</label>
 					{{form.quiz}}
 				</div>
+				<div class="upright1 text-muted">DATABASE ID #{{questionToDisplay.id}}</div>
 			<div class="span6">
 					<label class="control-label" for="tags">
 						Tags: 
@@ -20,31 +29,31 @@
 					<label class="control-label" for="instructions">
 						Instructions: 
 					</label>
-					{{form.instructions(rows=5,cols=100)}} 
+					{{form.instructions(rows=rowCountsToDisplay['instructions'],cols=100)}} 
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="question">
 						Question: 
 					</label>
-					{{form.question(rows=5,cols=100)}} 
+					{{form.question(rows=rowCountsToDisplay['question'],cols=100)}} 
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="examples">
 						Examples: 
 					</label>
-					{{form.examples(rows=5,cols=100)}} 
+					{{form.examples(rows=rowCountsToDisplay['examples'],cols=100)}} 
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="hints">
 						Hints/Cautions/etc.: 
 					</label>
-					{{form.hints(rows=5,cols=100)}} 
+					{{form.hints(rows=rowCountsToDisplay['hints'],cols=100)}} 
 				</div>
                 <div class="control-group">
                     <label class="control-label" for="answer">
                         Answer: 
                     </label>
-                    {{form.answer(rows=5,cols=100)}} 
+                    {{form.answer(rows=rowCountsToDisplay['answer'],cols=100)}} 
                 </div>
                 <div class="control-group">
                     <label class="control-label" for="reviewed1">

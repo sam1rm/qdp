@@ -14,7 +14,8 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.security import Security, SQLAlchemyUserDatastore
 from flask.ext.security.utils import encrypt_password
 
-from app.models import User, Role, Question, ClassInfo, Image, encrypt, generateIV
+from app import g_Oracle
+from app.models import User, Role, Question, ClassInfo, Image
 
 def removeOldDatabase():
     try:
@@ -149,24 +150,24 @@ def resetDatabase(db):
     ##########
     
     def add_question(classID,classAbbr,quiz,tags,instructions,question,example,hints,answer,user_id,reviewers,isOKFlags):
-        tagIV, tagIVb64 = generateIV()
-        questionIV, questionIVb64 = generateIV()
-        _, commentIVb64 = generateIV()
-        encryptedTags = encrypt(tags, tagIV)
+        tagIV, tagIVb64 = g_Oracle.generateIV()
+        questionIV, questionIVb64 = g_Oracle.generateIV()
+        _, commentIVb64 = g_Oracle.generateIV()
+        encryptedTags = g_Oracle.encrypt(tags, tagIV)
         if instructions:
-            encryptedInstructions = encrypt(instructions, questionIV)
+            encryptedInstructions = g_Oracle.encrypt(instructions, questionIV)
         else:
             encryptedInstructions = None
-        encryptedQuestion = encrypt(question, questionIV)
+        encryptedQuestion = g_Oracle.encrypt(question, questionIV)
         if example:
-            encryptedExample = encrypt(example, questionIV)
+            encryptedExample = g_Oracle.encrypt(example, questionIV)
         else:
             encryptedExample = None
         if hints:
-            encryptedHints = encrypt(hints, questionIV)
+            encryptedHints = g_Oracle.encrypt(hints, questionIV)
         else:
             encryptedHints = None
-        encryptedAnswer = encrypt(answer, questionIV)
+        encryptedAnswer = g_Oracle.encrypt(answer, questionIV)
         question = Question(classID = classID, classAbbr = classAbbr, \
                             created = datetime.datetime.now(), modified = datetime.datetime.now(), \
                             quiz = quiz,   \
@@ -205,7 +206,7 @@ def resetDatabase(db):
     if (MAKE_HACKABLE_DATABASE == False):
         
         add_question(
-            classInfo9A.startingID, \
+            classInfo9A.startingID+1, \
             classInfo9A.classAbbr, \
             1, \
             u"Matrix Basics,Vectors", \

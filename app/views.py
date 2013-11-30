@@ -7,19 +7,19 @@ import subprocess
 from app import app, db, lm, login_serializer, mail
 from app.forms import QuestionForm, ReviewQuestionForm, ReportForm
 from app.models import User, Role, ClassInfo, Question, Image
+from app.utils import makeTempFileResp
 from flask import render_template, flash, redirect, session, url_for, request, g
 from flask.ext.login import current_user, login_required
 from flask.ext.mail import Message
 from flask.ext.principal import Permission, RoleNeed, UserNeed, identity_loaded
 from flask.ext.security import SQLAlchemyUserDatastore
 from flask.helpers import get_flashed_messages
-from utils import makeTempFileResp
 from werkzeug import secure_filename
 
 # "GLOBALS"
 
 g_CachedQuestions = []
-herokuPushVersion = None
+g_HerokuPushVersion = None
 
 # Create a permission with a single Need, in this case a RoleNeed.
 user_permission = Permission( RoleNeed( 'user' ) )
@@ -34,10 +34,10 @@ def index():
     user = g.user
     #app.logger.debug("user.is_verified()")
     if user.is_verified():
-        global herokuPushVersion
-        if not herokuPushVersion:
+        global g_HerokuPushVersion
+        if not g_HerokuPushVersion:
             fref=open("version.txt")
-            herokuPushVersion = fref.readline()[:-1]
+            g_HerokuPushVersion = fref.readline()[:-1]
         # imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
         #app.logger.debug("render_template")
         return render_template( 'index.html',
@@ -46,7 +46,7 @@ def index():
             hasUnverifiedUsers = ( user.is_admin() and User.hasUnverifiedUsers() ),  # redundant on purpose
             help = 'helpMain',
             isDebugging = app.config['DEBUG'],
-            version = herokuPushVersion )
+            version = g_HerokuPushVersion )
     else:
         #app.logger.debug("unverifiedUser")
         return redirect( url_for( 'unverifiedUser' ) )
@@ -90,8 +90,6 @@ def chooseQuestionToEdit():
             questions = Question.query.filter( Question.user_id == user.id, Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
         if ( len( questions ) > 0 ):
                 # TODO: This is SUCH a hack .. clean up encrypted synchronization!
-            for question in questions:
-                question.markAsEncrypted(True)
             return render_template( 'chooseQuestion.html', questions = questions, \
                                    title = "Choose Question to Edit for " + classInfo.classAbbr + "(" + classInfo.longName + ")" )
         else:
@@ -115,7 +113,6 @@ def chooseQuiz():
         quizzesFound = set()
         g_CachedQuestions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).all()
         for question in g_CachedQuestions:
-            question.markAsEncrypted(True)
             quizzesFound.add( question.quiz )
         return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz for " + session['classAbbr'] + " (" + classInfo.longName + ")" )
     elif 'mode' in session:
@@ -238,11 +235,17 @@ def editQuestion():
         question = Question.get( int( rawQuestionIDAsString ) )
         if question:  # Can be None if there was a problem retrieving this question
             question.decryptText()
+            rowCounts = question.calculateRows()
             # TODO: Handle bad questions (errors on next line) gracefully!
             similarQuestions = question.retrieveAndDecryptSimilarQuestions()
             form = QuestionForm( request.form, question )
-            return render_template( 'editQuestion.html', form = form, similarQuestionsToDisplay = similarQuestions, questionToDisplay = question, \
-                               title = "%s Question #%d For %s" % ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), classInfo.longName ) )
+            return render_template( 'editQuestion.html', form = form, \
+                                    similarQuestionsToDisplay = similarQuestions, \
+                                    questionToDisplay = question, \
+                                    rowCountsToDisplay = rowCounts, \
+                                    title = "%s Question #%d For %s" % \
+                                        ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), \
+                                    classInfo.longName ) )
         else:
             flash("Unable to find Question ID: "+rawQuestionIDAsString)
             return redirect( url_for( 'chooseQuestionToEdit' ) )
@@ -250,7 +253,7 @@ def editQuestion():
         flash( "Please choose a class first." )
     return redirect( url_for( "chooseClass", mode = session['mode'] ) )
 
-@app.route( '/saveQuestion', methods = ['POST', 'GET'] )
+@app.route( '/saveQuestion', methods = ['POST'] )
 @login_required
 @user_permission.require()
 def saveQuestion():
@@ -270,9 +273,8 @@ def saveQuestion():
                     db.session.merge( classInfo )
                 db.session.commit()
                 flash( 'Question #%d deleted.' % ( question.offsetNumberFromClass( classInfo ) + 1 ) )
-                return redirect( url_for( "/" ) )
+                return redirect( url_for( "index" ) )
             elif form.validate():
-                question.populateFromFormFields(form)
                 form.populate_obj( question )
                 assert question.id == int( rawQuestionIDAsString ), "question.id should be the same as int( rawQuestionIDAsString )!"
                 question.modified = datetime.datetime.now()
@@ -301,7 +303,6 @@ def requestReviewQuestion():
             leastReviewed = app.config["REVIEWS_BEFORE_OK_TO_USE"]
             assert( leastReviewed > -1 )
             for questionToReview in questionsToReview:
-                questionToReview.markAsEncrypted(True)
                 numTimesReviewed = len( questionToReview.reviewers )
                 if ( numTimesReviewed < leastReviewed ):
                     leastReviewed = numTimesReviewed
@@ -333,6 +334,7 @@ def reviewQuestion():
         question = Question.get( int( reviewQuestionIDAsString ) )
         if question:
             question.decryptCommentText()
+            rowCounts = question.calculateRows()
             similarQuestions = question.retrieveAndDecryptSimilarQuestions()
             form = ReviewQuestionForm( request.form, question )
             if request.method == 'POST':
@@ -354,10 +356,13 @@ def reviewQuestion():
             reviewersSaidOK = [0]  # loop.index starts index at 1
             for n in range( len( question.reviewers ) ):
                 reviewersSaidOK.append( question.isOKFlags & 1 << n )
-            return render_template( 'reviewQuestion.html', form = form, similarQuestionsToDisplay = similarQuestions, \
-                                   questionToDisplay = question.makeMarkedUpVersion(), \
-                                   title = "%s Question #%d For %s (%s)" % ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), session['classAbbr'], classInfo.longName ), \
-                                                                        reviewersSaidOKToDisplay = reviewersSaidOK )
+            return render_template( 'reviewQuestion.html', \
+                                    form = form, similarQuestionsToDisplay = similarQuestions, \
+                                    questionToDisplay = question.makeMarkedUpVersion(), \
+                                    rowCountsToDisplay = rowCounts, \
+                                    title = "%s Question #%d For %s (%s)" % \
+                                        ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), session['classAbbr'], classInfo.longName ), \
+                                    reviewersSaidOKToDisplay = reviewersSaidOK )
         else:
             flash( "Couldn't find question ID: %s??" % reviewQuestionIDAsString )
     elif 'mode' in session:
@@ -505,7 +510,6 @@ def sendOrDeleteReport():
 @app.route( "/tmp/<path:path>" )
 def tempPath( path ):
     ''' Shiv (to utils) to handle tmp/FILE URL requests. '''
-    # app.logger.debug(path)
     resp = makeTempFileResp( path )
     return resp
 

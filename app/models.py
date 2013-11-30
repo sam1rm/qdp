@@ -1,12 +1,12 @@
 import copy
 import doctest
 
-from app import db, login_serializer
+from app import db, login_serializer, g_Oracle
 from flask import flash
 from flask.ext.security import UserMixin, RoleMixin
 from werkzeug import generate_password_hash, check_password_hash
 
-from app.utils import decrypt, encrypt, generateIV, convertToHTML, replaceImageTags, readTempFile, writeTempFile
+from app.utils import convertToHTML, replaceImageTags, readTempFile, writeTempFile
 
 roles_users = db.Table( 'roles_users',
         db.Column( 'users_id', db.Integer(), db.ForeignKey( 'user.id' ) ),
@@ -188,10 +188,6 @@ class Question( db.Model ):
         if ( questions.count() > 1 ):
             flash( "Found more than one question (%d) in the database with (raw) ID: %d" % ( questions.count(), id ) )
         question = questions.one()
-        # Question text is stored in the database encrypted 
-        question.tagTextIsEncrypted = True
-        question.questionTextIsEncrypted = True
-        question.commentTextIsEncrypted = True
         return question
 
     @staticmethod
@@ -207,20 +203,8 @@ class Question( db.Model ):
         if ( questions.count() > 1 ):
             flash( "Found more than one question (%d) in the database with (class) ID: %d" % ( questions.count(), classID ) )
         question = questions.one()
-        # Question text is stored in the database encrypted 
-        question.markAsEncrypted(True)
         return questions.one()
         
-    def markAsEncrypted(self,isEncrypted):
-        self.tagTextIsEncrypted = isEncrypted
-        self.questionTextIsEncrypted = isEncrypted
-        self.commentTextIsEncrypted = isEncrypted
-
-    def populateFromFormFields(self, form):
-        """ TODO: Somewhat hacky .. used to synchronize the form's data with encryption process. """
-        form.populate_obj(self)
-        self.markAsEncrypted(False)
-
     def tagsAsSet( self ):
         result = set()
         if self.tags:
@@ -270,13 +254,59 @@ class Question( db.Model ):
             tags = self.tagsAsSet()
             instances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
             for instance in instances:
-                # Question text is stored in the database encrypted 
-                instance.markAsEncrypted(True)
                 instanceTags = instance.tagsAsSet()
                 if ( len( instanceTags.intersection( tags ) ) > 0 ):
                     # TODO: FIX!
                     existing.append( instance.makeDecryptedTextVersion() )
         return existing
+    
+    def calculateRows(self):
+        rowCounts={}
+        if self.tagsComments:
+            rowCounts['tagsComments']=max(2,self.tagsComments.count("\n")+1)
+        else:
+            rowCounts['tagsComments']=2
+        if self.instructions:
+            rowCounts['instructions']=max(4,self.instructions.count("\n")+1)
+        else:
+            rowCounts['instructions']=4
+        if self.instructionsComments:
+            rowCounts['instructionsComments']=max(4,self.instructionsComments.count("\n")+1)
+        else:
+            rowCounts['instructionsComments']=4
+        if self.question:
+            rowCounts['question']=max(4,self.question.count("\n")+1)
+        else:
+            rowCounts['question']=4
+        if self.questionComments:
+            rowCounts['questionComments']=max(4,self.questionComments.count("\n")+1)
+        else:
+            rowCounts['questionComments']=4
+        if self.examples:
+            rowCounts['examples']=max(4,self.examples.count("\n")+1)
+        else:
+            rowCounts['examples']=4
+        if self.examplesComments:
+            rowCounts['examplesComments']=max(4,self.examplesComments.count("\n")+1)
+        else:
+            rowCounts['examplesComments']=4
+        if self.hints:
+            rowCounts['hints']=max(4,self.hints.count("\n")+1)
+        else:
+            rowCounts['hints']=4
+        if self.hintsComments:
+            rowCounts['hintsComments']=max(4,self.hintsComments.count("\n")+1)
+        else:
+            rowCounts['hintsComments']=4
+        if self.answer:
+            rowCounts['answer']=max(4,self.answer.count("\n")+1)
+        else:
+            rowCounts['answer']=4
+        if self.answerComments:
+            rowCounts['answerComments']=max(4,self.answerComments.count("\n")+1)
+        else:
+            rowCounts['answerComments']=4
+        return rowCounts
     
     def addReviewer( self, user, isOKFlag, maxReviewers ):
         """ Add a user to a question's "reviewers" as well as set the "is this question OK" flag.
@@ -361,65 +391,64 @@ class Question( db.Model ):
     
     def decryptTagText(self):
         """ Decrypt a question's tags (if they exist) if they aren't already decrypted. """
-        if self.tagTextIsEncrypted:
-            if self.tags:
-                self.tags = decrypt( self.tags, self.tagsIV )
-            self.tagTextIsEncrypted = False
+        if self.tags:
+            if g_Oracle.isEncrypted(self.tags):
+                self.tags = g_Oracle.decrypt( self.tags, self.tagsIV )
             
     def decryptQuestionText(self):
         """ Decrypt a question's text parts (if they exist) if they aren't already decrypted. """
-        if self.questionTextIsEncrypted:
+        if g_Oracle.isEncrypted(self.question):
             if self.instructions:
-                self.instructions = decrypt( self.instructions, self.questionIV )
+                self.instructions = g_Oracle.decrypt( self.instructions, self.questionIV )
             if self.question:
-                self.question = decrypt( self.question, self.questionIV )
+                self.question = g_Oracle.decrypt( self.question, self.questionIV )
             if self.examples:
-                self.examples = decrypt( self.examples, self.questionIV )
+                self.examples = g_Oracle.decrypt( self.examples, self.questionIV )
             if self.hints:
-                self.hints = decrypt( self.hints, self.questionIV )
+                self.hints = g_Oracle.decrypt( self.hints, self.questionIV )
             if self.answer:
-                self.answer = decrypt( self.answer, self.questionIV )
+                self.answer = g_Oracle.decrypt( self.answer, self.questionIV )
             self.questionTextIsEncrypted = False
 
     def decryptCommentText(self):
         """ Decrypt a question's comments (if they exist) if they aren't already decrypted. """
-        if self.commentTextIsEncrypted:
+        if g_Oracle.isEncrypted(self.questionComments):
             if self.tagsComments:
-                self.tagsComments = decrypt( self.tagsComments, self.commentsIV )
+                self.tagsComments = g_Oracle.decrypt( self.tagsComments, self.commentsIV )
             if self.instructionsComments:
-                self.instructionsComments = decrypt( self.instructionsComments, self.commentsIV )
+                self.instructionsComments = g_Oracle.decrypt( self.instructionsComments, self.commentsIV )
             if self.questionComments:
-                self.questionComments = decrypt( self.questionComments, self.commentsIV )
+                self.questionComments = g_Oracle.decrypt( self.questionComments, self.commentsIV )
             if self.examplesComments:
-                self.examplesComments = decrypt( self.examplesComments, self.commentsIV )
+                self.examplesComments = g_Oracle.decrypt( self.examplesComments, self.commentsIV )
             if self.hintsComments:
-                self.hintsComments = decrypt( self.hintsComments, self.commentsIV )
+                self.hintsComments = g_Oracle.decrypt( self.hintsComments, self.commentsIV )
             if self.answerComments:
-                self.answerComments = decrypt( self.answerComments, self.commentsIV )
+                self.answerComments = g_Oracle.decrypt( self.answerComments, self.commentsIV )
             self.commentTextIsEncrypted = False
 
     def encryptText( self, encryptTags = True, encryptQuestion = True, encryptComments = True ):
         """ Encrypt all of the question text, including tags and comments. """
-        if ((encryptTags) and (self.tagTextIsEncrypted == False)):
-            iv, self.tagsIV = generateIV()
-            self.tags = encrypt( self.tags, iv )
+        if ((encryptTags) and (g_Oracle.isEncrypted(self.tags) == False)):
+            iv, self.tagsIV = g_Oracle.generateIV()
+            self.tags = g_Oracle.encrypt( self.tags, iv )
             self.tagTextIsEncrypted = True
-        if ((encryptQuestion) and (self.questionTextIsEncrypted == False)):
-            iv, self.questionIV = generateIV()
-            self.instructions = encrypt( self.instructions, iv )
-            self.question = encrypt( self.question, iv )
-            self.examples = encrypt( self.examples, iv )
-            self.hints = encrypt( self.hints, iv )
-            self.answer = encrypt( self.answer, iv )
+        if ((encryptQuestion) and (g_Oracle.isEncrypted(self.question) == False)):
+            iv, self.questionIV = g_Oracle.generateIV()
+            self.instructions = g_Oracle.encrypt( self.instructions, iv )
+            self.question = g_Oracle.encrypt( self.question, iv )
+            self.examples = g_Oracle.encrypt( self.examples, iv )
+            self.hints = g_Oracle.encrypt( self.hints, iv )
+            self.answer = g_Oracle.encrypt( self.answer, iv )
             self.questionTextIsEncrypted = True
-        if ((encryptComments) and (self.commentTextIsEncrypted == False)):
-            iv, self.commentsIV = generateIV()
-            self.tagsComments = encrypt( self.tagsComments, iv )
-            self.instructionsComments = encrypt( self.instructionsComments, iv )
-            self.questionComments = encrypt( self.questionComments, iv )
-            self.examplesComments = encrypt( self.examplesComments, iv )
-            self.hintsComments = encrypt( self.hintsComments, iv )
-            self.answerComments = encrypt( self.answerComments, iv )
+        if ((encryptComments) and (g_Oracle.isEncrypted(self.questionComments) == False)):
+            iv, self.commentsIV = g_Oracle.generateIV()
+            self.tagsComments = g_Oracle.encrypt( self.tagsComments, iv )
+            self.instructionsComments = g_Oracle.encrypt( self.instructionsComments, iv )
+            self.questionComments = g_Oracle.encrypt( self.questionComments, iv )
+            self.examplesComments = g_Oracle.encrypt( self.examplesComments, iv )
+            self.hintsComments = g_Oracle.encrypt( self.hintsComments, iv )
+            self.answerComments = g_Oracle.encrypt( self.answerComments, iv )
             self.commentTextIsEncrypted = True
 
     # Generate Quizzes and Exams
@@ -525,6 +554,16 @@ class Image( db.Model ):
     classAbbr = db.Column( db.String( 4 ) )
     data = db.Column( db.LargeBinary( 4096 ), unique = True )
     cachePath = None
+
+    @staticmethod
+    def get( uid ):
+        image = Image.query.filter_by( id = uid )
+        if ( ( image == None ) or ( image.count() == 0 ) ):
+            flash( "Couldn't find any image in the database with (raw) ID: %d" % uid )
+            return None
+        elif ( image.count() != 1 ):
+            flash( "Found more than one user with (raw) ID: %d!" % uid )
+        return image.one()
     
     @staticmethod
     def getByName( filename ):
@@ -570,7 +609,7 @@ class Image( db.Model ):
         return '<Image %r>' % ( self.id )
 
     def __str__( self ):
-        return "Image #%d: %s (cachePath=%s) (size=%d)" % ( self.id, self.name, len( self.data ), self.cachePath )
+        return "Image #%d: %s (cachePath=%s) (size=%d)" % ( self.id, self.name, self.cachePath, len( self.data ) )
     
 class History( db.Model ):
     """ A general way to store previously generated data, which, for now, is a workaround for long, 

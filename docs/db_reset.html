@@ -36,7 +36,8 @@
 <span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">Security</span><span class="p">,</span> <span class="n">SQLAlchemyUserDatastore</span>
 <span class="kn">from</span> <span class="nn">flask.ext.security.utils</span> <span class="kn">import</span> <span class="n">encrypt_password</span>
 
-<span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">Question</span><span class="p">,</span> <span class="n">ClassInfo</span><span class="p">,</span> <span class="n">Image</span><span class="p">,</span> <span class="n">encrypt</span><span class="p">,</span> <span class="n">generateIV</span></pre></div>
+<span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">g_Oracle</span>
+<span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">Question</span><span class="p">,</span> <span class="n">ClassInfo</span><span class="p">,</span> <span class="n">Image</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -353,24 +354,24 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">add_question</span><span class="p">(</span><span class="n">classID</span><span class="p">,</span><span class="n">classAbbr</span><span class="p">,</span><span class="n">quiz</span><span class="p">,</span><span class="n">tags</span><span class="p">,</span><span class="n">instructions</span><span class="p">,</span><span class="n">question</span><span class="p">,</span><span class="n">example</span><span class="p">,</span><span class="n">hints</span><span class="p">,</span><span class="n">answer</span><span class="p">,</span><span class="n">user_id</span><span class="p">,</span><span class="n">reviewers</span><span class="p">,</span><span class="n">isOKFlags</span><span class="p">):</span>
-        <span class="n">tagIV</span><span class="p">,</span> <span class="n">tagIVb64</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
-        <span class="n">questionIV</span><span class="p">,</span> <span class="n">questionIVb64</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">commentIVb64</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
-        <span class="n">encryptedTags</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="n">tagIV</span><span class="p">)</span>
+        <span class="n">tagIV</span><span class="p">,</span> <span class="n">tagIVb64</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">generateIV</span><span class="p">()</span>
+        <span class="n">questionIV</span><span class="p">,</span> <span class="n">questionIVb64</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">generateIV</span><span class="p">()</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">commentIVb64</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">generateIV</span><span class="p">()</span>
+        <span class="n">encryptedTags</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">tags</span><span class="p">,</span> <span class="n">tagIV</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">instructions</span><span class="p">:</span>
-            <span class="n">encryptedInstructions</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">instructions</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
+            <span class="n">encryptedInstructions</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">instructions</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">encryptedInstructions</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">encryptedQuestion</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
+        <span class="n">encryptedQuestion</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">example</span><span class="p">:</span>
-            <span class="n">encryptedExample</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">example</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
+            <span class="n">encryptedExample</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">example</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">encryptedExample</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="n">hints</span><span class="p">:</span>
-            <span class="n">encryptedHints</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">hints</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
+            <span class="n">encryptedHints</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">hints</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">encryptedHints</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">encryptedAnswer</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
+        <span class="n">encryptedAnswer</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="n">questionIV</span><span class="p">)</span>
         <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span><span class="n">classID</span> <span class="o">=</span> <span class="n">classID</span><span class="p">,</span> <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">classAbbr</span><span class="p">,</span> \
                             <span class="n">created</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">modified</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> \
                             <span class="n">quiz</span> <span class="o">=</span> <span class="n">quiz</span><span class="p">,</span>   \
@@ -418,7 +419,7 @@
     <span class="k">if</span> <span class="p">(</span><span class="n">MAKE_HACKABLE_DATABASE</span> <span class="o">==</span> <span class="bp">False</span><span class="p">):</span>
         
         <span class="n">add_question</span><span class="p">(</span>
-            <span class="n">classInfo9A</span><span class="o">.</span><span class="n">startingID</span><span class="p">,</span> \
+            <span class="n">classInfo9A</span><span class="o">.</span><span class="n">startingID</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> \
             <span class="n">classInfo9A</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> \
             <span class="mi">1</span><span class="p">,</span> \
             <span class="s">u&quot;Matrix Basics,Vectors&quot;</span><span class="p">,</span> \

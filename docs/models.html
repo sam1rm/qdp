@@ -23,12 +23,12 @@
       <div class="highlight"><pre><span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">doctest</span>
 
-<span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">db</span><span class="p">,</span> <span class="n">login_serializer</span>
+<span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">db</span><span class="p">,</span> <span class="n">login_serializer</span><span class="p">,</span> <span class="n">g_Oracle</span>
 <span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">flash</span>
 <span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">UserMixin</span><span class="p">,</span> <span class="n">RoleMixin</span>
 <span class="kn">from</span> <span class="nn">werkzeug</span> <span class="kn">import</span> <span class="n">generate_password_hash</span><span class="p">,</span> <span class="n">check_password_hash</span>
 
-<span class="kn">from</span> <span class="nn">app.utils</span> <span class="kn">import</span> <span class="n">decrypt</span><span class="p">,</span> <span class="n">encrypt</span><span class="p">,</span> <span class="n">generateIV</span><span class="p">,</span> <span class="n">convertToHTML</span><span class="p">,</span> <span class="n">replaceImageTags</span><span class="p">,</span> <span class="n">readTempFile</span><span class="p">,</span> <span class="n">writeTempFile</span>
+<span class="kn">from</span> <span class="nn">app.utils</span> <span class="kn">import</span> <span class="n">convertToHTML</span><span class="p">,</span> <span class="n">replaceImageTags</span><span class="p">,</span> <span class="n">readTempFile</span><span class="p">,</span> <span class="n">writeTempFile</span>
 
 <span class="n">roles_users</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span> <span class="s">&#39;roles_users&#39;</span><span class="p">,</span>
         <span class="n">db</span><span class="o">.</span><span class="n">Column</span><span class="p">(</span> <span class="s">&#39;users_id&#39;</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">Integer</span><span class="p">(),</span> <span class="n">db</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span> <span class="s">&#39;user.id&#39;</span> <span class="p">)</span> <span class="p">),</span>
@@ -243,30 +243,10 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">        if ( questions.count() &gt; 1 ):</span>
 <span class="s">            flash( &quot;Found more than one question (</span><span class="si">%d</span><span class="s">) in the database with (raw) ID: </span><span class="si">%d</span><span class="s">&quot; % ( questions.count(), id ) )</span>
 <span class="s">        question = questions.one()</span>
-<span class="s">#DIVIDER</span>
-<span class="s">        question.tagTextIsEncrypted = True</span>
-<span class="s">        question.questionTextIsEncrypted = True</span>
-<span class="s">        question.commentTextIsEncrypted = True</span>
 <span class="s">        return question</span>
 <span class="s">#DIVIDER</span>
 <span class="s">    @staticmethod</span>
 <span class="s">    def getUsingClassID( classID ):</span>
-<span class="s">#DIVIDER</span>
-<span class="s">        form.populate_obj(self)</span>
-<span class="s">        self.markAsEncrypted(False)</span>
-<span class="s">#DIVIDER</span>
-<span class="s">    def tagsAsSet( self ):</span>
-<span class="s">        result = set()</span>
-<span class="s">        if self.tags:</span>
-<span class="s">            self.decryptTagText()</span>
-<span class="s">            if self.tags:</span>
-<span class="s">                for tag in self.tags.split( &quot;,&quot; ):</span>
-<span class="s">                    result.add( tag.lower().strip() )                    </span>
-<span class="s">        else:</span>
-<span class="s">            result.add( &quot;?? MISSING TAGS ??&quot;)</span>
-<span class="s">        return result</span>
-<span class="s">#DIVIDER</span>
-<span class="s">    def shortenedQuestionWithMarkup( self ):</span>
 <span class="s">#DIVIDER</span>
 <span class="s">        if self.question:</span>
 <span class="s">            self.decryptQuestionText()</span>
@@ -395,10 +375,9 @@ Stores user information, including the password in encrypted form. Also handles 
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagTextIsEncrypted</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsIV</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tagTextIsEncrypted</span> <span class="o">=</span> <span class="bp">False</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsIV</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -422,17 +401,17 @@ Stores user information, including the password in encrypted form. Also handles 
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionTextIsEncrypted</span><span class="p">:</span>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">examples</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">examples</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">examples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">examples</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">examples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hints</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">hints</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hints</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hints</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">questionTextIsEncrypted</span> <span class="o">=</span> <span class="bp">False</span></pre></div>
     </div>
   </div>
@@ -457,19 +436,19 @@ Stores user information, including the password in encrypted form. Also handles 
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentTextIsEncrypted</span><span class="p">:</span>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span> <span class="o">=</span> <span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">commentTextIsEncrypted</span> <span class="o">=</span> <span class="bp">False</span></pre></div>
     </div>
   </div>
@@ -494,26 +473,26 @@ Stores user information, including the password in encrypted form. Also handles 
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">if</span> <span class="p">((</span><span class="n">encryptTags</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tagTextIsEncrypted</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
-            <span class="n">iv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsIV</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="p">((</span><span class="n">encryptTags</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">g_Oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
+            <span class="n">iv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsIV</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">generateIV</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tagTextIsEncrypted</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">encryptQuestion</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">questionTextIsEncrypted</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
-            <span class="n">iv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">examples</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">examples</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hints</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hints</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">encryptQuestion</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">g_Oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
+            <span class="n">iv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionIV</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">generateIV</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructions</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">examples</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">examples</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hints</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hints</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">answer</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">answer</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">questionTextIsEncrypted</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">if</span> <span class="p">((</span><span class="n">encryptComments</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">commentTextIsEncrypted</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
-            <span class="n">iv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="o">=</span> <span class="n">generateIV</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span> <span class="o">=</span> <span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">encryptComments</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">g_Oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">)</span> <span class="o">==</span> <span class="bp">False</span><span class="p">)):</span>
+            <span class="n">iv</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">commentsIV</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">generateIV</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">questionComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">answerComments</span><span class="p">,</span> <span class="n">iv</span> <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">commentTextIsEncrypted</span> <span class="o">=</span> <span class="bp">True</span></pre></div>
     </div>
   </div>
@@ -622,7 +601,7 @@ Stores user information, including the password in encrypted form. Also handles 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-21'>#</a>
       </div>
-      <p>Question text is stored in the database encrypted </p>
+      <p>Retrieve a question from the database by the id offset by the class id. This is to have questions numbered</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
@@ -635,7 +614,29 @@ Stores user information, including the password in encrypted form. Also handles 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-22'>#</a>
       </div>
-      <p>Retrieve a question from the database by the id offset by the class id. This is to have questions numbered</p>
+      <p>within a class's category - used to generate the id to retrieve a previously generated quiz/exam.
+   Also flag the question text as being initially encrypted. """
+uestions = None
+uestions = Question.query.filter_by( classID = classID )
+f ( ( questions == None ) or ( questions.count() == 0 ) ):
+   flash( "Couldn't find any questions in the database with (class) ID: %d" % classID )
+   return None
+f ( questions.count() &gt; 1 ):
+   flash( "Found more than one question (%d) in the database with (class) ID: %d" % ( questions.count(), classID ) )
+uestion = questions.one()
+eturn questions.one()</p>
+<p>agsAsSet( self ):
+esult = set()
+f self.tags:
+   self.decryptTagText()
+   if self.tags:
+       for tag in self.tags.split( "," ):
+           result.add( tag.lower().strip() )                  <br />
+lse:
+   result.add( "?? MISSING TAGS ??")
+eturn result</p>
+<p>hortenedQuestionWithMarkup( self ):
+Returned a short..ed version of the (unencrypted) question text with HTML markup</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">class</span> <span class="nc">Image</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Model</span> <span class="p">):</span></pre></div>
@@ -647,25 +648,7 @@ Stores user information, including the password in encrypted form. Also handles 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-23'>#</a>
       </div>
-      <p>within a class's category - used to generate the id to retrieve a previously generated quiz/exam.
-   Also flag the question text as being initially encrypted. """
-uestions = None
-uestions = Question.query.filter_by( classID = classID )
-f ( ( questions == None ) or ( questions.count() == 0 ) ):
-   flash( "Couldn't find any questions in the database with (class) ID: %d" % classID )
-   return None
-f ( questions.count() &gt; 1 ):
-   flash( "Found more than one question (%d) in the database with (class) ID: %d" % ( questions.count(), classID ) )
-uestion = questions.one()
- Question text is stored in the database encrypted 
-uestion.markAsEncrypted(True)
-eturn questions.one()</p>
-<p>arkAsEncrypted(self,isEncrypted):
-elf.tagTextIsEncrypted = isEncrypted
-elf.questionTextIsEncrypted = isEncrypted
-elf.commentTextIsEncrypted = isEncrypted</p>
-<p>opulateFromFormFields(self, form):
-TODO: Somewhat hacky .. used to synchronize the form's data with encryption process.</p>
+      <p>Returned a short..ed version of the (unencrypted) tags</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>        <span class="n">path</span> <span class="o">=</span> <span class="bp">None</span>
@@ -709,7 +692,7 @@ TODO: Somewhat hacky .. used to synchronize the form's data with encryption proc
       <div class='octowrap'>
         <a class='octothorpe' href='#section-25'>#</a>
       </div>
-      <p>Returned a short..ed version of the (unencrypted) question text with HTML markup</p>
+      <p>Returns the id offset by a class's category (see getUsingClassID above)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">cachePath</span> <span class="o">=</span> <span class="n">writeTempFile</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="p">)</span></pre></div>
@@ -734,11 +717,11 @@ TODO: Somewhat hacky .. used to synchronize the form's data with encryption proc
       <div class='octowrap'>
         <a class='octothorpe' href='#section-27'>#</a>
       </div>
-      <p>Returned a short..ed version of the (unencrypted) tags</p>
+      <p>Find questions "similar" to this one. Uses quiz # and tags.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;Image #</span><span class="si">%d</span><span class="s">: </span><span class="si">%s</span><span class="s"> (cachePath=</span><span class="si">%s</span><span class="s">) (size=</span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">cachePath</span> <span class="p">)</span></pre></div>
+        <span class="k">return</span> <span class="s">&quot;Image #</span><span class="si">%d</span><span class="s">: </span><span class="si">%s</span><span class="s"> (cachePath=</span><span class="si">%s</span><span class="s">) (size=</span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cachePath</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="p">)</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -747,7 +730,66 @@ TODO: Somewhat hacky .. used to synchronize the form's data with encryption proc
       <div class='octowrap'>
         <a class='octothorpe' href='#section-28'>#</a>
       </div>
-      
+      <p>TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
+xisting = []
+f self.tags:
+   tags = self.tagsAsSet()
+   instances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
+   for instance in instances:
+       instanceTags = instance.tagsAsSet()
+       if ( len( instanceTags.intersection( tags ) ) &gt; 0 ):
+           # TODO: FIX!
+           existing.append( instance.makeDecryptedTextVersion() )
+eturn existing</p>
+<p>alculateRows(self):
+owCounts={}
+f self.tagsComments:
+   rowCounts['tagsComments']=max(2,self.tagsComments.count("\n")+1)
+lse:
+   rowCounts['tagsComments']=2
+f self.instructions:
+   rowCounts['instructions']=max(4,self.instructions.count("\n")+1)
+lse:
+   rowCounts['instructions']=4
+f self.instructionsComments:
+   rowCounts['instructionsComments']=max(4,self.instructionsComments.count("\n")+1)
+lse:
+   rowCounts['instructionsComments']=4
+f self.question:
+   rowCounts['question']=max(4,self.question.count("\n")+1)
+lse:
+   rowCounts['question']=4
+f self.questionComments:
+   rowCounts['questionComments']=max(4,self.questionComments.count("\n")+1)
+lse:
+   rowCounts['questionComments']=4
+f self.examples:
+   rowCounts['examples']=max(4,self.examples.count("\n")+1)
+lse:
+   rowCounts['examples']=4
+f self.examplesComments:
+   rowCounts['examplesComments']=max(4,self.examplesComments.count("\n")+1)
+lse:
+   rowCounts['examplesComments']=4
+f self.hints:
+   rowCounts['hints']=max(4,self.hints.count("\n")+1)
+lse:
+   rowCounts['hints']=4
+f self.hintsComments:
+   rowCounts['hintsComments']=max(4,self.hintsComments.count("\n")+1)
+lse:
+   rowCounts['hintsComments']=4
+f self.answer:
+   rowCounts['answer']=max(4,self.answer.count("\n")+1)
+lse:
+   rowCounts['answer']=4
+f self.answerComments:
+   rowCounts['answerComments']=max(4,self.answerComments.count("\n")+1)
+lse:
+   rowCounts['answerComments']=4
+eturn rowCounts</p>
+<p>ddReviewer( self, user, isOKFlag, maxReviewers ):
+Add a user to a question's "reviewers" as well as set the "is this question OK" flag.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">class</span> <span class="nc">History</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Model</span> <span class="p">):</span></pre></div>
@@ -759,7 +801,7 @@ TODO: Somewhat hacky .. used to synchronize the form's data with encryption proc
       <div class='octowrap'>
         <a class='octothorpe' href='#section-29'>#</a>
       </div>
-      <p>Returns the id offset by a class's category (see getUsingClassID above)</p>
+      <p>Add HTML markup to all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -770,68 +812,6 @@ TODO: Somewhat hacky .. used to synchronize the form's data with encryption proc
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-30'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-31'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-31'>#</a>
-      </div>
-      <p>Find questions "similar" to this one. Uses quiz # and tags.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-32'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
-      </div>
-      <p>TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
-xisting = []
-f self.tags:
-   tags = self.tagsAsSet()
-   instances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
-   for instance in instances:
-       # Question text is stored in the database encrypted 
-       instance.markAsEncrypted(True)
-       instanceTags = instance.tagsAsSet()
-       if ( len( instanceTags.intersection( tags ) ) &gt; 0 ):
-           # TODO: FIX!
-           existing.append( instance.makeDecryptedTextVersion() )
-eturn existing</p>
-<p>ddReviewer( self, user, isOKFlag, maxReviewers ):
-Add a user to a question's "reviewers" as well as set the "is this question OK" flag.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-33'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
-      </div>
-      <p>Add HTML markup to all of the question text, including tags and comments.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-34'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
       </div>
       <p>This is mostly used for: \n -&gt; <br /> as well as replacing the <a href="image.html">image</a> tags. """
 onvertedQuestion = self.makeDecryptedTextVersion()
@@ -881,12 +861,60 @@ Decrypt all of the question text, including tags and comments.</p>
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>Decrypt all of the question text, including tags and comments.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>Decrypt a question's tags (if they exist) if they aren't already decrypted.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-35'>#</a>
       </div>
-      <p>Decrypt all of the question text, including tags and comments.</p>
+      <p>Decrypt a question's text parts (if they exist) if they aren't already decrypted.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -910,7 +938,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-37'>#</a>
       </div>
-      <p>Decrypt a question's tags (if they exist) if they aren't already decrypted.</p>
+      <p>Decrypt a question's comments (if they exist) if they aren't already decrypted.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -934,7 +962,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-39'>#</a>
       </div>
-      <p>Decrypt a question's text parts (if they exist) if they aren't already decrypted.</p>
+      <p>Encrypt all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -958,7 +986,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-41'>#</a>
       </div>
-      <p>Decrypt a question's comments (if they exist) if they aren't already decrypted.</p>
+      <p>Generate Quizzes and Exams</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -970,7 +998,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-42'>#</a>
       </div>
-      
+      <p>Generate quiz # for a class, using previously cached questions (caller is responsible for these).</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -981,54 +1009,6 @@ Decrypt all of the question text, including tags and comments.</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-43'>#</a>
-      </div>
-      <p>Encrypt all of the question text, including tags and comments.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-44'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-45'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
-      </div>
-      <p>Generate Quizzes and Exams</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-46'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
-      </div>
-      <p>Generate quiz # for a class, using previously cached questions (caller is responsible for these).</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-47'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
       </div>
       <p>TODO: Find questions with: most reviews, then different tags
    TODO: Modify maxNumberOfQuestions by length of question / time to answer. """
@@ -1050,10 +1030,10 @@ Generate final exam # for a class, using previously cached questions (caller is 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()</p>
     </div>
@@ -1062,10 +1042,10 @@ Generate final exam # for a class, using previously cached questions (caller is 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-45'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-45'>#</a>
       </div>
       <p>Generate an ID from quiz question ids.</p>
     </div>
@@ -1074,10 +1054,10 @@ Generate final exam # for a class, using previously cached questions (caller is 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-46'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
       <p>1024 questions per quiz possible. Question IDs in the database
    are offsets from the ClassInfo starting IDs. 
@@ -1101,12 +1081,88 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-47'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-47'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-48'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-48'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-49'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-49'>#</a>
+      </div>
+      <p>Class to encapsulate the storage and retrieval of images from the database.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>TODO: Categorize (for speed) by classAbbr.
+   TODO: Handle PNGs """
+d = db.Column( db.Integer(), primary_key = True )
+ame = db.Column( db.String( 80 ), unique = True )
+lassAbbr = db.Column( db.String( 4 ) )
+ata = db.Column( db.LargeBinary( 4096 ), unique = True )
+achePath = None</p>
+<p>staticmethod
+ef get( uid ):
+   image = Image.query.filter_by( id = uid )
+   if ( ( image == None ) or ( image.count() == 0 ) ):
+       flash( "Couldn't find any image in the database with (raw) ID: %d" % uid )
+       return None
+   elif ( image.count() != 1 ):
+       flash( "Found more than one user with (raw) ID: %d!" % uid )
+   return image.one()</p>
+<p>staticmethod
+ef getByName( filename ):
+   images = None
+   images = Image.query.filter_by( name = filename )
+   if ( ( images == None ) or ( images.count() == 0 ) ):
+       flash( "Couldn't find any images in the database with filename: %s" % filename )
+       return None
+   if ( images.count() &gt; 1 ):
+       flash( "Found more than one image (%d) in the database with filename: %s" % filename )
+   return images.one()</p>
+<p>staticmethod
+ef getAndCacheByName( filename ):
+Get image from cache if it exists, if not, get it from the database and cache it (to a temporary file).</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-51'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-51'>#</a>
       </div>
-      
+      <p>Write data to /path/to/tmp/filename (and store the generated path)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1130,7 +1186,7 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-53'>#</a>
       </div>
-      <p>Class to encapsulate the storage and retrieval of images from the database.</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1142,26 +1198,7 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-54'>#</a>
       </div>
-      <p>TODO: Categorize (for speed) by classAbbr.
-   TODO: Handle PNGs """
-d = db.Column( db.Integer(), primary_key = True )
-ame = db.Column( db.String( 80 ), unique = True )
-lassAbbr = db.Column( db.String( 4 ) )
-ata = db.Column( db.LargeBinary( 4096 ), unique = True )
-achePath = None</p>
-<p>staticmethod
-ef getByName( filename ):
-   images = None
-   images = Image.query.filter_by( name = filename )
-   if ( ( images == None ) or ( images.count() == 0 ) ):
-       flash( "Couldn't find any images in the database with filename: %s" % filename )
-       return None
-   if ( images.count() &gt; 1 ):
-       flash( "Found more than one image (%d) in the database with filename: %s" % filename )
-   return images.one()</p>
-<p>staticmethod
-ef getAndCacheByName( filename ):
-Get image from cache if it exists, if not, get it from the database and cache it (to a temporary file).</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1173,7 +1210,7 @@ Get image from cache if it exists, if not, get it from the database and cache it
       <div class='octowrap'>
         <a class='octothorpe' href='#section-55'>#</a>
       </div>
-      <p>Write data to /path/to/tmp/filename (and store the generated path)</p>
+      <p>A general way to store previously generated data, which, for now, is a workaround for long,</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1184,54 +1221,6 @@ Get image from cache if it exists, if not, get it from the database and cache it
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-56'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-57'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-57'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-58'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-58'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-59'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-59'>#</a>
-      </div>
-      <p>A general way to store previously generated data, which, for now, is a workaround for long,</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-60'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-60'>#</a>
       </div>
       <p>clunky IDs to retrieve previously generated quizzes and exams. Class abbreviation (e.g., 9F) and
    quiz number are to aid in retrieval and display.
