@@ -515,9 +515,12 @@ def tempPath( path ):
 
 def currentUserFirstName():
     if g.user:
-        if g.user.fullname:
-            return g.user.fullname.split( " " )[0]
+        if g.user.email:
+            return g.user.email
         else:
+#         if g.user.fullname:
+#             return g.user.fullname.split( " " )[0]
+#         else:
             return "?? anonymous ??"
     return "?? NO GLOBAL USER ??"
 
