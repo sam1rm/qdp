@@ -34,7 +34,10 @@ class Role( db.Model, RoleMixin ):
     description = db.Column( db.String( 255 ) )
 
     def __repr__( self ):
-        return '<Role %d>' % self.id
+        return '<Role %r>' % self.id
+
+    def __str__( self ):
+        return '<Role %r: %s = %s>' % (self.id,self.name,self.description)
 
 class User( db.Model, UserMixin ):
     """ Stores user information, including the password in encrypted form. Also handles session cookies
@@ -128,10 +131,10 @@ class User( db.Model, UserMixin ):
         return unverifiedUsers
 
     def __repr__( self ):
-        return '<User %d>' % self.id
+        return '<User %r>' % self.id
 
     def __str__( self ):
-        return 'User #%d: %s' % ( self.id, self.fullname )
+        return 'User #%r: %s' % ( self.id, self.fullname )
 
 class ClassInfo( db.Model ):
     id = db.Column( db.Integer(), primary_key = True )
@@ -553,6 +556,7 @@ class Image( db.Model ):
     name = db.Column( db.String( 80 ), unique = True )
     classAbbr = db.Column( db.String( 4 ) )
     data = db.Column( db.LargeBinary( 4096 ), unique = True )
+    dataIV = db.Column( db.String( 16 ) )
     cachePath = None
 
     @staticmethod
@@ -598,7 +602,8 @@ class Image( db.Model ):
         fref = open(filepath,"rb")
         data = fref.read()
         fref.close()
-        image = Image(name=humanReadableName, classAbbr=classAbbr, data=data)
+        dataIV,dataIV64 = g_Oracle.generateIV();
+        image = Image(name=humanReadableName, classAbbr=classAbbr, data=g_Oracle.encrypt(data,dataIV), dataIV=dataIV64)
         return image
 
     def cacheByName( self ):

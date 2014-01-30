@@ -1,7 +1,8 @@
 .DS_Store
 .pydevproject
 *.pyc
-#app.db
-#db_populate_images/*
-db_populate_sources/*
+app.db
+db_reset/*
 tmp/
+app copy.db
+hashpass.py

@@ -509,11 +509,13 @@ def sendOrDeleteReport():
 
 @app.route( "/tmp/<path:path>" )
 def tempPath( path ):
-    ''' Shiv (to utils) to handle tmp/FILE URL requests. '''
+    ''' Shiv (to utils) to handle tmp/FILE URL requests (used for images). '''
     resp = makeTempFileResp( path )
     return resp
 
 def currentUserFirstName():
+    """ Helper function to return the full name associated with the currently logged in user.
+        TODO: Replaced with email, for now, because the registration module doesn't yet ask for full name. """
     if g.user:
         if g.user.email:
             return g.user.email
@@ -530,6 +532,7 @@ def currentUserFirstName():
 @login_required
 @admin_permission.require()
 def verifyUsers():
+    """ Admin page for verifying users that have successfully registered. """
     unverifiedUsers = User.getAllUnverifiedUsers()
     return render_template( 'verifyUsers.html', unverifiedUsers = unverifiedUsers )
 
