@@ -23,31 +23,7 @@
       <div class="highlight"><pre><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="n">basedir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
-
-<span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">DEBUG_TB_INTERCEPT_REDIRECTS</span> <span class="o">=</span> <span class="bp">False</span>
-
-<span class="n">CSRF_ENABLED</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;6FxLM4DBMHbkgqKty2YRCyfS&#39;</span>
-
-<span class="n">REMEMBER_COOKIE_DURATION</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-<span class="n">SQLALCHEMY_DATABASE_URI</span> <span class="o">=</span> <span class="s">&#39;sqlite:///&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;app.db&#39;</span><span class="p">)</span>
-<span class="n">SQLALCHEMY_MIGRATE_REPO</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;db_repository&#39;</span><span class="p">)</span>
-
-<span class="n">SECURITY_CONFIRMABLE</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="n">SECURITY_TRACKABLE</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">SECURITY_REGISTERABLE</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">SECURITY_CHANGEABLE</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">SECURITY_PASSWORD_HASH</span> <span class="o">=</span> <span class="s">&#39;pbkdf2_sha512&#39;</span>
-<span class="n">SECURITY_PASSWORD_SALT</span> <span class="o">=</span> <span class="s">&#39;v1n5= 9f77v]xP+mtw|6tQ15$n.0&gt;%LP|g?DE&gt;9MfdP0&amp;]L*$H(TUrQ_Aw8Wp!mU&#39;</span>
-
-<span class="n">MAIL_SERVER</span> <span class="o">=</span> <span class="s">&#39;smtp.gmail.com&#39;</span>
-<span class="n">MAIL_PORT</span> <span class="o">=</span> <span class="mi">465</span>
-<span class="n">MAIL_USE_SSL</span> <span class="o">=</span> <span class="bp">True</span>
-<span class="n">MAIL_USERNAME</span> <span class="o">=</span> <span class="s">&#39;headcrash@berkeley.edu&#39;</span>
-<span class="n">MAIL_PASSWORD</span> <span class="o">=</span> <span class="s">&#39;DDVhd,(gC^54&#39;</span></pre></div>
+<span class="n">basedir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -55,6 +31,101 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>Debugging (must be off for deployment!)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <p>Stop the debugging toolbar (flask-debugtoolbar) from stopping redirects (initiated by the app)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">DEBUG_TB_INTERCEPT_REDIRECTS</span> <span class="o">=</span> <span class="bp">False</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>For the "Oracle" for checking that form submissions came from the app, and not somewhere else.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">CSRF_ENABLED</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECRET_KEY</span> <span class="o">=</span> <span class="s">&#39;6FxLM4DBMHbkgqKty2YRCyfS&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>"Remember me" login cookie, short settings for security</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">REMEMBER_COOKIE_DURATION</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>Main database settings (app.db)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">SQLALCHEMY_DATABASE_URI</span> <span class="o">=</span> <span class="s">&#39;sqlite:///&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;app.db&#39;</span><span class="p">)</span>
+<span class="n">SQLALCHEMY_MIGRATE_REPO</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&#39;db_repository&#39;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>Security settings for flask.ext.security</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">SECURITY_CONFIRMABLE</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="n">SECURITY_TRACKABLE</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECURITY_REGISTERABLE</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECURITY_CHANGEABLE</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">SECURITY_PASSWORD_HASH</span> <span class="o">=</span> <span class="s">&#39;pbkdf2_sha512&#39;</span>
+<span class="n">SECURITY_PASSWORD_SALT</span> <span class="o">=</span> <span class="s">&#39;v1n5= 9f77v]xP+mtw|6tQ15$n.0&gt;%LP|g?DE&gt;9MfdP0&amp;]L*$H(TUrQ_Aw8Wp!mU&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>Mail server (mainly for bug reports)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">MAIL_SERVER</span> <span class="o">=</span> <span class="s">&#39;smtp.gmail.com&#39;</span>
+<span class="n">MAIL_PORT</span> <span class="o">=</span> <span class="mi">465</span>
+<span class="n">MAIL_USE_SSL</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">MAIL_USERNAME</span> <span class="o">=</span> <span class="s">&#39;headcrash@berkeley.edu&#39;</span>
+<span class="n">MAIL_PASSWORD</span> <span class="o">=</span> <span class="s">&#39;DDVhd,(gC^54&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
       <p>QDP Specific</p>
     </div>
@@ -64,10 +135,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-2'>
+  <div class='section' id='section-9'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-2'>#</a>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <p>File uploads</p>
     </div>

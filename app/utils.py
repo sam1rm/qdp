@@ -9,6 +9,31 @@ import flask
 
 TMP_PATH = "/tmp"
 IMAGE_REGEX = r"\[\[(.*?)\]\]"
+MAX_SIZE_DIGITS = 8 
+
+def listDirectories(filepath):
+    """ Get the directories in a path, removing files and invisibles
+    >>> listDirectories(".")
+    ['static', 'templates']
+    >>> listDirectories("templates")
+    []"""
+    dirs = os.listdir(filepath)
+    for index in range(len(dirs),0,-1):
+        if ((os.path.isfile(os.path.join(filepath,dirs[index-1]))) or (dirs[index-1][0] == '.')):
+            dirs.pop(index-1)
+    return dirs        
+
+def listFiles(filepath):
+    """ Get the file in a path, removing directories and invisibles
+    >>> listFiles(".")
+    ['__init__.py', '__init__.pyc', 'forms.py', 'forms.pyc', 'models.py', 'models.pyc', 'utils.py', 'utils.pyc', 'views.py', 'views.pyc']
+    >>> listFiles("static")
+    []"""
+    dirs = os.listdir(filepath)
+    for index in range(len(dirs),0,-1):
+        if ((os.path.isdir(os.path.join(filepath,dirs[index-1]))) or (dirs[index-1][0] == '.')):
+            dirs.pop(index-1)
+    return dirs        
 
 def writeTempFile(filename,data):
     """ Write some data to a temporary file. Used by Image to pull dynamic images from database
@@ -87,18 +112,27 @@ def replaceImageTags(text):
 
 def convertToHTML(text):
     """ Simple convert some text into HTML code .. appends <br />'s correctly to text which contains 
-        a newline (necessary to display multi-line text correctly).
+        a newline (necessary to display multi-line text correctly). Also changes \tabs into (4) &nbsp;s 
     >>> print convertToHTML("test")
     test
     >>> print convertToHTML("this\\nis\\na\\ntest.")
     this<br />is<br />a<br />test.
     """
+    #>>> print convertToHTML(r"this\nis\na\ntest.") # Doctest doesn't work with \n's...
+    #this<br />is<br />a<br />test.
+    #>>> print convertToHTML("this\nis\\na\ntest.\n")
+    #this<br />is<br />a<br />test.
+    #"""
     result = ""
     if text:
+        text = text.replace("\\r","\n")
+        text = text.replace("\r","\n")
+        text = text.replace("\\n","\n")
         for line in text.split('\n'):
             result += flask.Markup.escape(line) + flask.Markup('<br />')
-        result = result[:-6]
+        result = result[:-6] # Rip off the final (unnecessary) <br />
         result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
+        result = result.replace("\\t","&nbsp;&nbsp;&nbsp;&nbsp;")
     return result
 
 class Oracle:
@@ -132,8 +166,9 @@ class Oracle:
         """
         assert(len(IV)==16),"Length of IV is incorrect"
         OBJ = AES.new(self.key, AES.MODE_CBC, IV)
-        numToPad = 16 - ( len(message) + 4 ) % 16
-        paddedMessage = "%04d%s%s" % (len(message),message,self.padding[:numToPad])
+        numToPad = 16 - ( len(message) + MAX_SIZE_DIGITS ) % 16
+        paddedMessage = "%08d%s%s" % (len(message),message,self.padding[:numToPad]) # First format must == MAX_SIZE_DIGITS
+        assert(len(paddedMessage)%16 == 0),"len(paddedMessage) is not a multiple of 16! ("+str(len(paddedMessage))+"%"+str(len(paddedMessage)%16)+")"
         encryptedMessage = OBJ.encrypt(paddedMessage)
         return(self.encryptedPrefixFlag+base64.b64encode(encryptedMessage))
     def isEncrypted(self, message):
@@ -169,12 +204,12 @@ class Oracle:
                 raise Exception("INVALID b64Message to decrypt: "+str(ex))
             paddedMessage = OBJ.decrypt(message)
             try:
-                messageLen = int(paddedMessage[:4])
+                messageLen = int(paddedMessage[:MAX_SIZE_DIGITS])
             except ValueError as ex:
                 raise Exception("INVALID LENGTH in paddedMessage: "+str(ex))
-            numToPad = 16 - ( messageLen + 4 ) % 16
-            message = paddedMessage[4:messageLen+4]
-            if (paddedMessage[messageLen+4:] != self.padding[:numToPad]):
+            numToPad = 16 - ( messageLen + MAX_SIZE_DIGITS ) % 16
+            message = paddedMessage[MAX_SIZE_DIGITS:messageLen+MAX_SIZE_DIGITS]
+            if (paddedMessage[messageLen+MAX_SIZE_DIGITS:] != self.padding[:numToPad]):
                 raise Exception("INVALID PADDING in paddedMessage: "+str(ex))
         else:
             raise Exception("INVALID isEncrypted prefix (trying to decrypt something already decrypted?)")

@@ -571,7 +571,6 @@ class Image( db.Model ):
     
     @staticmethod
     def getByName( filename ):
-        images = None
         images = Image.query.filter_by( name = filename )
         if ( ( images == None ) or ( images.count() == 0 ) ):
             flash( "Couldn't find any images in the database with filename: %s" % filename )
@@ -583,9 +582,8 @@ class Image( db.Model ):
     @staticmethod
     def getAndCacheByName( filename ):
         """ Get image from cache if it exists, if not, get it from the database and cache it (to a temporary file). """
-        path = None
         try:
-            data, path = readTempFile( filename )
+            data, _ = readTempFile( filename )
         except IOError as ex:
             data = None
         if ( data == None ):
@@ -598,6 +596,8 @@ class Image( db.Model ):
     
     @staticmethod
     def imageFromUploadedFile(file, filepath, humanReadableName, classAbbr):
+        """ Create an (encrypted) Image instance from an image file. The file is saved first as a way
+        to translate from Flask's file upload to the database - TODO: This may not be necessary. """
         file.save(filepath)
         fref = open(filepath,"rb")
         data = fref.read()
@@ -607,7 +607,9 @@ class Image( db.Model ):
         return image
 
     def cacheByName( self ):
-        """ Write data to /path/to/tmp/filename (and store the generated path) """
+        """ Decrypt and write data to /path/to/tmp/filename (and store the generated path) """
+        if g_Oracle.isEncrypted(self.data):
+            self.data = g_Oracle.decrypt(self.data, self.dataIV)
         self.cachePath = writeTempFile( self.name, self.data )
 
     def __repr__( self ):

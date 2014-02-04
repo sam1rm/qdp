@@ -90,7 +90,9 @@ d = db.Column( db.Integer(), primary_key = True )
 ame = db.Column( db.String( 80 ), unique = True )
 escription = db.Column( db.String( 255 ) )</p>
 <p>ef <strong>repr</strong>( self ):
-   return '<Role %d>' % self.id</p>
+   return '<Role %r>' % self.id</p>
+<p>ef <strong>str</strong>( self ):
+   return '<Role %r: %s = %s>' % (self.id,self.name,self.description)</p>
 <p>User( db.Model, UserMixin ):
 Stores user information, including the password in encrypted form. Also handles session cookies</p>
     </div>
@@ -183,10 +185,10 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">        return unverifiedUsers</span>
 
 <span class="s">    def __repr__( self ):</span>
-<span class="s">        return &#39;&lt;User </span><span class="si">%d</span><span class="s">&gt;&#39; </span><span class="si">% s</span><span class="s">elf.id</span>
+<span class="s">        return &#39;&lt;User </span><span class="si">%r</span><span class="s">&gt;&#39; </span><span class="si">% s</span><span class="s">elf.id</span>
 
 <span class="s">    def __str__( self ):</span>
-<span class="s">        return &#39;User #</span><span class="si">%d</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39; % ( self.id, self.fullname )</span>
+<span class="s">        return &#39;User #</span><span class="si">%r</span><span class="s">: </span><span class="si">%s</span><span class="s">&#39; % ( self.id, self.fullname )</span>
 
 <span class="s">class ClassInfo( db.Model ):</span>
 <span class="s">    id = db.Column( db.Integer(), primary_key = True )</span>
@@ -651,9 +653,8 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       <p>Returned a short..ed version of the (unencrypted) tags</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">path</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="n">readTempFile</span><span class="p">(</span> <span class="n">filename</span> <span class="p">)</span>
+      <div class="highlight"><pre>        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">readTempFile</span><span class="p">(</span> <span class="n">filename</span> <span class="p">)</span>
         <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">if</span> <span class="p">(</span> <span class="n">data</span> <span class="o">==</span> <span class="bp">None</span> <span class="p">):</span>
@@ -675,15 +676,7 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">imageFromUploadedFile</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">humanReadableName</span><span class="p">,</span> <span class="n">classAbbr</span><span class="p">):</span>
-        <span class="nb">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
-        <span class="n">fref</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span><span class="s">&quot;rb&quot;</span><span class="p">)</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">fref</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
-        <span class="n">fref</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-        <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">humanReadableName</span><span class="p">,</span> <span class="n">classAbbr</span><span class="o">=</span><span class="n">classAbbr</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">image</span>
-
-    <span class="k">def</span> <span class="nf">cacheByName</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span></pre></div>
+    <span class="k">def</span> <span class="nf">imageFromUploadedFile</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">humanReadableName</span><span class="p">,</span> <span class="n">classAbbr</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -695,7 +688,9 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       <p>Returns the id offset by a class's category (see getUsingClassID above)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">cachePath</span> <span class="o">=</span> <span class="n">writeTempFile</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">g_Oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataIV</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cachePath</span> <span class="o">=</span> <span class="n">writeTempFile</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1128,6 +1123,7 @@ d = db.Column( db.Integer(), primary_key = True )
 ame = db.Column( db.String( 80 ), unique = True )
 lassAbbr = db.Column( db.String( 4 ) )
 ata = db.Column( db.LargeBinary( 4096 ), unique = True )
+ataIV = db.Column( db.String( 16 ) )
 achePath = None</p>
 <p>staticmethod
 ef get( uid ):
@@ -1140,7 +1136,6 @@ ef get( uid ):
    return image.one()</p>
 <p>staticmethod
 ef getByName( filename ):
-   images = None
    images = Image.query.filter_by( name = filename )
    if ( ( images == None ) or ( images.count() == 0 ) ):
        flash( "Couldn't find any images in the database with filename: %s" % filename )
@@ -1162,7 +1157,7 @@ Get image from cache if it exists, if not, get it from the database and cache it
       <div class='octowrap'>
         <a class='octothorpe' href='#section-51'>#</a>
       </div>
-      <p>Write data to /path/to/tmp/filename (and store the generated path)</p>
+      <p>Create an (encrypted) Image instance from an image file. The file is saved first as a way</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1174,7 +1169,16 @@ Get image from cache if it exists, if not, get it from the database and cache it
       <div class='octowrap'>
         <a class='octothorpe' href='#section-52'>#</a>
       </div>
-      
+      <p>o translate from Flask's file upload to the database - TODO: This may not be necessary. """
+ile.save(filepath)
+ref = open(filepath,"rb")
+ata = fref.read()
+ref.close()
+ataIV,dataIV64 = g_Oracle.generateIV();
+mage = Image(name=humanReadableName, classAbbr=classAbbr, data=g_Oracle.encrypt(data,dataIV), dataIV=dataIV64)
+eturn image</p>
+<p>acheByName( self ):
+Decrypt and write data to /path/to/tmp/filename (and store the generated path)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

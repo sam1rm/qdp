@@ -29,12 +29,14 @@
 </head>
 <body>
 <span class="upleft1"> NAME____________________ </span> <span class="upleft2"> DATE____________________ </span> 
+{% if quizNumberToDisplay %}
 <h3 class="upright1 text-muted">
 	PASS&nbsp;&nbsp;|&nbsp;&nbsp;RETAKE 
 </h3>
 <h3 class="upright3 text-muted">
 	TUTOR _____ 
 </h3>
+{% endif %}
 <h3 class="upcenter strong">
 {% if quizNumberToDisplay %}
  Quiz #{{quizNumberToDisplay}}<br />

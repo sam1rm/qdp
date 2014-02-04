@@ -91,9 +91,10 @@ def chooseQuestionToEdit():
         if ( len( questions ) > 0 ):
                 # TODO: This is SUCH a hack .. clean up encrypted synchronization!
             return render_template( 'chooseQuestion.html', questions = questions, \
-                                   title = "Choose Question to Edit for " + classInfo.classAbbr + "(" + classInfo.longName + ")" )
+                                   title = "Choose Question to Edit for %s (%s)" % (classInfo.classAbbr, classInfo.longName ))
         else:
-            flash( "%s, you don't have any questions to edit for %s!" % ( currentUserFirstName(), classInfo ) )
+            flash( "You (%s) don't have any questions to edit for %s (%s)!" % ( currentUserFirstName(), classInfo.classAbbr,classInfo.longName ) )
+            return redirect( url_for( 'chooseClass', mode = session['mode']))
     elif 'mode' in session:
         flash( "Please choose a class first." )
         return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
@@ -133,9 +134,12 @@ def manageMedia():
     if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         images = []
-        instances = Image.query.order_by( Image.id ).all()
+        instances = Image.query.filter(Image.classAbbr == session['classAbbr']).order_by( Image.id ).all()
         for instance in instances:
-            instance.cacheByName()
+            try:
+                instance.cacheByName()
+            except Exception as ex:
+                flash(instance.name + ": " +  str(ex))
             images.append( instance )
         if ( len( images ) > 0 ):
             return render_template('manageMedia.html', \
@@ -168,7 +172,10 @@ def uploadMedia():
                     db.session.add(image)
                     db.session.commit()
                     flash('Saved: ' + filename)
-                    return redirect(url_for('manageMedia', filename=filename))   
+                    return redirect(url_for('manageMedia', filename=filename))
+                else:
+                    flash( "Invalid upload (file). Only accepting (extensions): "+str(app.config['ALLOWED_EXTENSIONS']))
+                    return redirect( url_for( 'manageMedia' ) )
         else:
             return render_template('uploadMedia.html', allowedFileTypes = app.config['ALLOWED_EXTENSIONS'], title="Upload File (Image)")
     elif 'mode' in session:
@@ -180,7 +187,7 @@ def uploadMedia():
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
+           filename.rsplit('.')[-1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 # CHOSE-ERS <-- Steps following choosers (above)
 
@@ -399,10 +406,12 @@ def generateExam():
         if g_CachedQuestions:
             classInfo = ClassInfo.get( session['classAbbr'] )
             generatedExam, generatedID = Question.generateFinalExam( classInfo, g_CachedQuestions )
-            return render_template( 'generatedQuizOrExam.html', generatedIDToDisplay = generatedID, \
-                                   generatedQuestionsToDisplay = generatedExam, classInfoToDisplay = classInfo )
+            return render_template( 'generatedQuizOrExam.html', quizNumberToDisplay = 0,\
+                                    generatedIDToDisplay = generatedID, \
+                                    generatedQuestionsToDisplay = generatedExam, \
+                                    classInfoToDisplay = classInfo )
         else:
-            flash( "Please select a quiz first." )
+            flash( "Please select a quiz # or final first." )
             return redirect( url_for( 'chooseQuiz' ) )
     else:
         flash( "Please choose a class first." )

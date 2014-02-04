@@ -6,3 +6,4 @@ db_reset/*
 tmp/
 app copy.db
 hashpass.py
+(archive)/*
