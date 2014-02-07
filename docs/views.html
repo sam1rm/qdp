@@ -535,25 +535,7 @@ Upload a file (image), encrypt it, and store it in the database.</p>
 <span class="s">@login_required</span>
 <span class="s">@admin_permission.require()</span>
 <span class="s">def generateQuiz():</span>
-<span class="s">    if ((&#39;classAbbr&#39; in session) and (session[&#39;classAbbr&#39;])):</span>
-<span class="s">        classInfo = ClassInfo.get( session[&#39;classAbbr&#39;] )</span>
-<span class="s">        if g_CachedQuestions:</span>
-<span class="s">            quizNumber = request.args.get( &#39;quizID&#39; )</span>
-<span class="s">            assert quizNumber, &quot;Generate quiz without a quiz number??&quot;</span>
-<span class="s">            generatedQuiz, generatedID = Question.generateQuiz( classInfo, int( quizNumber ), g_CachedQuestions, app.config[&#39;MAX_NUMBER_OF_QUESTIONS&#39;] )</span>
-<span class="s">            return render_template( &#39;generatedQuizOrExam.html&#39;, quizNumberToDisplay = quizNumber, generatedIDToDisplay = generatedID, </span><span class="se">\</span>
-<span class="s">                               generatedQuestionsToDisplay = generatedQuiz, classInfoToDisplay = classInfo )</span>
-<span class="s">        else:</span>
-<span class="s">            flash( &quot;Please select a quiz first.&quot; )</span>
-<span class="s">            return redirect( url_for( &#39;chooseQuiz&#39; ) )</span>
-<span class="s">    else:</span>
-<span class="s">        flash( &quot;Please choose a class first.&quot; )</span>
-<span class="s">    return redirect( url_for( &#39;chooseClass&#39;, mode = session[&#39;mode&#39;] ) )</span>
-
-<span class="s">@app.route( &#39;/generateExam&#39; )</span>
-<span class="s">@login_required</span>
-<span class="s">@admin_permission.require()</span>
-<span class="s">def generateExam():</span>
+<span class="s">#DIVIDER</span>
 <span class="s">    if ((&#39;classAbbr&#39; in session) and (session[&#39;classAbbr&#39;])):</span>
 <span class="s">        if g_CachedQuestions:</span>
 <span class="s">            classInfo = ClassInfo.get( session[&#39;classAbbr&#39;] )</span>
@@ -568,7 +550,7 @@ Upload a file (image), encrypt it, and store it in the database.</p>
 <span class="s">    else:</span>
 <span class="s">        flash( &quot;Please choose a class first.&quot; )</span>
 <span class="s">    return redirect( url_for( &#39;chooseClass&#39;, mode = session[&#39;mode&#39;] ) )</span>
-
+<span class="s">#DIVIDER</span>
 <span class="s">@app.route( &quot;/retrieveQuizOrExam&quot;, methods = [&#39;POST&#39;, &#39;GET&#39;] )</span>
 <span class="s">@login_required</span>
 <span class="s">@admin_permission.require()</span>
@@ -726,7 +708,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <div class='octowrap'>
         <a class='octothorpe' href='#section-24'>#</a>
       </div>
-      <p>Retrieve and render a previous quiz or final exam given a code that is displayed on generated quizzes or finals.</p>
+      <p>Generate a printable quiz (see Question.generateQuiz for more information). Utilizes questions</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span> <span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;id&#39;</span> <span class="p">):</span>
@@ -738,6 +720,52 @@ Handler for the "Review question" functionality. Redisplays the original questio
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>hat were previously cached when choosing which quiz to generate (See chooseQuiz (above) for more 
+nformation. The quiz itself is rendered on a new page (to ease printing). """ 
+f (('classAbbr' in session) and (session['classAbbr'])):
+   classInfo = ClassInfo.get( session['classAbbr'] )
+   if g_CachedQuestions:
+       quizNumber = request.args.get( 'quizID' )
+       assert quizNumber, "Generate quiz without a quiz number??"
+       generatedQuiz, generatedID = Question.generateQuiz( classInfo, int( quizNumber ), g_CachedQuestions, app.config['MAX_NUMBER_OF_QUESTIONS'] )
+       return render_template( 'generatedQuizOrExam.html', quizNumberToDisplay = quizNumber, generatedIDToDisplay = generatedID, \
+                          generatedQuestionsToDisplay = generatedQuiz, classInfoToDisplay = classInfo )
+   else:
+       flash( "Please select a quiz first." )
+       return redirect( url_for( 'chooseQuiz' ) )
+lse:
+   flash( "Please choose a class first." )
+eturn redirect( url_for( 'chooseClass', mode = session['mode'] ) )</p>
+<p>route( '/generateExam' )
+n_required
+n_permission.require()
+enerateExam():
+Very similar to generateQuiz (above), except uses Question.generateFinalExam</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span> <span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;roles&#39;</span> <span class="p">):</span>
+        <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">current_user</span><span class="o">.</span><span class="n">roles</span><span class="p">:</span>
+            <span class="n">identity</span><span class="o">.</span><span class="n">provides</span><span class="o">.</span><span class="n">add</span><span class="p">(</span> <span class="n">RoleNeed</span><span class="p">(</span> <span class="n">role</span><span class="o">.</span><span class="n">name</span> <span class="p">)</span> <span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+      <p>Retrieve and render a previous quiz or final exam given a code that is displayed on generated quizzes or finals.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <p>TODO: Fix "Quiz" or "Final Exam" titles """
 f request.method == 'POST':
@@ -834,35 +862,6 @@ eturn resp</p>
 Helper function to return the full name associated with the currently logged in user.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span> <span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;roles&#39;</span> <span class="p">):</span>
-        <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">current_user</span><span class="o">.</span><span class="n">roles</span><span class="p">:</span>
-            <span class="n">identity</span><span class="o">.</span><span class="n">provides</span><span class="o">.</span><span class="n">add</span><span class="p">(</span> <span class="n">RoleNeed</span><span class="p">(</span> <span class="n">role</span><span class="o">.</span><span class="n">name</span> <span class="p">)</span> <span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-26'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
-      </div>
-      <pre><code>    if g.user.fullname:
-        return g.user.fullname.split( " " )[0]
-    else:
-</code></pre>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-27'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
-      </div>
-      <p>SECURITY</p>
-    </div>
-    <div class='code'>
       <div class="highlight"><pre><span class="k">def</span> <span class="nf">generate_csrf_token</span><span class="p">():</span>
     <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span> <span class="s">&quot;generate_csrf_token&quot;</span> <span class="p">)</span>
     <span class="k">if</span> <span class="s">&#39;_csrf_token&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
@@ -876,7 +875,10 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-28'>#</a>
       </div>
-      <p>Admin page for verifying users that have successfully registered.</p>
+      <pre><code>    if g.user.fullname:
+        return g.user.fullname.split( " " )[0]
+    else:
+</code></pre>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="nd">@lm.token_loader</span>
@@ -889,7 +891,7 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-29'>#</a>
       </div>
-      
+      <p>SECURITY</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -901,7 +903,7 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-30'>#</a>
       </div>
-      
+      <p>Admin page for verifying users that have successfully registered.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -913,7 +915,7 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-31'>#</a>
       </div>
-      <p>Set the identity user object</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="n">max_age</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;REMEMBER_COOKIE_DURATION&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span></pre></div>
@@ -925,7 +927,7 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-32'>#</a>
       </div>
-      <p>Add the UserNeed to the identity</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="n">data</span> <span class="o">=</span> <span class="n">login_serializer</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">token</span><span class="p">,</span> <span class="n">max_age</span> <span class="o">=</span> <span class="n">max_age</span> <span class="p">)</span></pre></div>
@@ -937,8 +939,7 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-33'>#</a>
       </div>
-      <p>Assuming the User model has a list of roles, update the
-identity with the roles that the user provides</p>
+      <p>Set the identity user object</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span></pre></div>
@@ -950,10 +951,7 @@ identity with the roles that the user provides</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-34'>#</a>
       </div>
-      <p>This processor is added to only the register view
-@security.register_context_processor
-def security_register_processor():
-    app.logger.debug("security_register_processor")</p>
+      <p>Add the UserNeed to the identity</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
@@ -969,7 +967,8 @@ def security_register_processor():
       <div class='octowrap'>
         <a class='octothorpe' href='#section-35'>#</a>
       </div>
-      
+      <p>Assuming the User model has a list of roles, update the
+identity with the roles that the user provides</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -981,10 +980,10 @@ def security_register_processor():
       <div class='octowrap'>
         <a class='octothorpe' href='#section-36'>#</a>
       </div>
-      <p>Flask-Login token_loader callback.
-The token_loader function asks this function to take the token that was
-stored on the users computer process it to check if its valid and then
-return a User Object if its valid or None if its not valid.</p>
+      <p>This processor is added to only the register view
+@security.register_context_processor
+def security_register_processor():
+    app.logger.debug("security_register_processor")</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1008,8 +1007,10 @@ return a User Object if its valid or None if its not valid.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-38'>#</a>
       </div>
-      <p>The Token itself was generated by User.get_auth_token.  So it is up to
-us to known the format of the token data itself.</p>
+      <p>Flask-Login token_loader callback.
+The token_loader function asks this function to take the token that was
+stored on the users computer process it to check if its valid and then
+return a User Object if its valid or None if its not valid.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1020,6 +1021,31 @@ us to known the format of the token data itself.</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      <p>The Token itself was generated by User.get_auth_token.  So it is up to
+us to known the format of the token data itself.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       <p>The Token was encrypted using itsdangerous.URLSafeTimedSerializer which
 allows us to have a max_age on the token itself.  When the cookie is stored
@@ -1032,10 +1058,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-40'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       <p>Decrypt the Security Token, data = [username, hashpass]</p>
     </div>
@@ -1044,10 +1070,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-41'>
+  <div class='section' id='section-43'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
+        <a class='octothorpe' href='#section-43'>#</a>
       </div>
       <p>Find the User</p>
     </div>
@@ -1056,10 +1082,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-42'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>Check Password and return user or None</p>
     </div>

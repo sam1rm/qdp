@@ -383,6 +383,9 @@ def reviewQuestion():
 @login_required
 @admin_permission.require()
 def generateQuiz():
+    """ Generate a printable quiz (see Question.generateQuiz for more information). Utilizes questions
+    that were previously cached when choosing which quiz to generate (See chooseQuiz (above) for more 
+    information. The quiz itself is rendered on a new page (to ease printing). """ 
     if (('classAbbr' in session) and (session['classAbbr'])):
         classInfo = ClassInfo.get( session['classAbbr'] )
         if g_CachedQuestions:
@@ -402,6 +405,7 @@ def generateQuiz():
 @login_required
 @admin_permission.require()
 def generateExam():
+    """ Very similar to generateQuiz (above), except uses Question.generateFinalExam """
     if (('classAbbr' in session) and (session['classAbbr'])):
         if g_CachedQuestions:
             classInfo = ClassInfo.get( session['classAbbr'] )

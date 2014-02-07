@@ -20,18 +20,13 @@
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">base64</span>
-<span class="kn">import</span> <span class="nn">re</span>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">os</span>
-
-<span class="kn">from</span> <span class="nn">Crypto.Cipher</span> <span class="kn">import</span> <span class="n">AES</span>
-<span class="kn">from</span> <span class="nn">Crypto</span> <span class="kn">import</span> <span class="n">Random</span>
 
 <span class="kn">import</span> <span class="nn">flask</span>
 
 <span class="n">TMP_PATH</span> <span class="o">=</span> <span class="s">&quot;/tmp&quot;</span>
-<span class="n">IMAGE_REGEX</span> <span class="o">=</span> <span class="s">r&quot;\[\[(.*?)\]\]&quot;</span>
-<span class="n">MAX_SIZE_DIGITS</span> <span class="o">=</span> <span class="mi">8</span></pre></div>
+<span class="n">IMAGE_REGEX</span> <span class="o">=</span> <span class="s">r&quot;\[\[(.*?)\]\]&quot;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -146,31 +141,10 @@ Get the file in a path, removing directories and invisibles</p>
 <span class="s">        result = result.replace(&quot;</span><span class="se">\t</span><span class="s">&quot;,&quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot;)</span>
 <span class="s">        result = result.replace(&quot;</span><span class="se">\\</span><span class="s">t&quot;,&quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot;)</span>
 <span class="s">    return result</span>
-<span class="s">#DIVIDER</span>
-<span class="s">class Oracle:</span>
-<span class="s">#DIVIDER</span>
-<span class="s">        iv = Random.new().read(AES.block_size)</span>
-<span class="s">        return iv, base64.b64encode(iv)</span>
-<span class="s">#DIVIDER</span>
-<span class="s">    def encrypt(self, message, IV):</span>
-<span class="s">#DIVIDER</span>
-<span class="s">        assert(len(IV)==16),&quot;Length of IV is incorrect&quot;</span>
-<span class="s">        OBJ = AES.new(self.key, AES.MODE_CBC, IV)</span>
-<span class="s">        numToPad = 16 - ( len(message) + MAX_SIZE_DIGITS ) % 16</span>
-<span class="s">        paddedMessage = &quot;</span><span class="si">%08d%s%s</span><span class="s">&quot; % (len(message),message,self.padding[:numToPad]) # First format must == MAX_SIZE_DIGITS</span>
-<span class="s">        assert(len(paddedMessage)%16 == 0),&quot;len(paddedMessage) is not a multiple of 16! (&quot;+str(len(paddedMessage))+&quot;%&quot;+str(len(paddedMessage)%16)+&quot;)&quot;</span>
-<span class="s">        encryptedMessage = OBJ.encrypt(paddedMessage)</span>
-<span class="s">        return(self.encryptedPrefixFlag+base64.b64encode(encryptedMessage))</span>
-<span class="s">#DIVIDER</span>
-<span class="s">    def isEncrypted(self, message):</span>
-<span class="s">#DIVIDER</span>
-<span class="s">        if message:</span>
-<span class="s">            if (message[:len(self.encryptedPrefixFlag)] == self.encryptedPrefixFlag):</span>
-<span class="s">                return True</span>
-<span class="s">        return False</span>
-<span class="s">#DIVIDER</span>
-<span class="s">    def decrypt(self, encodedMessage, IV):</span>
-<span class="s">#DIVIDER</span>
+
+<span class="s">if __name__ == &quot;__main__&quot;:</span>
+<span class="s">    import doctest</span>
+<span class="s">    doctest.testmod()</span>
 
 </pre></div>
     </div>
@@ -330,165 +304,6 @@ this<br />is<br />a<br />test.
 </blockquote>
 </blockquote>
 </blockquote>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-13'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-13'>#</a>
-      </div>
-      <p>Encryption and decryption 'Oracle.' Primarily created to store an 'encryptedPrefixFlag,'</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-14'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
-      </div>
-      <p>which allows us to (more) accurately determine if a message is encrypted or not. 
-   A regex expression doesn't seem accurate enough: 
-   (e.g. http://stackoverflow.com/questions/8571501/how-to-check-whether-the-string-is-base64-encoded-or-not) """
-ef <strong>init</strong>(self, key, encryptedPrefixFlag, padding= "0123456789abcdef"):
-   if ((len(key) != 16) and (len(key) != 24) and (len(key) != 32)):
-       raise Exception("AES key must be either 16, 24, or 32 bytes long")
-   self.key = key
-   self.encryptedPrefixFlag = encryptedPrefixFlag
-   self.padding = padding
-ef generateIV(self):
-Generate a 16-byte, random IV, then return the raw data as well as the base64 encoded version (for saving in the DB)</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-15'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
-      </div>
-      <p>Encrypt a 16-byte, length-prefixed, padded message using AES.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-16'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
-      </div>
-      <p>Returned message is base64 encoded.</p>
-<blockquote>
-<blockquote>
-<p>oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("this is a test",iv); oracle.decrypt(message,b64iv)
-this is a test'
-oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("this is a test",iv); oracle.decrypt(message,b64iv)
-this is a test'
-oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("THIS 0 IS 1 A 2 TEST 3",iv); oracle.decrypt(message,b64iv)
-THIS 0 IS 1 A 2 TEST 3'
-oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("  THIS 0 IS 1 A 2 TEST 3  ",iv); oracle.decrypt(message,b64iv)
-  THIS 0 IS 1 A 2 TEST 3  '
-oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=oracle.generateIV(); message=oracle.encrypt("QDPTHIS_IS_A_TESTQDP",iv); oracle.decrypt(message,b64iv)
-QDPTHIS_IS_A_TESTQDP'</p>
-</blockquote>
-</blockquote>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-17'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
-      </div>
-      <p>Prefix message to allow detection for encrypted messages. More reliable than some crazy</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-18'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
-      </div>
-      <p>regex expression trying to determine if the message fits a pattern (e.g. base64 encoded)
-   TODO: Allow the prefix to be changed!</p>
-<blockquote>
-<blockquote>
-<p>oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='QDP'); print oracle.isEncrypted("QDPblahblahblah")
-rue
-oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='QDP'); print oracle.isEncrypted("blahblahblahQDP")
-alse
-oracle=Oracle('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='QDP'); print oracle.isEncrypted("qdpblahblahblahQDP")
-alse</p>
-</blockquote>
-</blockquote>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-19'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
-      </div>
-      <p>Decode a base64 message using AES. Returned is original message minus the padding,</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-20'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-20'>#</a>
-      </div>
-      <p>which is checked for integrity (the length is also a prefix integrity checker) 
-   (see sister function encrypt for tests). """
-essage = None
-f self.isEncrypted(encodedMessage):
-   b64Message = encodedMessage[len(self.encryptedPrefixFlag):]
-   try:
-       iv = base64.b64decode(IV)
-   except TypeError as ex:
-       raise Exception("INVALID IV for decryption: "+str(ex))
-   OBJ = AES.new(self.key, AES.MODE_CBC, iv)
-   try:
-       message = base64.b64decode(b64Message)
-   except TypeError as ex:
-       raise Exception("INVALID b64Message to decrypt: "+str(ex))
-   paddedMessage = OBJ.decrypt(message)
-   try:
-       messageLen = int(paddedMessage[:MAX_SIZE_DIGITS])
-   except ValueError as ex:
-       raise Exception("INVALID LENGTH in paddedMessage: "+str(ex))
-   numToPad = 16 - ( messageLen + MAX_SIZE_DIGITS ) % 16
-   message = paddedMessage[MAX_SIZE_DIGITS:messageLen+MAX_SIZE_DIGITS]
-   if (paddedMessage[messageLen+MAX_SIZE_DIGITS:] != self.padding[:numToPad]):
-       raise Exception("INVALID PADDING in paddedMessage: "+str(ex))
-lse:
-   raise Exception("INVALID isEncrypted prefix (trying to decrypt something already decrypted?)")
-eturn(message)</p>
-<p><strong> == "</strong>main__":
-t doctest
-st.testmod()</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

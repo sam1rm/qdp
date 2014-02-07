@@ -1,12 +1,14 @@
 import copy
 import doctest
 
-from app import db, login_serializer, g_Oracle
+from app import db, login_serializer
 from flask import flash
 from flask.ext.security import UserMixin, RoleMixin
 from werkzeug import generate_password_hash, check_password_hash
 
 from app.utils import convertToHTML, replaceImageTags, readTempFile, writeTempFile
+
+import oracle
 
 roles_users = db.Table( 'roles_users',
         db.Column( 'users_id', db.Integer(), db.ForeignKey( 'user.id' ) ),
@@ -395,63 +397,63 @@ class Question( db.Model ):
     def decryptTagText(self):
         """ Decrypt a question's tags (if they exist) if they aren't already decrypted. """
         if self.tags:
-            if g_Oracle.isEncrypted(self.tags):
-                self.tags = g_Oracle.decrypt( self.tags, self.tagsIV )
+            if oracle.isEncrypted(self.tags):
+                self.tags = oracle.decrypt( self.tags, self.tagsIV )
             
     def decryptQuestionText(self):
         """ Decrypt a question's text parts (if they exist) if they aren't already decrypted. """
-        if g_Oracle.isEncrypted(self.question):
+        if oracle.isEncrypted(self.question):
             if self.instructions:
-                self.instructions = g_Oracle.decrypt( self.instructions, self.questionIV )
+                self.instructions = oracle.decrypt( self.instructions, self.questionIV )
             if self.question:
-                self.question = g_Oracle.decrypt( self.question, self.questionIV )
+                self.question = oracle.decrypt( self.question, self.questionIV )
             if self.examples:
-                self.examples = g_Oracle.decrypt( self.examples, self.questionIV )
+                self.examples = oracle.decrypt( self.examples, self.questionIV )
             if self.hints:
-                self.hints = g_Oracle.decrypt( self.hints, self.questionIV )
+                self.hints = oracle.decrypt( self.hints, self.questionIV )
             if self.answer:
-                self.answer = g_Oracle.decrypt( self.answer, self.questionIV )
+                self.answer = oracle.decrypt( self.answer, self.questionIV )
             self.questionTextIsEncrypted = False
 
     def decryptCommentText(self):
         """ Decrypt a question's comments (if they exist) if they aren't already decrypted. """
-        if g_Oracle.isEncrypted(self.questionComments):
+        if oracle.isEncrypted(self.questionComments):
             if self.tagsComments:
-                self.tagsComments = g_Oracle.decrypt( self.tagsComments, self.commentsIV )
+                self.tagsComments = oracle.decrypt( self.tagsComments, self.commentsIV )
             if self.instructionsComments:
-                self.instructionsComments = g_Oracle.decrypt( self.instructionsComments, self.commentsIV )
+                self.instructionsComments = oracle.decrypt( self.instructionsComments, self.commentsIV )
             if self.questionComments:
-                self.questionComments = g_Oracle.decrypt( self.questionComments, self.commentsIV )
+                self.questionComments = oracle.decrypt( self.questionComments, self.commentsIV )
             if self.examplesComments:
-                self.examplesComments = g_Oracle.decrypt( self.examplesComments, self.commentsIV )
+                self.examplesComments = oracle.decrypt( self.examplesComments, self.commentsIV )
             if self.hintsComments:
-                self.hintsComments = g_Oracle.decrypt( self.hintsComments, self.commentsIV )
+                self.hintsComments = oracle.decrypt( self.hintsComments, self.commentsIV )
             if self.answerComments:
-                self.answerComments = g_Oracle.decrypt( self.answerComments, self.commentsIV )
+                self.answerComments = oracle.decrypt( self.answerComments, self.commentsIV )
             self.commentTextIsEncrypted = False
 
     def encryptText( self, encryptTags = True, encryptQuestion = True, encryptComments = True ):
         """ Encrypt all of the question text, including tags and comments. """
-        if ((encryptTags) and (g_Oracle.isEncrypted(self.tags) == False)):
-            iv, self.tagsIV = g_Oracle.generateIV()
-            self.tags = g_Oracle.encrypt( self.tags, iv )
+        if ((encryptTags) and (oracle.isEncrypted(self.tags) == False)):
+            iv, self.tagsIV = oracle.generateIV()
+            self.tags = oracle.encrypt( self.tags, iv )
             self.tagTextIsEncrypted = True
-        if ((encryptQuestion) and (g_Oracle.isEncrypted(self.question) == False)):
-            iv, self.questionIV = g_Oracle.generateIV()
-            self.instructions = g_Oracle.encrypt( self.instructions, iv )
-            self.question = g_Oracle.encrypt( self.question, iv )
-            self.examples = g_Oracle.encrypt( self.examples, iv )
-            self.hints = g_Oracle.encrypt( self.hints, iv )
-            self.answer = g_Oracle.encrypt( self.answer, iv )
+        if ((encryptQuestion) and (oracle.isEncrypted(self.question) == False)):
+            iv, self.questionIV = oracle.generateIV()
+            self.instructions = oracle.encrypt( self.instructions, iv )
+            self.question = oracle.encrypt( self.question, iv )
+            self.examples = oracle.encrypt( self.examples, iv )
+            self.hints = oracle.encrypt( self.hints, iv )
+            self.answer = oracle.encrypt( self.answer, iv )
             self.questionTextIsEncrypted = True
-        if ((encryptComments) and (g_Oracle.isEncrypted(self.questionComments) == False)):
-            iv, self.commentsIV = g_Oracle.generateIV()
-            self.tagsComments = g_Oracle.encrypt( self.tagsComments, iv )
-            self.instructionsComments = g_Oracle.encrypt( self.instructionsComments, iv )
-            self.questionComments = g_Oracle.encrypt( self.questionComments, iv )
-            self.examplesComments = g_Oracle.encrypt( self.examplesComments, iv )
-            self.hintsComments = g_Oracle.encrypt( self.hintsComments, iv )
-            self.answerComments = g_Oracle.encrypt( self.answerComments, iv )
+        if ((encryptComments) and (oracle.isEncrypted(self.questionComments) == False)):
+            iv, self.commentsIV = oracle.generateIV()
+            self.tagsComments = oracle.encrypt( self.tagsComments, iv )
+            self.instructionsComments = oracle.encrypt( self.instructionsComments, iv )
+            self.questionComments = oracle.encrypt( self.questionComments, iv )
+            self.examplesComments = oracle.encrypt( self.examplesComments, iv )
+            self.hintsComments = oracle.encrypt( self.hintsComments, iv )
+            self.answerComments = oracle.encrypt( self.answerComments, iv )
             self.commentTextIsEncrypted = True
 
     # Generate Quizzes and Exams
@@ -602,14 +604,14 @@ class Image( db.Model ):
         fref = open(filepath,"rb")
         data = fref.read()
         fref.close()
-        dataIV,dataIV64 = g_Oracle.generateIV();
-        image = Image(name=humanReadableName, classAbbr=classAbbr, data=g_Oracle.encrypt(data,dataIV), dataIV=dataIV64)
+        dataIV,dataIV64 = oracle.generateIV();
+        image = Image(name=humanReadableName, classAbbr=classAbbr, data=oracle.encrypt(data,dataIV), dataIV=dataIV64)
         return image
 
     def cacheByName( self ):
         """ Decrypt and write data to /path/to/tmp/filename (and store the generated path) """
-        if g_Oracle.isEncrypted(self.data):
-            self.data = g_Oracle.decrypt(self.data, self.dataIV)
+        if oracle.isEncrypted(self.data):
+            self.data = oracle.decrypt(self.data, self.dataIV)
         self.cachePath = writeTempFile( self.name, self.data )
 
     def __repr__( self ):
