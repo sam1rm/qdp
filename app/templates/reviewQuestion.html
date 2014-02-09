@@ -3,189 +3,88 @@
  
 {% block head %}
  
+<script>
+
+$(document).ready(
+    function() 
+    {                      
+                $.post(
+                    $SCRIPT_ROOT+"/gatherSimilarQuestionsFromTags",
+                    { tags: "{{questionToDisplay.tags}}", questionID: {{questionToDisplay.id}}, quiz: {{questionToDisplay.quiz}} }
+                    )
+                  .done( function(data, status) {
+                      $("#similar_questions").html(data);
+
+                  }).fail( function(xhr, textStatus, errorThrown) {
+                      $("#similar_questions").text(xhr.responseText);
+                  });
+    } 
+)
+</script>
+
 {% endblock %}
  
 {% block content %}
- 
-{% if form.errors %}
- 
-<ul class="errors">
-	
-{% for field_name, field_errors in form.errors|dictsort if field_errors %}
- 
-{% for error in field_errors %}
- 
-	<li>
-		{{ form[field_name].label }}: {{ error }} 
-	</li>
-	
-{% endfor %}
- 
-{% endfor %}
- 
-</ul>
 
-{% endif %}
- 
 <table>
 	<tr>
-		<td width="50%">
-			<form method="post" action="reviewQuestion?questionID={{questionToDisplay.id}}" class="well span6">
-				{{form.hidden_tag()}} 
+		<td width="50%"> 
+		<form method="post" action="reviewQuestion?questionID={{questionToDisplay.id}}" class="well span6">
+			{{form.hidden_tag()}} 
+			<div class="control-group">
+				<label class="control-label" for="quiz"> Quiz: </label> {{questionToDisplay.quiz}} 
+			</div>
+			<div class="span6">
 				<div class="control-group">
-					<label class="control-label" for="quiz">
-						Quiz: 
-					</label>
-					{{questionToDisplay.quiz}} 
+					<label class="control-label" for="tags"> Tags: </label> {{questionToDisplay.tags}} {{form.tagsComments(rows=rowCountsToDisplay['tagsComments'],cols=100,placeholder="Comments on Tags")}} <br />
 				</div>
-				<div class="span6">
-					<div class="control-group">
-						<label class="control-label" for="tags">
-							Tags: 
-						</label>
-						{{questionToDisplay.tags}} {{form.tagsComments(rows=rowCountsToDisplay['tagsComments'],cols=100,placeholder="Comments on Tags")}} <br /> 
-					</div>
-					<div class="control-group">
-						<label class="control-label" for="instructions">
-							Instructions: 
-						</label>
-						{{questionToDisplay.instructions}} {{form.instructionsComments(rows=rowCountsToDisplay['instructionsComments'],cols=100,placeholder="Comments on Instructions")}} <br /> 
-					</div>
-					<div class="control-group">
-						<label class="control-label" for="question">
-							Question: 
-						</label>
-						{{questionToDisplay.question}} {{form.questionComments(rows=rowCountsToDisplay['questionComments'],cols=100,placeholder="Comments on Questions")}} <br /> 
-					</div>
-					<div class="control-group">
-						<label class="control-label" for="examples">
-							Examples: 
-						</label>
-						{{questionToDisplay.examples}} {{form.examplesComments(rows=rowCountsToDisplay['examplesComments'],cols=100,placeholder="Comments on Examples")}} <br /> 
-					</div>
-					<div class="control-group">
-						<label class="control-label" for="hints">
-							Hints/Cautions/etc.: 
-						</label>
-						{{questionToDisplay.hints}} {{form.hintsComments(rows=rowCountsToDisplay['hintsComments'],cols=100,placeholder="Comments on Hints/Cautions/etc.")}} <br /> 
-					</div>
-					<div class="control-group">
-						<label class="control-label" for="answer">
-							Answer: 
-						</label>
-						{{questionToDisplay.answer}} {{form.answerComments(rows=rowCountsToDisplay['answerComments'],cols=100,placeholder="Comments on Answers")}} <br /> 
-					</div>
-					<table table-striped table-hover>
-						
+				<div class="control-group">
+					<label class="control-label" for="instructions"> Instructions: </label> {{questionToDisplay.instructions}} {{form.instructionsComments(rows=rowCountsToDisplay['instructionsComments'],cols=100,placeholder="Comments on Instructions")}} <br />
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="question"> Question: </label> {{questionToDisplay.question}} {{form.questionComments(rows=rowCountsToDisplay['questionComments'],cols=100,placeholder="Comments on Questions")}} <br />
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="examples"> Examples: </label> {{questionToDisplay.examples}} {{form.examplesComments(rows=rowCountsToDisplay['examplesComments'],cols=100,placeholder="Comments on Examples")}} <br />
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="hints"> Hints/Cautions/etc.: </label> {{questionToDisplay.hints}} {{form.hintsComments(rows=rowCountsToDisplay['hintsComments'],cols=100,placeholder="Comments on Hints/Cautions/etc.")}} <br />
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="answer"> Answer: </label> {{questionToDisplay.answer}} {{form.answerComments(rows=rowCountsToDisplay['answerComments'],cols=100,placeholder="Comments on Answers")}} <br />
+				</div>
+				<table table-striped table-hover>
+					
 {% for reviewer in questionToDisplay.reviewers %}
  
-						<tr>
-							<td>
-								<label class="control-label" for="reviewed1">
-									Reviewed by: 
-								</label>
-								{{reviewer.fullname}} 
-							</td>
-							<td>
-								&lt;{{reviewer.email}}&gt; 
-							</td>
-							<td>
-								
+					<tr>
+						<td> <label class="control-label" for="reviewed1"> Reviewed by: </label> {{reviewer.fullname}} </td>
+						<td> &lt;{{reviewer.email}}&gt; </td>
+						<td> 
 {% if reviewersSaidOKToDisplay[loop.index] %}
- 
-								<span class="glyphicon glyphicon-ok">
-								</span>
-								
+ <span class="glyphicon glyphicon-ok"> </span> 
 {% else %}
- 
-								<span class="glyphicon glyphicon-thumbs-down">
-								</span>
-								
+ <span class="glyphicon glyphicon-thumbs-down"> </span> 
 {% endif %}
- 
-							</td>
-						</tr>
-						
-{% endfor %}
- 
-					</table>
-					<br> <br /> 
-						<button type="submit" class="btn btn-success center" name='button' value="good">
-							Looks Good 
-						</button>
-						<button type="submit" class="btn btn-warning center" name='button' value="needswork">
-							Needs Work 
-						</button>
-					</form>
-				</td>
-				<td style="vertical-align:top;" td width="50%">
-					<h3>
-						Similar Questions 
-					</h3>
-					<div class="tabbable">
-						<ul class="nav nav-tabs">
-							
-{% for similarQuestion in similarQuestionsToDisplay %}
- 
-{% if loop.first %}
- 
-							<li class="active">
-								
-{% else %}
- 
-								<li>
-									
-{% endif %}
- 
-									<a href="#tab{{loop.index}}" data-toggle="tab">
-										#{{loop.index}} 
-									</a>
-								</li>
-								
-{% endfor %}
- 
-							</ul>
-							<div class="tab-content">
-								
-{% for similarQuestion in similarQuestionsToDisplay %}
- 
-{% if loop.first %}
- 
-								<div class="tab-pane active" id="tab{{loop.index}}">
-									
-{% else %}
- 
-									<div class="tab-pane" id="tab{{loop.index}}">
-										
-{% endif %}
- 
-										<p>
-											{{similarQuestion.tags}} 
-										</p>
-										<p>
-											{{similarQuestion.instructions}} 
-										</p>
-										<p>
-											{{similarQuestion.question}} 
-										</p>
-										<p>
-											{{similarQuestion.examples}} 
-										</p>
-										<p>
-											{{similarQuestion.hints}} 
-										</p>
-										<p>
-											{{similarQuestion.answer}} 
-										</p>
-									</div>
-									
-{% endfor %}
- 
-								</div>
-							</div>
-						</td>
+ </td>
 					</tr>
+					
+{% endfor %}
+ 
 				</table>
-				
+				<br> <br />
+				<button type="submit" class="btn btn-success center" name='button' value="good"> Looks Good </button> <button type="submit" class="btn btn-warning center" name='button' value="needswork"> Needs Work </button> 
+			</form>
+			</td>
+			<td style="vertical-align:top;" td width="50%"> 
+			<h3>
+				Similar Questions 
+			</h3>
+			<div class="tabbable" id="similar_questions">
+			</div>
+			</td>
+		</tr>
+	</table>
+	
 {% endblock %}
  

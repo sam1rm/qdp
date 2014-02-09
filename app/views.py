@@ -347,7 +347,7 @@ def reviewQuestion():
         if question:
             question.decryptCommentText()
             rowCounts = question.calculateRows()
-            similarQuestions = question.retrieveAndDecryptSimilarQuestions()
+            #similarQuestions = question.retrieveAndDecryptSimilarQuestions()
             form = ReviewQuestionForm( request.form, question )
             if request.method == 'POST':
                 form.populate_obj( question )
@@ -369,7 +369,8 @@ def reviewQuestion():
             for n in range( len( question.reviewers ) ):
                 reviewersSaidOK.append( question.isOKFlags & 1 << n )
             return render_template( 'reviewQuestion.html', \
-                                    form = form, similarQuestionsToDisplay = similarQuestions, \
+                                    form = form, \
+                                    #similarQuestionsToDisplay = similarQuestions, \
                                     questionToDisplay = question.makeMarkedUpVersion(), \
                                     rowCountsToDisplay = rowCounts, \
                                     title = "%s Question #%d For %s (%s)" % \
@@ -536,13 +537,14 @@ def sendOrDeleteReport():
             flash( 'Report cancelled')
         else:
             msg = Message("QDP BUG REPORT",
-                          body="Who: %s\nWhen: %s\nWhere: %s\nReport: %s" % \
-                            (request.form['who'], request.form['when'], returnTo, request.form['report']),
+                          body="Who: %s\nWhen: %s\nWhere: %s\nReport: %s\n\nSesson: %s" % \
+                            (request.form['who'], request.form['when'], returnTo, request.form['report'], session),
                           sender=g.user.email,
                           recipients=["headcrash@berkeley.edu"])
             mail.send(msg)
             flash( 'Report sent! Thank you!')
-    return redirect( returnTo )
+    #return redirect( returnTo )
+    return redirect( url_for( 'index' ) ) # Return to top, as request.args may be incorrect at this point (e.g. reviewQuestion and questionID)
 
 # UTILITES
 

@@ -687,7 +687,7 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">    def getAndCacheByName( filename ):</span>
 <span class="s">#DIVIDER</span>
 <span class="s">        try:</span>
-<span class="s">            data, _ = readTempFile( filename )</span>
+<span class="s">            data, _ = app.utils.readTempFile( filename )</span>
 <span class="s">        except IOError as ex:</span>
 <span class="s">            data = None</span>
 <span class="s">        if ( data == None ):</span>
@@ -703,7 +703,7 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">#DIVIDER</span>
 <span class="s">        if oracle.isEncrypted(self.data):</span>
 <span class="s">            self.data = oracle.decrypt(self.data, self.dataIV)</span>
-<span class="s">        self.cachePath = writeTempFile( self.name, self.data )</span>
+<span class="s">        self.cachePath = app.utils.writeTempFile( self.name, self.data )</span>
 <span class="s">#DIVIDER</span>
 <span class="s">    def __repr__( self ):</span>
 <span class="s">        return &#39;&lt;Image </span><span class="si">%r</span><span class="s">&gt;&#39; % ( self.id )</span>

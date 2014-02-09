@@ -586,7 +586,7 @@ class Image( db.Model ):
     def getAndCacheByName( filename ):
         """ Get image from cache if it exists, if not, get it from the database and cache it (to a temporary file). """
         try:
-            data, _ = readTempFile( filename )
+            data, _ = app.utils.readTempFile( filename )
         except IOError as ex:
             data = None
         if ( data == None ):
@@ -613,7 +613,7 @@ class Image( db.Model ):
         """ Decrypt and write data to /path/to/tmp/filename (and store the generated path) """
         if oracle.isEncrypted(self.data):
             self.data = oracle.decrypt(self.data, self.dataIV)
-        self.cachePath = writeTempFile( self.name, self.data )
+        self.cachePath = app.utils.writeTempFile( self.name, self.data )
 
     def __repr__( self ):
         return '<Image %r>' % ( self.id )

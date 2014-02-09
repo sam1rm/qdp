@@ -17,11 +17,8 @@ $(document).ready(
                     { tags: $("#tags").val(), questionID: {{questionToDisplay.id}}, quiz: $("#quiz").val() }
                     )
                   .done( function(data, status) {
-                    console.log(data);
                       $("#similar_questions").html(data);
-
                   }).fail( function(xhr, textStatus, errorThrown) {
-
                       $("#similar_questions").text(xhr.responseText);
 
                   });
@@ -35,13 +32,9 @@ $(document).ready(
                     { tags: $("#tags").val(), questionID: {{questionToDisplay.id}}, quiz: $("#quiz").val() }
                     )
                   .done( function(data, status) {
-                    console.log(data);
                       $("#similar_questions").html(data);
-
                   }).fail( function(xhr, textStatus, errorThrown) {
-
                       $("#similar_questions").text(xhr.responseText);
-
                   });
             } 
         ) 
