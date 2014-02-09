@@ -1,5 +1,5 @@
 flask-debugtoolbar
-flask-login
+flask-login==0.2.8
 Flask-Mail
 Flask-Security
 flask-sqlalchemy

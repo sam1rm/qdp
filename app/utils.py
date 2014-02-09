@@ -21,7 +21,7 @@ def listDirectories(filepath):
 def listFiles(filepath):
     """ Get the file in a path, removing directories and invisibles
     >>> listFiles(".")
-    ['__init__.py', '__init__.pyc', 'forms.py', 'forms.pyc', 'models.py', 'models.pyc', 'utils.py', 'utils.pyc', 'views.py', 'views.pyc']
+    ['__init__.py', '__init__.pyc', 'forms.py', 'forms.pyc', 'models.py', 'models.pyc', 'oracle.py', 'oracle.pyc', 'utils.py', 'utils.pyc', 'views.py', 'views.pyc']
     >>> listFiles("static")
     []"""
     dirs = os.listdir(filepath)
@@ -129,6 +129,25 @@ def convertToHTML(text):
         result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
         result = result.replace("\\t","&nbsp;&nbsp;&nbsp;&nbsp;")
     return result
+
+def commaDelimitedStringAsSet(text):
+    """ Take a comma delimited string and return it as a set: "1,2,3,2,1" -> (1,2,3)
+    >>> commaDelimitedStringAsSet(None)
+    set([])
+    >>> commaDelimitedStringAsSet("")
+    set([])
+    >>> commaDelimitedStringAsSet("a")
+    set(['a'])
+    >>> commaDelimitedStringAsSet("a,b")
+    set(['a', 'b'])
+    >>> commaDelimitedStringAsSet("a,b,a")
+    set(['a', 'b'])
+    """    
+    itemSet=set()
+    if text:
+        for item in text.split( "," ):
+            itemSet.add(item.lower().strip())
+    return itemSet
 
 if __name__ == "__main__":
     import doctest

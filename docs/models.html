@@ -28,7 +28,7 @@
 <span class="kn">from</span> <span class="nn">flask.ext.security</span> <span class="kn">import</span> <span class="n">UserMixin</span><span class="p">,</span> <span class="n">RoleMixin</span>
 <span class="kn">from</span> <span class="nn">werkzeug</span> <span class="kn">import</span> <span class="n">generate_password_hash</span><span class="p">,</span> <span class="n">check_password_hash</span>
 
-<span class="kn">from</span> <span class="nn">app.utils</span> <span class="kn">import</span> <span class="n">convertToHTML</span><span class="p">,</span> <span class="n">replaceImageTags</span><span class="p">,</span> <span class="n">readTempFile</span><span class="p">,</span> <span class="n">writeTempFile</span>
+<span class="kn">import</span> <span class="nn">app.utils</span>
 
 <span class="kn">import</span> <span class="nn">oracle</span>
 
@@ -255,9 +255,9 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">        if self.question:</span>
 <span class="s">            self.decryptQuestionText()</span>
 <span class="s">            if ( len( self.question ) &lt; 60 ):</span>
-<span class="s">                return convertToHTML( self.question )</span>
+<span class="s">                return app.utils.convertToHTML( self.question )</span>
 <span class="s">            else:</span>
-<span class="s">                return convertToHTML( self.question[0:28].strip() ) + &quot;...&quot; + convertToHTML( self.question[-28:].strip() )</span>
+<span class="s">                return app.utils.convertToHTML( self.question[0:28].strip() ) + &quot;...&quot; + app.utils.convertToHTML( self.question[-28:].strip() )</span>
 <span class="s">        else:</span>
 <span class="s">            return &quot;?? NO QUESTION TEXT ??&quot;</span>
 <span class="s">#DIVIDER</span>
@@ -280,27 +280,95 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">        assert ( type( offsetNumber ) == type( 1 ) ), &quot;offsetNumber (</span><span class="si">%r</span><span class="s">) != int??&quot; </span><span class="si">% o</span><span class="s">ffsetNumber</span>
 <span class="s">        return offsetNumber</span>
 <span class="s">#DIVIDER</span>
-<span class="s">    def retrieveAndDecryptSimilarQuestions( self ):</span>
+<span class="s">    def calculateRows(self):</span>
+<span class="s">        rowCounts={}</span>
+<span class="s">        if self.tagsComments:</span>
+<span class="s">            rowCounts[&#39;tagsComments&#39;]=max(2,self.tagsComments.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;tagsComments&#39;]=2</span>
+<span class="s">        if self.instructions:</span>
+<span class="s">            rowCounts[&#39;instructions&#39;]=max(4,self.instructions.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;instructions&#39;]=4</span>
+<span class="s">        if self.instructionsComments:</span>
+<span class="s">            rowCounts[&#39;instructionsComments&#39;]=max(4,self.instructionsComments.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;instructionsComments&#39;]=4</span>
+<span class="s">        if self.question:</span>
+<span class="s">            rowCounts[&#39;question&#39;]=max(4,self.question.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;question&#39;]=4</span>
+<span class="s">        if self.questionComments:</span>
+<span class="s">            rowCounts[&#39;questionComments&#39;]=max(4,self.questionComments.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;questionComments&#39;]=4</span>
+<span class="s">        if self.examples:</span>
+<span class="s">            rowCounts[&#39;examples&#39;]=max(4,self.examples.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;examples&#39;]=4</span>
+<span class="s">        if self.examplesComments:</span>
+<span class="s">            rowCounts[&#39;examplesComments&#39;]=max(4,self.examplesComments.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;examplesComments&#39;]=4</span>
+<span class="s">        if self.hints:</span>
+<span class="s">            rowCounts[&#39;hints&#39;]=max(4,self.hints.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;hints&#39;]=4</span>
+<span class="s">        if self.hintsComments:</span>
+<span class="s">            rowCounts[&#39;hintsComments&#39;]=max(4,self.hintsComments.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;hintsComments&#39;]=4</span>
+<span class="s">        if self.answer:</span>
+<span class="s">            rowCounts[&#39;answer&#39;]=max(4,self.answer.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;answer&#39;]=4</span>
+<span class="s">        if self.answerComments:</span>
+<span class="s">            rowCounts[&#39;answerComments&#39;]=max(4,self.answerComments.count(&quot;</span><span class="se">\n</span><span class="s">&quot;)+1)</span>
+<span class="s">        else:</span>
+<span class="s">            rowCounts[&#39;answerComments&#39;]=4</span>
+<span class="s">        return rowCounts</span>
 <span class="s">#DIVIDER</span>
-<span class="s">            maxReviewers is necessary to shift out old reviewers and keep the most recent ones. &quot;&quot;&quot;</span> 
-        <span class="k">if</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">isOKFlags</span> <span class="o">==</span> <span class="bp">None</span> <span class="p">):</span>  <span class="c"># Initialize flags if none have been set</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">isOKFlags</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">userIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span> <span class="n">user</span> <span class="p">)</span>
-        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span> <span class="p">)</span> <span class="o">==</span> <span class="n">maxReviewers</span> <span class="p">):</span>  <span class="c"># Shift out earliest reviewer and</span>
-                <span class="n">discardedUser</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-                <span class="k">print</span> <span class="s">&quot;DISCARDED (overflow) REVIEWER: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">discardedUser</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">isOKFlags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isOKFlags</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
-                <span class="n">userIndex</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">userIndex</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span> <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">isOKFlags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isOKFlags</span> <span class="o">&amp;</span> <span class="o">~</span><span class="p">(</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">userIndex</span> <span class="p">)</span> <span class="o">|</span> <span class="n">isOKFlag</span> <span class="o">&lt;&lt;</span> <span class="n">userIndex</span>  <span class="c"># Set (or clear) the corresponding isOKFlag</span>
-        <span class="k">if</span> <span class="p">(</span> <span class="n">userIndex</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span> <span class="p">)</span> <span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">user</span> <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">reviewers</span><span class="p">[</span><span class="n">userIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">user</span></pre></div>
+<span class="s">    def addReviewer( self, user, isOKFlag, maxReviewers ):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">            This is mostly used for: </span><span class="se">\n</span><span class="s"> -&gt; &lt;br /&gt; as well as replacing the [[image]] tags. &quot;&quot;&quot;</span>
+        <span class="n">convertedQuestion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeDecryptedTextVersion</span><span class="p">()</span>
+        <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span> <span class="p">[]</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">tags</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructions</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">question</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examples</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hints</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answer</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">instructionsComments</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">questionComments</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">examplesComments</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">hintsComments</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">:</span>
+            <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span><span class="p">,</span> <span class="n">imagesToCache</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">replaceImageTags</span><span class="p">(</span> <span class="n">app</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">convertToHTML</span><span class="p">(</span> <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">answerComments</span> <span class="p">)</span> <span class="p">)</span>
+            <span class="n">overallImagesToCache</span> <span class="o">=</span> <span class="n">overallImagesToCache</span><span class="o">.</span><span class="n">union</span><span class="p">(</span> <span class="n">imagesToCache</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">overallImagesToCache</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">getAndCacheByName</span><span class="p">(</span> <span class="n">filename</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">convertedQuestion</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -312,7 +380,7 @@ Stores user information, including the password in encrypted form. Also handles 
       <p>Flask-Security Fields</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">makeMarkedUpVersion</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -324,9 +392,7 @@ Stores user information, including the password in encrypted form. Also handles 
       <p>Relationships with other models</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="n">convertedQuestion</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span> <span class="bp">self</span> <span class="p">)</span>
-        <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">decryptText</span><span class="p">(</span> <span class="n">decryptTags</span><span class="p">,</span> <span class="n">decryptQuestion</span><span class="p">,</span> <span class="n">decryptComments</span> <span class="p">)</span>
-        <span class="k">return</span> <span class="n">convertedQuestion</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">makeDecryptedTextVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">decryptTags</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">decryptQuestion</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">decryptComments</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -338,7 +404,9 @@ Stores user information, including the password in encrypted form. Also handles 
       <p>Encode a secure token for cookie</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">decryptText</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">decryptTags</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">decryptQuestion</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">decryptComments</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">):</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">convertedQuestion</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span> <span class="bp">self</span> <span class="p">)</span>
+        <span class="n">convertedQuestion</span><span class="o">.</span><span class="n">decryptText</span><span class="p">(</span> <span class="n">decryptTags</span><span class="p">,</span> <span class="n">decryptQuestion</span><span class="p">,</span> <span class="n">decryptComments</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">convertedQuestion</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -346,6 +414,18 @@ Stores user information, including the password in encrypted form. Also handles 
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">decryptText</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">decryptTags</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">decryptQuestion</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">decryptComments</span> <span class="o">=</span> <span class="bp">True</span> <span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       
     </div>
@@ -359,18 +439,6 @@ Stores user information, including the password in encrypted form. Also handles 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">decryptTagText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
   <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
@@ -379,9 +447,7 @@ Stores user information, including the password in encrypted form. Also handles 
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsIV</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">decryptTagText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -393,7 +459,9 @@ Stores user information, including the password in encrypted form. Also handles 
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">decryptQuestionText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tags</span> <span class="o">=</span> <span class="n">oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tagsIV</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -401,6 +469,18 @@ Stores user information, including the password in encrypted form. Also handles 
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">decryptQuestionText</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
       </div>
       
     </div>
@@ -420,10 +500,10 @@ Stores user information, including the password in encrypted form. Also handles 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-13'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-13'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       
     </div>
@@ -432,10 +512,10 @@ Stores user information, including the password in encrypted form. Also handles 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-14'>
+  <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       
     </div>
@@ -457,10 +537,10 @@ Stores user information, including the password in encrypted form. Also handles 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-15'>
+  <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
+        <a class='octothorpe' href='#section-16'>#</a>
       </div>
       
     </div>
@@ -469,10 +549,10 @@ Stores user information, including the password in encrypted form. Also handles 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-16'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       
     </div>
@@ -501,18 +581,6 @@ Stores user information, including the password in encrypted form. Also handles 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
   <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
@@ -522,7 +590,7 @@ Stores user information, including the password in encrypted form. Also handles 
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">generateQuiz</span><span class="p">(</span> <span class="n">classInfo</span><span class="p">,</span> <span class="n">quizNumber</span><span class="p">,</span> <span class="n">cachedQuestions</span><span class="p">,</span> <span class="n">maxNumberOfQuestions</span> <span class="p">):</span></pre></div>
+    <span class="k">def</span> <span class="nf">retrieveAndDecryptSimilarQuestions</span><span class="p">(</span> <span class="n">thisQuestionID</span><span class="p">,</span> <span class="n">tags</span><span class="p">,</span> <span class="n">classAbbr</span><span class="p">,</span> <span class="n">quiz</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -536,54 +604,32 @@ Stores user information, including the password in encrypted form. Also handles 
     <div class='code'>
       <div class="highlight"><pre>            <span class="n">TODO</span><span class="p">:</span> <span class="n">Find</span> <span class="n">questions</span> <span class="k">with</span><span class="p">:</span> <span class="n">most</span> <span class="n">reviews</span><span class="p">,</span> <span class="n">then</span> <span class="n">different</span> <span class="n">tags</span>
             <span class="n">TODO</span><span class="p">:</span> <span class="n">Modify</span> <span class="n">maxNumberOfQuestions</span> <span class="n">by</span> <span class="n">length</span> <span class="n">of</span> <span class="n">question</span> <span class="o">/</span> <span class="n">time</span> <span class="n">to</span> <span class="n">answer</span><span class="o">.</span> <span class="s">&quot;&quot;&quot;</span>
-<span class="s">        examQuestions = []</span>
+<span class="s">        quizQuestions = []</span>
 <span class="s">#DIVIDER</span>
 <span class="s">        for question in cachedQuestions:</span>
-<span class="s">            markedUpQuestion = question.makeMarkedUpVersion()</span>
-<span class="s">            examQuestions.append( markedUpQuestion )</span>
-<span class="s">            if ( len( examQuestions ) &gt; 5 ):</span>
-<span class="s">                break</span>
-<span class="s">        return examQuestions, Question.generateIDFromQuestions( classInfo, examQuestions )</span>
+<span class="s">            if ( question.quiz == quizNumber ):</span>
+<span class="s">                markedUpQuestion = question.makeMarkedUpVersion()</span>
+<span class="s">                quizQuestions.append( markedUpQuestion )</span>
+<span class="s">                if ( len( quizQuestions ) &gt; maxNumberOfQuestions ):</span>
+<span class="s">                    break</span>
+<span class="s">        return quizQuestions, Question.generateIDFromQuestions( classInfo, quizQuestions )</span>
 <span class="s">#DIVIDER</span>
 <span class="s">    @staticmethod</span>
-<span class="s">    def generateIDFromQuestions( classInfo, questions ):</span>
+<span class="s">    def generateFinalExam( classInfo, cachedQuestions ):</span>
 <span class="s">#DIVIDER</span>
-<span class="s">            are offsets from the ClassInfo starting IDs.</span>
+<span class="s">            1024 questions per quiz possible. Question IDs in the database</span>
+<span class="s">            are offsets from the ClassInfo starting IDs. </span>
 <span class="s">            TODO: Turn this into a History instead. &quot;&quot;&quot;</span>
         <span class="n">validIDSymbols</span> <span class="o">=</span> <span class="s">&quot;ABCDEFGHJKLMNPQRSTUVWXYZ23456789&quot;</span>
         <span class="n">numIDSymbols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">validIDSymbols</span> <span class="p">)</span>
-        <span class="n">questions</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">classInfo</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="n">questionNumbers</span> <span class="o">=</span> <span class="n">idSymbols</span><span class="o">.</span><span class="n">split</span><span class="p">(</span> <span class="s">&#39;.&#39;</span> <span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="n">questionNumbers</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="p">):</span>
-            <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;ID (</span><span class="si">%s</span><span class="s">) doesn&#39;t have any question IDs??&quot;</span> <span class="o">%</span> <span class="n">idSymbols</span><span class="p">,</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;error&quot;</span> <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-            <span class="k">del</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">classAbbr</span> <span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">_</span><span class="p">:</span>
-                <span class="n">flash</span> <span class="p">(</span> <span class="s">&quot;idSymbol (</span><span class="si">%s</span><span class="s">) isn&#39;t a valid class abbreviation.&quot;</span> <span class="o">%</span> <span class="n">classAbbr</span><span class="p">,</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;error&quot;</span> <span class="p">)</span>
-                <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
-            <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="n">questionNumbers</span> <span class="p">)</span> <span class="p">):</span>
-                <span class="n">questionNumber</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">while</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
-                    <span class="n">symbol</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">validIDSymbols</span><span class="p">:</span>
-                        <span class="n">questionNumber</span> <span class="o">=</span> <span class="n">questionNumber</span> <span class="o">*</span> <span class="n">numIDSymbols</span> <span class="o">+</span> <span class="n">validIDSymbols</span><span class="o">.</span><span class="n">find</span><span class="p">(</span> <span class="n">symbol</span> <span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;Invalid code &#39;</span><span class="si">%s</span><span class="s">&#39; in: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">idSymbols</span> <span class="p">),</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;warning&quot;</span> <span class="p">)</span>
-                        <span class="k">break</span>
-                    <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
-                <span class="n">questionClassID</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="o">+</span> <span class="n">questionNumber</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="o">.</span><span class="n">getUsingClassID</span><span class="p">(</span> <span class="n">questionClassID</span> <span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                    <span class="n">flash</span> <span class="p">(</span> <span class="s">&quot;ID &#39;</span><span class="si">%s</span><span class="s">&#39; isn&#39;t a valid question [class] id (</span><span class="si">%d</span><span class="s">) for class: </span><span class="si">%s</span><span class="s"> in code: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">questionClassID</span><span class="p">,</span> <span class="n">questionNumbers</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">idSymbols</span> <span class="p">),</span> <span class="n">category</span> <span class="o">=</span> <span class="s">&quot;warning&quot;</span> <span class="p">)</span>
-                    <span class="k">continue</span>
-                <span class="n">decryptedQuestion</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">makeMarkedUpVersion</span><span class="p">()</span>
-                <span class="n">questions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">decryptedQuestion</span> <span class="p">)</span>
-        <span class="k">return</span> <span class="n">questions</span><span class="p">,</span> <span class="n">classInfo</span></pre></div>
+        <span class="n">idSymbols</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">classAbbr</span>
+        <span class="k">for</span> <span class="n">question</span> <span class="ow">in</span> <span class="n">questions</span><span class="p">:</span>
+            <span class="n">idSymbols</span> <span class="o">+=</span> <span class="s">&#39;.&#39;</span>
+            <span class="n">qid</span> <span class="o">=</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">classID</span> <span class="o">-</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">startingID</span> <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="n">qid</span> <span class="o">&gt;</span> <span class="n">numIDSymbols</span> <span class="p">):</span>
+                <span class="n">idSymbols</span> <span class="o">+=</span> <span class="n">validIDSymbols</span><span class="p">[</span><span class="nb">id</span> <span class="o">/</span> <span class="n">numIDSymbols</span><span class="p">]</span>
+            <span class="n">idSymbols</span> <span class="o">+=</span> <span class="n">validIDSymbols</span><span class="p">[</span><span class="n">qid</span> <span class="o">%</span> <span class="n">numIDSymbols</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">idSymbols</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -595,8 +641,8 @@ Stores user information, including the password in encrypted form. Also handles 
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
-        <span class="k">return</span> <span class="s">&#39;&lt;Question </span><span class="si">%r</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getQuestionsFromID</span><span class="p">(</span> <span class="n">idSymbols</span> <span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -608,8 +654,67 @@ Stores user information, including the password in encrypted form. Also handles 
       <p>Retrieve a question from the database by the id offset by the class id. This is to have questions numbered</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;Question #</span><span class="si">%d</span><span class="s"> (classID: </span><span class="si">%d</span><span class="s">): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">classID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">decryptAndShortenQuestion</span><span class="p">()</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre>        <span class="n">TODO</span><span class="p">:</span> <span class="n">Categorize</span> <span class="p">(</span><span class="k">for</span> <span class="n">speed</span><span class="p">)</span> <span class="n">by</span> <span class="n">classAbbr</span><span class="o">.</span>
+        <span class="n">TODO</span><span class="p">:</span> <span class="n">Handle</span> <span class="n">PNGs</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    id = db.Column( db.Integer(), primary_key = True )</span>
+<span class="s">    name = db.Column( db.String( 80 ), unique = True )</span>
+<span class="s">    classAbbr = db.Column( db.String( 4 ) )</span>
+<span class="s">    data = db.Column( db.LargeBinary( 4096 ), unique = True )</span>
+<span class="s">    dataIV = db.Column( db.String( 16 ) )</span>
+<span class="s">    cachePath = None</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    @staticmethod</span>
+<span class="s">    def get( uid ):</span>
+<span class="s">        image = Image.query.filter_by( id = uid )</span>
+<span class="s">        if ( ( image == None ) or ( image.count() == 0 ) ):</span>
+<span class="s">            flash( &quot;Couldn&#39;t find any image in the database with (raw) ID: </span><span class="si">%d</span><span class="s">&quot; </span><span class="si">% u</span><span class="s">id )</span>
+<span class="s">            return None</span>
+<span class="s">        elif ( image.count() != 1 ):</span>
+<span class="s">            flash( &quot;Found more than one user with (raw) ID: </span><span class="si">%d</span><span class="s">!&quot; </span><span class="si">% u</span><span class="s">id )</span>
+<span class="s">        return image.one()</span>
+<span class="s">    </span>
+<span class="s">    @staticmethod</span>
+<span class="s">    def getByName( filename ):</span>
+<span class="s">        images = Image.query.filter_by( name = filename )</span>
+<span class="s">        if ( ( images == None ) or ( images.count() == 0 ) ):</span>
+<span class="s">            flash( &quot;Couldn&#39;t find any images in the database with filename: </span><span class="si">%s</span><span class="s">&quot; </span><span class="si">% f</span><span class="s">ilename )</span>
+<span class="s">            return None</span>
+<span class="s">        if ( images.count() &gt; 1 ):</span>
+<span class="s">            flash( &quot;Found more than one image (</span><span class="si">%d</span><span class="s">) in the database with filename: </span><span class="si">%s</span><span class="s">&quot; </span><span class="si">% f</span><span class="s">ilename )</span>
+<span class="s">        return images.one()</span>
+
+<span class="s">    @staticmethod</span>
+<span class="s">    def getAndCacheByName( filename ):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        try:</span>
+<span class="s">            data, _ = readTempFile( filename )</span>
+<span class="s">        except IOError as ex:</span>
+<span class="s">            data = None</span>
+<span class="s">        if ( data == None ):</span>
+<span class="s">            image = Image.getByName( filename )</span>
+<span class="s">            if image:</span>
+<span class="s">                data = image.data</span>
+<span class="s">                if data:</span>
+<span class="s">                    image.cacheByName()</span>
+<span class="s">        return data</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    @staticmethod</span>
+<span class="s">    def imageFromUploadedFile(file, filepath, humanReadableName, classAbbr):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">        if oracle.isEncrypted(self.data):</span>
+<span class="s">            self.data = oracle.decrypt(self.data, self.dataIV)</span>
+<span class="s">        self.cachePath = writeTempFile( self.name, self.data )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    def __repr__( self ):</span>
+<span class="s">        return &#39;&lt;Image </span><span class="si">%r</span><span class="s">&gt;&#39; % ( self.id )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    def __str__( self ):</span>
+<span class="s">        return &quot;Image #</span><span class="si">%d</span><span class="s">: </span><span class="si">%s</span><span class="s"> (cachePath=</span><span class="si">%s</span><span class="s">) (size=</span><span class="si">%d</span><span class="s">)&quot; % ( self.id, self.name, self.cachePath, len( self.data ) )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">class History( db.Model ):</span>
+<span class="s">#DIVIDER</span>
+
+</pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -634,8 +739,7 @@ esult = set()
 f self.tags:
    self.decryptTagText()
    if self.tags:
-       for tag in self.tags.split( "," ):
-           result.add( tag.lower().strip() )                  <br />
+       result = app.utils.commaDelimitedStringAsSet(self.tags)
 lse:
    result.add( "?? MISSING TAGS ??")
 eturn result</p>
@@ -643,7 +747,7 @@ eturn result</p>
 Returned a short..ed version of the (unencrypted) question text with HTML markup</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Image</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Model</span> <span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -655,17 +759,7 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       <p>Returned a short..ed version of the (unencrypted) tags</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">try</span><span class="p">:</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">readTempFile</span><span class="p">(</span> <span class="n">filename</span> <span class="p">)</span>
-        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="p">(</span> <span class="n">data</span> <span class="o">==</span> <span class="bp">None</span> <span class="p">):</span>
-            <span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">getByName</span><span class="p">(</span> <span class="n">filename</span> <span class="p">)</span>
-            <span class="k">if</span> <span class="n">image</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">data</span>
-                <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
-                    <span class="n">image</span><span class="o">.</span><span class="n">cacheByName</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">data</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -677,8 +771,7 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">imageFromUploadedFile</span><span class="p">(</span><span class="nb">file</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">humanReadableName</span><span class="p">,</span> <span class="n">classAbbr</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -690,9 +783,7 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       <p>Returns the id offset by a class's category (see getUsingClassID above)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>        <span class="k">if</span> <span class="n">oracle</span><span class="o">.</span><span class="n">isEncrypted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">oracle</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataIV</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cachePath</span> <span class="o">=</span> <span class="n">writeTempFile</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -704,8 +795,7 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
-        <span class="k">return</span> <span class="s">&#39;&lt;Image </span><span class="si">%r</span><span class="s">&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -714,11 +804,10 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       <div class='octowrap'>
         <a class='octothorpe' href='#section-27'>#</a>
       </div>
-      <p>Find questions "similar" to this one. Uses quiz # and tags.</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;Image #</span><span class="si">%d</span><span class="s">: </span><span class="si">%s</span><span class="s"> (cachePath=</span><span class="si">%s</span><span class="s">) (size=</span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cachePath</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="p">)</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -727,69 +816,10 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       <div class='octowrap'>
         <a class='octothorpe' href='#section-28'>#</a>
       </div>
-      <p>TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
-xisting = []
-f self.tags:
-   tags = self.tagsAsSet()
-   instances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
-   for instance in instances:
-       instanceTags = instance.tagsAsSet()
-       if ( len( instanceTags.intersection( tags ) ) &gt; 0 ):
-           # TODO: FIX!
-           existing.append( instance.makeDecryptedTextVersion() )
-eturn existing</p>
-<p>alculateRows(self):
-owCounts={}
-f self.tagsComments:
-   rowCounts['tagsComments']=max(2,self.tagsComments.count("\n")+1)
-lse:
-   rowCounts['tagsComments']=2
-f self.instructions:
-   rowCounts['instructions']=max(4,self.instructions.count("\n")+1)
-lse:
-   rowCounts['instructions']=4
-f self.instructionsComments:
-   rowCounts['instructionsComments']=max(4,self.instructionsComments.count("\n")+1)
-lse:
-   rowCounts['instructionsComments']=4
-f self.question:
-   rowCounts['question']=max(4,self.question.count("\n")+1)
-lse:
-   rowCounts['question']=4
-f self.questionComments:
-   rowCounts['questionComments']=max(4,self.questionComments.count("\n")+1)
-lse:
-   rowCounts['questionComments']=4
-f self.examples:
-   rowCounts['examples']=max(4,self.examples.count("\n")+1)
-lse:
-   rowCounts['examples']=4
-f self.examplesComments:
-   rowCounts['examplesComments']=max(4,self.examplesComments.count("\n")+1)
-lse:
-   rowCounts['examplesComments']=4
-f self.hints:
-   rowCounts['hints']=max(4,self.hints.count("\n")+1)
-lse:
-   rowCounts['hints']=4
-f self.hintsComments:
-   rowCounts['hintsComments']=max(4,self.hintsComments.count("\n")+1)
-lse:
-   rowCounts['hintsComments']=4
-f self.answer:
-   rowCounts['answer']=max(4,self.answer.count("\n")+1)
-lse:
-   rowCounts['answer']=4
-f self.answerComments:
-   rowCounts['answerComments']=max(4,self.answerComments.count("\n")+1)
-lse:
-   rowCounts['answerComments']=4
-eturn rowCounts</p>
-<p>ddReviewer( self, user, isOKFlag, maxReviewers ):
-Add a user to a question's "reviewers" as well as set the "is this question OK" flag.</p>
+      <p>Add a user to a question's "reviewers" as well as set the "is this question OK" flag.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">History</span><span class="p">(</span> <span class="n">db</span><span class="o">.</span><span class="n">Model</span> <span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -798,7 +828,27 @@ Add a user to a question's "reviewers" as well as set the "is this question OK" 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-29'>#</a>
       </div>
-      <p>Add HTML markup to all of the question text, including tags and comments.</p>
+      <p>maxReviewers is necessary to shift out old reviewers and keep the most recent ones. """ 
+f ( self.isOKFlags == None ):  # Initialize flags if none have been set
+   self.isOKFlags = 0
+ry:
+   userIndex = self.reviewers.index( user )
+xcept ValueError as ex:
+   if ( len( self.reviewers ) == maxReviewers ):  # Shift out earliest reviewer and
+       discardedUser = self.reviewers[0]
+       self.reviewers = self.reviewers[1:]
+       print "DISCARDED (overflow) REVIEWER: %s" % discardedUser
+       self.isOKFlags = self.isOKFlags &gt;&gt; 1
+       userIndex = 2
+   else:
+       userIndex = len( self.reviewers )
+elf.isOKFlags = self.isOKFlags &amp; ~( 1 &lt;&lt; userIndex ) | isOKFlag &lt;&lt; userIndex  # Set (or clear) the corresponding isOKFlag
+f ( userIndex &gt;= len( self.reviewers ) ):
+   self.reviewers.append( user )
+lse:
+   self.reviewers[userIndex] = user</p>
+<p>akeMarkedUpVersion( self ):
+Add HTML markup to all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -810,48 +860,7 @@ Add a user to a question's "reviewers" as well as set the "is this question OK" 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-30'>#</a>
       </div>
-      <p>This is mostly used for: \n -&gt; <br /> as well as replacing the <a href="image.html">image</a> tags. """
-onvertedQuestion = self.makeDecryptedTextVersion()
-verallImagesToCache = set( [] )
-f convertedQuestion.tags:
-   convertedQuestion.tags, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.tags ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.instructions:
-   convertedQuestion.instructions, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructions ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.question:
-   convertedQuestion.question, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.question ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.examples:
-   convertedQuestion.examples, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examples ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.hints:
-   convertedQuestion.hints, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hints ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.answer:
-   convertedQuestion.answer, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answer ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.instructionsComments:
-   convertedQuestion.instructionsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructionsComments ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.questionComments:
-   convertedQuestion.questionComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.questionComments ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.examplesComments:
-   convertedQuestion.examplesComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examplesComments ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.hintsComments:
-   convertedQuestion.hintsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hintsComments ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-f convertedQuestion.answerComments:
-   convertedQuestion.answerComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answerComments ) )
-   overallImagesToCache = overallImagesToCache.union( imagesToCache )
-or filename in overallImagesToCache:
-   _ = Image.getAndCacheByName( filename )
-eturn convertedQuestion</p>
-<p>ryption and decryption</p>
-<p>akeDecryptedTextVersion(self, decryptTags = True, decryptQuestion = True, decryptComments = True ):
-Decrypt all of the question text, including tags and comments.</p>
+      <p>Encryption and decryption</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -887,7 +896,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-33'>#</a>
       </div>
-      <p>Decrypt a question's tags (if they exist) if they aren't already decrypted.</p>
+      <p>Decrypt all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -911,7 +920,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-35'>#</a>
       </div>
-      <p>Decrypt a question's text parts (if they exist) if they aren't already decrypted.</p>
+      <p>Decrypt a question's tags (if they exist) if they aren't already decrypted.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -935,7 +944,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-37'>#</a>
       </div>
-      <p>Decrypt a question's comments (if they exist) if they aren't already decrypted.</p>
+      <p>Decrypt a question's text parts (if they exist) if they aren't already decrypted.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -959,7 +968,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-39'>#</a>
       </div>
-      <p>Encrypt all of the question text, including tags and comments.</p>
+      <p>Decrypt a question's comments (if they exist) if they aren't already decrypted.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -983,7 +992,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-41'>#</a>
       </div>
-      <p>Generate Quizzes and Exams</p>
+      <p>Encrypt all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -995,7 +1004,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-42'>#</a>
       </div>
-      <p>Generate quiz # for a class, using previously cached questions (caller is responsible for these).</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1007,20 +1016,7 @@ Decrypt all of the question text, including tags and comments.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-43'>#</a>
       </div>
-      <p>TODO: Find questions with: most reviews, then different tags
-   TODO: Modify maxNumberOfQuestions by length of question / time to answer. """
-uizQuestions = []
- questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
-or question in cachedQuestions:
-   if ( question.quiz == quizNumber ):
-       markedUpQuestion = question.makeMarkedUpVersion()
-       quizQuestions.append( markedUpQuestion )
-       if ( len( quizQuestions ) &gt; maxNumberOfQuestions ):
-           break
-eturn quizQuestions, Question.generateIDFromQuestions( classInfo, quizQuestions )</p>
-<p>icmethod
-enerateFinalExam( classInfo, cachedQuestions ):
-Generate final exam # for a class, using previously cached questions (caller is responsible for these)</p>
+      <p>Find questions "similar" to this one. Uses quiz # and tags.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1032,7 +1028,23 @@ Generate final exam # for a class, using previously cached questions (caller is 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-44'>#</a>
       </div>
-      <p>questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()</p>
+      <pre><code>TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
+</code></pre>
+<p>ssert(tags and len(tags)&gt;0)
+ssert(classAbbr and len(classAbbr)&gt;0)
+ssert(quiz&gt;0)
+xisting = []
+agSet = app.utils.commaDelimitedStringAsSet(tags)
+nstances = Question.query.filter( Question.classAbbr == classAbbr, Question.id != thisQuestionID, Question.quiz == quiz ).order_by( Question.id ).all()
+or instance in instances:
+   instanceTags = instance.tagsAsSet()
+   if ( len( instanceTags.intersection( tagSet ) ) &gt; 0 ):
+       existing.append( instance.makeDecryptedTextVersion() )
+eturn existing</p>
+<p>erate Quizzes and Exams</p>
+<p>icmethod
+enerateQuiz( classInfo, quizNumber, cachedQuestions, maxNumberOfQuestions ):
+Generate quiz # for a class, using previously cached questions (caller is responsible for these).</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1044,7 +1056,7 @@ Generate final exam # for a class, using previously cached questions (caller is 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-45'>#</a>
       </div>
-      <p>Generate an ID from quiz question ids.</p>
+      <p>questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1056,22 +1068,7 @@ Generate final exam # for a class, using previously cached questions (caller is 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-46'>#</a>
       </div>
-      <p>1024 questions per quiz possible. Question IDs in the database
-   are offsets from the ClassInfo starting IDs. 
-   TODO: Turn this into a History instead. """
-alidIDSymbols = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-umIDSymbols = len( validIDSymbols )
-dSymbols = classInfo.classAbbr
-or question in questions:
-   idSymbols += '.'
-   qid = ( question.classID - classInfo.startingID )
-   if ( qid &gt; numIDSymbols ):
-       idSymbols += validIDSymbols[id / numIDSymbols]
-   idSymbols += validIDSymbols[qid % numIDSymbols]
-eturn idSymbols</p>
-<p>icmethod
-etQuestionsFromID( idSymbols ):
-Retrieve quiz question from an ID. Question IDs in the database</p>
+      <p>Generate final exam # for a class, using previously cached questions (caller is responsible for these)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1083,7 +1080,19 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-47'>#</a>
       </div>
-      
+      <p>TODO: Find questions with: most reviews, then different tags
+   TODO: Modify maxNumberOfQuestions by length of question / time to answer. """
+xamQuestions = []
+ questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
+or question in cachedQuestions:
+   markedUpQuestion = question.makeMarkedUpVersion()
+   examQuestions.append( markedUpQuestion )
+   if ( len( examQuestions ) &gt; 5 ):
+       break
+eturn examQuestions, Question.generateIDFromQuestions( classInfo, examQuestions )</p>
+<p>icmethod
+enerateIDFromQuestions( classInfo, questions ):
+Generate an ID from quiz question ids.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1095,7 +1104,7 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-48'>#</a>
       </div>
-      
+      <p>Retrieve quiz question from an ID. Question IDs in the database</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1107,7 +1116,48 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-49'>#</a>
       </div>
-      <p>Class to encapsulate the storage and retrieval of images from the database.</p>
+      <p>are offsets from the ClassInfo starting IDs.
+   TODO: Turn this into a History instead. """
+alidIDSymbols = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+umIDSymbols = len( validIDSymbols )
+uestions = []
+lassInfo = None
+uestionNumbers = idSymbols.split( '.' )
+f ( len( questionNumbers ) &lt; 2 ):
+   flash( "ID (%s) doesn't have any question IDs??" % idSymbols, category = "error" )
+lse:
+   classAbbr = questionNumbers[0].upper()
+   del questionNumbers[0]
+   try:
+       classInfo = ClassInfo.get( classAbbr )
+   except Exception as _:
+       flash ( "idSymbol (%s) isn't a valid class abbreviation." % classAbbr, category = "error" )
+       return None, None
+   for index in range( 0, len( questionNumbers ) ):
+       questionNumber = 0
+       while (len(questionNumbers[index])&gt;0):
+           symbol = questionNumbers[index][0].upper()
+           if symbol in validIDSymbols:
+               questionNumber = questionNumber * numIDSymbols + validIDSymbols.find( symbol )
+           else:
+               flash( "Invalid code '%s' in: %s" % ( questionNumbers[index][0], idSymbols ), category = "warning" )
+               break
+           questionNumbers[index] = questionNumbers[index][1:]
+       questionClassID = classInfo.startingID + questionNumber
+       try:
+           question = Question.getUsingClassID( questionClassID )
+       except Exception as ex:
+           flash ( "ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % ( questionNumbers[index], questionClassID, questionNumbers[index], idSymbols ), category = "warning" )
+           continue
+       decryptedQuestion = question.makeMarkedUpVersion()
+       questions.append( decryptedQuestion )
+eturn questions, classInfo</p>
+<p>_repr__( self ):
+eturn '<Question %r>' % ( self.id )</p>
+<p>_str__( self ):
+eturn "Question #%d (classID: %d): %s" % ( self.id, self.classID, self.decryptAndShortenQuestion() )</p>
+<p>ge( db.Model ):
+Class to encapsulate the storage and retrieval of images from the database.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1119,35 +1169,7 @@ Retrieve quiz question from an ID. Question IDs in the database</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-50'>#</a>
       </div>
-      <p>TODO: Categorize (for speed) by classAbbr.
-   TODO: Handle PNGs """
-d = db.Column( db.Integer(), primary_key = True )
-ame = db.Column( db.String( 80 ), unique = True )
-lassAbbr = db.Column( db.String( 4 ) )
-ata = db.Column( db.LargeBinary( 4096 ), unique = True )
-ataIV = db.Column( db.String( 16 ) )
-achePath = None</p>
-<p>staticmethod
-ef get( uid ):
-   image = Image.query.filter_by( id = uid )
-   if ( ( image == None ) or ( image.count() == 0 ) ):
-       flash( "Couldn't find any image in the database with (raw) ID: %d" % uid )
-       return None
-   elif ( image.count() != 1 ):
-       flash( "Found more than one user with (raw) ID: %d!" % uid )
-   return image.one()</p>
-<p>staticmethod
-ef getByName( filename ):
-   images = Image.query.filter_by( name = filename )
-   if ( ( images == None ) or ( images.count() == 0 ) ):
-       flash( "Couldn't find any images in the database with filename: %s" % filename )
-       return None
-   if ( images.count() &gt; 1 ):
-       flash( "Found more than one image (%d) in the database with filename: %s" % filename )
-   return images.one()</p>
-<p>staticmethod
-ef getAndCacheByName( filename ):
-Get image from cache if it exists, if not, get it from the database and cache it (to a temporary file).</p>
+      <p>Get image from cache if it exists, if not, get it from the database and cache it (to a temporary file).</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1159,7 +1181,7 @@ Get image from cache if it exists, if not, get it from the database and cache it
       <div class='octowrap'>
         <a class='octothorpe' href='#section-51'>#</a>
       </div>
-      <p>Create an (encrypted) Image instance from an image file. The file is saved first as a way</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1171,16 +1193,7 @@ Get image from cache if it exists, if not, get it from the database and cache it
       <div class='octowrap'>
         <a class='octothorpe' href='#section-52'>#</a>
       </div>
-      <p>o translate from Flask's file upload to the database - TODO: This may not be necessary. """
-ile.save(filepath)
-ref = open(filepath,"rb")
-ata = fref.read()
-ref.close()
-ataIV,dataIV64 = oracle.generateIV();
-mage = Image(name=humanReadableName, classAbbr=classAbbr, data=oracle.encrypt(data,dataIV), dataIV=dataIV64)
-eturn image</p>
-<p>acheByName( self ):
-Decrypt and write data to /path/to/tmp/filename (and store the generated path)</p>
+      <p>Create an (encrypted) Image instance from an image file. The file is saved first as a way</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1192,7 +1205,16 @@ Decrypt and write data to /path/to/tmp/filename (and store the generated path)</
       <div class='octowrap'>
         <a class='octothorpe' href='#section-53'>#</a>
       </div>
-      
+      <p>o translate from Flask's file upload to the database - TODO: This may not be necessary. """
+ile.save(filepath)
+ref = open(filepath,"rb")
+ata = fref.read()
+ref.close()
+ataIV,dataIV64 = oracle.generateIV();
+mage = Image(name=humanReadableName, classAbbr=classAbbr, data=oracle.encrypt(data,dataIV), dataIV=dataIV64)
+eturn image</p>
+<p>acheByName( self ):
+Decrypt and write data to /path/to/tmp/filename (and store the generated path)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1216,7 +1238,7 @@ Decrypt and write data to /path/to/tmp/filename (and store the generated path)</
       <div class='octowrap'>
         <a class='octothorpe' href='#section-55'>#</a>
       </div>
-      <p>A general way to store previously generated data, which, for now, is a workaround for long,</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1227,6 +1249,18 @@ Decrypt and write data to /path/to/tmp/filename (and store the generated path)</
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-56'>#</a>
+      </div>
+      <p>A general way to store previously generated data, which, for now, is a workaround for long,</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-57'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-57'>#</a>
       </div>
       <p>clunky IDs to retrieve previously generated quizzes and exams. Class abbreviation (e.g., 9F) and
    quiz number are to aid in retrieval and display.

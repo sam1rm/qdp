@@ -65,7 +65,7 @@ Get the file in a path, removing directories and invisibles</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="o">&gt;&gt;&gt;</span> <span class="n">listFiles</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">)</span>
-    <span class="p">[</span><span class="s">&#39;__init__.py&#39;</span><span class="p">,</span> <span class="s">&#39;__init__.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;forms.py&#39;</span><span class="p">,</span> <span class="s">&#39;forms.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;models.py&#39;</span><span class="p">,</span> <span class="s">&#39;models.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;utils.py&#39;</span><span class="p">,</span> <span class="s">&#39;utils.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;views.py&#39;</span><span class="p">,</span> <span class="s">&#39;views.pyc&#39;</span><span class="p">]</span>
+    <span class="p">[</span><span class="s">&#39;__init__.py&#39;</span><span class="p">,</span> <span class="s">&#39;__init__.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;forms.py&#39;</span><span class="p">,</span> <span class="s">&#39;forms.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;models.py&#39;</span><span class="p">,</span> <span class="s">&#39;models.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;oracle.py&#39;</span><span class="p">,</span> <span class="s">&#39;oracle.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;utils.py&#39;</span><span class="p">,</span> <span class="s">&#39;utils.pyc&#39;</span><span class="p">,</span> <span class="s">&#39;views.py&#39;</span><span class="p">,</span> <span class="s">&#39;views.pyc&#39;</span><span class="p">]</span>
     <span class="o">&gt;&gt;&gt;</span> <span class="n">listFiles</span><span class="p">(</span><span class="s">&quot;static&quot;</span><span class="p">)</span>
     <span class="p">[]</span><span class="s">&quot;&quot;&quot;</span>
 <span class="s">    dirs = os.listdir(filepath)</span>
@@ -141,6 +141,14 @@ Get the file in a path, removing directories and invisibles</p>
 <span class="s">        result = result.replace(&quot;</span><span class="se">\t</span><span class="s">&quot;,&quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot;)</span>
 <span class="s">        result = result.replace(&quot;</span><span class="se">\\</span><span class="s">t&quot;,&quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot;)</span>
 <span class="s">    return result</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def commaDelimitedStringAsSet(text):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    itemSet=set()</span>
+<span class="s">    if text:</span>
+<span class="s">        for item in text.split( &quot;,&quot; ):</span>
+<span class="s">            itemSet.add(item.lower().strip())</span>
+<span class="s">    return itemSet</span>
 
 <span class="s">if __name__ == &quot;__main__&quot;:</span>
 <span class="s">    import doctest</span>
@@ -302,6 +310,43 @@ print convertToHTML("this\nis\na\ntest.\n")
 this<br />is<br />a<br />test.
 """</p>
 </blockquote>
+</blockquote>
+</blockquote>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>Take a comma delimited string and return it as a set: "1,2,3,2,1" -&gt; (1,2,3)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <blockquote>
+<blockquote>
+<p>commaDelimitedStringAsSet(None)
+et([])
+commaDelimitedStringAsSet("")
+et([])
+commaDelimitedStringAsSet("a")
+et(['a'])
+commaDelimitedStringAsSet("a,b")
+et(['a', 'b'])
+commaDelimitedStringAsSet("a,b,a")
+et(['a', 'b'])</p>
 </blockquote>
 </blockquote>
     </div>

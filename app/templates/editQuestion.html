@@ -5,6 +5,49 @@
     position: relative;
 }
 </style>
+<script>
+$(document).ready(
+    function() 
+    {                      
+        $("#tags").change( 
+            function() 
+            { 
+                $.post(
+                    $SCRIPT_ROOT+"/gatherSimilarQuestionsFromTags",
+                    { tags: $("#tags").val(), questionID: {{questionToDisplay.id}}, quiz: $("#quiz").val() }
+                    )
+                  .done( function(data, status) {
+                    console.log(data);
+                      $("#similar_questions").html(data);
+
+                  }).fail( function(xhr, textStatus, errorThrown) {
+
+                      $("#similar_questions").text(xhr.responseText);
+
+                  });
+            } 
+        );
+        $("#quiz").change( 
+            function() 
+            { 
+                $.post(
+                    $SCRIPT_ROOT+"/gatherSimilarQuestionsFromTags",
+                    { tags: $("#tags").val(), questionID: {{questionToDisplay.id}}, quiz: $("#quiz").val() }
+                    )
+                  .done( function(data, status) {
+                    console.log(data);
+                      $("#similar_questions").html(data);
+
+                  }).fail( function(xhr, textStatus, errorThrown) {
+
+                      $("#similar_questions").text(xhr.responseText);
+
+                  });
+            } 
+        ) 
+    } 
+)
+</script>
 {% endblock %}
 {% block content %} 
 <table>
@@ -102,36 +145,7 @@
 			<h3>
 				Similar Questions 
 			</h3>
-			<div class="tabbable">
-				<ul class="nav nav-tabs">
-				    {% for similarQuestion in similarQuestionsToDisplay %}
-    				    {% if loop.first %}
-    					   <li class="active">
-    					{% else %}
-    					   <li>
-    					{% endif %}
-						<a href="#tab{{loop.index}}" data-toggle="tab">
-							#{{loop.index}}
-						</a>
-					</li>
-					{% endfor %}
-				</ul>
-				<div class="tab-content">
-                    {% for similarQuestion in similarQuestionsToDisplay %}
-                        {% if loop.first %}
-    					   <div class="tab-pane active" id="tab{{loop.index}}">
-    					{% else %}
-    					   <div class="tab-pane" id="tab{{loop.index}}">
-    					{% endif %}
-                        <p>{{similarQuestion.tags}}</p> 
-                        <p>{{similarQuestion.instructions}}</p> 
-                        <p>{{similarQuestion.question}}</p> 
-                        <p>{{similarQuestion.examples}}</p> 
-                        <p>{{similarQuestion.hints}}</p> 
-                        <p>{{similarQuestion.answer}}</p>
-                        </div> 
-					{% endfor %}
-				</div>
+			<div class="tabbable" id="similar_questions">
             </div>
 		</td>
 	</tr>

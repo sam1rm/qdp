@@ -6,7 +6,7 @@ from flask import flash
 from flask.ext.security import UserMixin, RoleMixin
 from werkzeug import generate_password_hash, check_password_hash
 
-from app.utils import convertToHTML, replaceImageTags, readTempFile, writeTempFile
+import app.utils
 
 import oracle
 
@@ -215,20 +215,19 @@ class Question( db.Model ):
         if self.tags:
             self.decryptTagText()
             if self.tags:
-                for tag in self.tags.split( "," ):
-                    result.add( tag.lower().strip() )                    
+                result = app.utils.commaDelimitedStringAsSet(self.tags)
         else:
             result.add( "?? MISSING TAGS ??")
         return result
-
+    
     def shortenedQuestionWithMarkup( self ):
         """ Returned a short..ed version of the (unencrypted) question text with HTML markup """
         if self.question:
             self.decryptQuestionText()
             if ( len( self.question ) < 60 ):
-                return convertToHTML( self.question )
+                return app.utils.convertToHTML( self.question )
             else:
-                return convertToHTML( self.question[0:28].strip() ) + "..." + convertToHTML( self.question[-28:].strip() )
+                return app.utils.convertToHTML( self.question[0:28].strip() ) + "..." + app.utils.convertToHTML( self.question[-28:].strip() )
         else:
             return "?? NO QUESTION TEXT ??"
 
@@ -250,20 +249,6 @@ class Question( db.Model ):
         offsetNumber = ( self.classID - classInfo.startingID )
         assert ( type( offsetNumber ) == type( 1 ) ), "offsetNumber (%r) != int??" % offsetNumber
         return offsetNumber
-
-    def retrieveAndDecryptSimilarQuestions( self ):
-        """ Find questions "similar" to this one. Uses quiz # and tags.
-            TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
-        existing = []
-        if self.tags:
-            tags = self.tagsAsSet()
-            instances = Question.query.filter( Question.classAbbr == self.classAbbr, Question.id != self.id, Question.quiz == self.quiz ).order_by( Question.id ).all()
-            for instance in instances:
-                instanceTags = instance.tagsAsSet()
-                if ( len( instanceTags.intersection( tags ) ) > 0 ):
-                    # TODO: FIX!
-                    existing.append( instance.makeDecryptedTextVersion() )
-        return existing
     
     def calculateRows(self):
         rowCounts={}
@@ -341,37 +326,37 @@ class Question( db.Model ):
         convertedQuestion = self.makeDecryptedTextVersion()
         overallImagesToCache = set( [] )
         if convertedQuestion.tags:
-            convertedQuestion.tags, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.tags ) )
+            convertedQuestion.tags, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.tags ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.instructions:
-            convertedQuestion.instructions, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructions ) )
+            convertedQuestion.instructions, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.instructions ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.question:
-            convertedQuestion.question, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.question ) )
+            convertedQuestion.question, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.question ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.examples:
-            convertedQuestion.examples, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examples ) )
+            convertedQuestion.examples, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.examples ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.hints:
-            convertedQuestion.hints, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hints ) )
+            convertedQuestion.hints, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.hints ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.answer:
-            convertedQuestion.answer, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answer ) )
+            convertedQuestion.answer, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.answer ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.instructionsComments:
-            convertedQuestion.instructionsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.instructionsComments ) )
+            convertedQuestion.instructionsComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.instructionsComments ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.questionComments:
-            convertedQuestion.questionComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.questionComments ) )
+            convertedQuestion.questionComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.questionComments ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.examplesComments:
-            convertedQuestion.examplesComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.examplesComments ) )
+            convertedQuestion.examplesComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.examplesComments ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.hintsComments:
-            convertedQuestion.hintsComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.hintsComments ) )
+            convertedQuestion.hintsComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.hintsComments ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.answerComments:
-            convertedQuestion.answerComments, imagesToCache = replaceImageTags( convertToHTML( convertedQuestion.answerComments ) )
+            convertedQuestion.answerComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.answerComments ) )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         for filename in overallImagesToCache:
             _ = Image.getAndCacheByName( filename )
@@ -455,6 +440,22 @@ class Question( db.Model ):
             self.hintsComments = oracle.encrypt( self.hintsComments, iv )
             self.answerComments = oracle.encrypt( self.answerComments, iv )
             self.commentTextIsEncrypted = True
+
+    @staticmethod
+    def retrieveAndDecryptSimilarQuestions( thisQuestionID, tags, classAbbr, quiz ):
+        """ Find questions "similar" to this one. Uses quiz # and tags.
+             TODO: Union questions with the same tag(s) - right now it's looking for equal tags. """
+        assert(tags and len(tags)>0)
+        assert(classAbbr and len(classAbbr)>0)
+        assert(quiz>0)
+        existing = []
+        tagSet = app.utils.commaDelimitedStringAsSet(tags)
+        instances = Question.query.filter( Question.classAbbr == classAbbr, Question.id != thisQuestionID, Question.quiz == quiz ).order_by( Question.id ).all()
+        for instance in instances:
+            instanceTags = instance.tagsAsSet()
+            if ( len( instanceTags.intersection( tagSet ) ) > 0 ):
+                existing.append( instance.makeDecryptedTextVersion() )
+        return existing
 
     # Generate Quizzes and Exams
     

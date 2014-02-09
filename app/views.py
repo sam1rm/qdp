@@ -1,4 +1,4 @@
-# IMPORTS
+# === Imports ===
 
 import datetime
 import os
@@ -16,7 +16,7 @@ from flask.ext.security import SQLAlchemyUserDatastore
 from flask.helpers import get_flashed_messages
 from werkzeug import secure_filename
 
-# "GLOBALS"
+# === Globals ===
 
 g_CachedQuestions = []
 g_HerokuPushVersion = None
@@ -24,6 +24,12 @@ g_HerokuPushVersion = None
 # Create a permission with a single Need, in this case a RoleNeed.
 user_permission = Permission( RoleNeed( 'user' ) )
 admin_permission = Permission( RoleNeed( 'admin' ) )
+
+# === Constants ===
+
+CLASS_ABBR_KEY = 'classAbbr'
+
+# === View Code ===
 
 @app.route( '/' )
 @login_required
@@ -81,13 +87,13 @@ def chooseQuestionToEdit():
     """ Primary point for editing a question which begins with choosing questions that
         exist for a previously chosen class.
         TODO: Allow admins to edit _all_ questions. """
-    if (('classAbbr' in session) and (session['classAbbr'])):
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         user = g.user
-        classInfo = ClassInfo.get( session['classAbbr'] )
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         if (user.is_admin()):
-            questions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
+            questions = Question.query.filter( Question.classAbbr == session[CLASS_ABBR_KEY] ).order_by( Question.id ).all()
         else:
-            questions = Question.query.filter( Question.user_id == user.id, Question.classAbbr == session['classAbbr'] ).order_by( Question.id ).all()
+            questions = Question.query.filter( Question.user_id == user.id, Question.classAbbr == session[CLASS_ABBR_KEY] ).order_by( Question.id ).all()
         if ( len( questions ) > 0 ):
                 # TODO: This is SUCH a hack .. clean up encrypted synchronization!
             return render_template( 'chooseQuestion.html', questions = questions, \
@@ -108,14 +114,14 @@ def chooseQuestionToEdit():
 def chooseQuiz():
     """ Choose from existing unique quiz numbers available
         TODO: Super-inefficient, but tries to cache questions for a generated quiz... """
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         global g_CachedQuestions
         quizzesFound = set()
-        g_CachedQuestions = Question.query.filter( Question.classAbbr == session['classAbbr'] ).all()
+        g_CachedQuestions = Question.query.filter( Question.classAbbr == session[CLASS_ABBR_KEY] ).all()
         for question in g_CachedQuestions:
             quizzesFound.add( question.quiz )
-        return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz for " + session['classAbbr'] + " (" + classInfo.longName + ")" )
+        return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz for " + session[CLASS_ABBR_KEY] + " (" + classInfo.longName + ")" )
     elif 'mode' in session:
         flash( "Please choose a class first." )
         return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
@@ -131,10 +137,10 @@ def chooseQuiz():
 def manageMedia():
     """ Display uploaded media files, or upload a new one. 
         TODO: Filter (optimization) by classAbbr. """
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         images = []
-        instances = Image.query.filter(Image.classAbbr == session['classAbbr']).order_by( Image.id ).all()
+        instances = Image.query.filter(Image.classAbbr == session[CLASS_ABBR_KEY]).order_by( Image.id ).all()
         for instance in instances:
             try:
                 instance.cacheByName()
@@ -143,7 +149,7 @@ def manageMedia():
             images.append( instance )
         if ( len( images ) > 0 ):
             return render_template('manageMedia.html', \
-                                   title="Manage Media for " + session['classAbbr'] + " (" + classInfo.longName + ")", \
+                                   title="Manage Media for " + session[CLASS_ABBR_KEY] + " (" + classInfo.longName + ")", \
                                    imagesToDisplay = images, \
                                    isDebugging = app.config['DEBUG'] )
         else:
@@ -160,8 +166,8 @@ def manageMedia():
 @user_permission.require()
 def uploadMedia():
     """ Upload a file (image), encrypt it, and store it in the database. """
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         if request.method == 'POST':
                 file = request.files['file']
                 humanReadableName = request.form['name']
@@ -197,8 +203,7 @@ def allowed_file(filename):
 def choseClass():
     """ Once a class is chosen (above), redirect to the mode's page (etc. 'write'->editQuestion()) """
     if 'mode' in session:
-        argForClass = request.args.get( 'classAbbr' )
-        session['classAbbr'] = argForClass
+        session[CLASS_ABBR_KEY] = request.args.get( CLASS_ABBR_KEY ) # Store the passed arg 'class abbreviate' in the session
         if ( session['mode'] == "Write" ):
             return redirect( url_for( 'writeNewQuestion' ) )
         elif ( session['mode'] == "Edit" ):
@@ -219,9 +224,9 @@ def choseClass():
 @login_required
 @user_permission.require()
 def writeNewQuestion():
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
-        question = Question( created = datetime.datetime.now(), classAbbr = session['classAbbr'], classID = classInfo.currentID )
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
+        question = Question( created = datetime.datetime.now(), classAbbr = session[CLASS_ABBR_KEY], classID = classInfo.currentID )
         db.session.add( question )
         classInfo.currentID = classInfo.currentID + 1
         db.session.merge( classInfo )
@@ -235,8 +240,8 @@ def writeNewQuestion():
 @login_required
 @user_permission.require()
 def editQuestion():
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         rawQuestionIDAsString = request.args.get( 'questionID' )
         assert rawQuestionIDAsString, "rawQuestionID wasn't passed to editQuestion??"
         question = Question.get( int( rawQuestionIDAsString ) )
@@ -244,10 +249,10 @@ def editQuestion():
             question.decryptText()
             rowCounts = question.calculateRows()
             # TODO: Handle bad questions (errors on next line) gracefully!
-            similarQuestions = question.retrieveAndDecryptSimilarQuestions()
+#            similarQuestions = question.retrieveAndDecryptSimilarQuestions()
             form = QuestionForm( request.form, question )
             return render_template( 'editQuestion.html', form = form, \
-                                    similarQuestionsToDisplay = similarQuestions, \
+#                                    similarQuestionsToDisplay = similarQuestions, \
                                     questionToDisplay = question, \
                                     rowCountsToDisplay = rowCounts, \
                                     title = "%s Question #%d For %s" % \
@@ -264,8 +269,8 @@ def editQuestion():
 @login_required
 @user_permission.require()
 def saveQuestion():
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         assert classInfo, "classInfo wasn't already stored for saveQuestion??"
         rawQuestionIDAsString = request.args.get( 'questionID' )
         assert rawQuestionIDAsString, "rawQuestionID wasn't passed to saveQuestion??"
@@ -303,10 +308,10 @@ def saveQuestion():
 def requestReviewQuestion():
     """ Retrieve a question that's been least reviewed for a chosen class.
         Least reviewed is found by looking for 0, 1, 2, etc. up to 10 prior reviews."""
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
-        if ( Question.query.filter( Question.classAbbr == session['classAbbr'] ).count() > 0 ):
-            questionsToReview = Question.query.filter( Question.classAbbr == session['classAbbr'] ).all()
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
+        if ( Question.query.filter( Question.classAbbr == session[CLASS_ABBR_KEY] ).count() > 0 ):
+            questionsToReview = Question.query.filter( Question.classAbbr == session[CLASS_ABBR_KEY] ).all()
             leastReviewed = app.config["REVIEWS_BEFORE_OK_TO_USE"]
             assert( leastReviewed > -1 )
             for questionToReview in questionsToReview:
@@ -333,8 +338,8 @@ def reviewQuestion():
     """ Handler for the "Review question" functionality. Redisplays the original question text as
         uneditable and includes editable comment sections.
         TODO: Show/hide comment sections"""
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         # Handle a question review form
         reviewQuestionIDAsString = request.args.get( 'questionID' )
         assert( reviewQuestionIDAsString ), "reviewQuestionID wasn't passed to reviewQuestion"
@@ -368,7 +373,7 @@ def reviewQuestion():
                                     questionToDisplay = question.makeMarkedUpVersion(), \
                                     rowCountsToDisplay = rowCounts, \
                                     title = "%s Question #%d For %s (%s)" % \
-                                        ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), session['classAbbr'], classInfo.longName ), \
+                                        ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), session[CLASS_ABBR_KEY], classInfo.longName ), \
                                     reviewersSaidOKToDisplay = reviewersSaidOK )
         else:
             flash( "Couldn't find question ID: %s??" % reviewQuestionIDAsString )
@@ -379,6 +384,27 @@ def reviewQuestion():
         flash( "Please choose a task (e.g., 'review') first." )
         return redirect( url_for( 'index' ) )
 
+@app.route( '/gatherSimilarQuestionsFromTags', methods = ['POST'] )
+@login_required
+def gatherSimilarQuestionsFromTags():
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        assert(request.form[ 'questionID' ] and request.form[ 'tags' ] and request.form[ 'quiz' ])  # Ensure that this data has been passed by the Javascript
+        classAbbr = session[CLASS_ABBR_KEY]
+        assert(classAbbr)
+        thisQuestionIDAsString = request.form[ 'questionID' ]
+        thisQuestionID = int(thisQuestionIDAsString)
+        tags=request.form['tags']
+        quizAsString=request.form['quiz']
+        quiz=int(quizAsString)
+        similarQuestions = Question.retrieveAndDecryptSimilarQuestions( thisQuestionID, tags, classAbbr, quiz )
+        return render_template( 'similarQuestions.html', similarQuestionsToDisplay=similarQuestions )
+    elif 'mode' in session:
+            flash( "Please choose a class first." )
+            return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
+    else:
+        flash( "Please choose a task (e.g., 'review') first." )
+        return redirect( url_for( 'index' ) )
+        
 @app.route( '/generateQuiz' )
 @login_required
 @admin_permission.require()
@@ -386,8 +412,8 @@ def generateQuiz():
     """ Generate a printable quiz (see Question.generateQuiz for more information). Utilizes questions
     that were previously cached when choosing which quiz to generate (See chooseQuiz (above) for more 
     information. The quiz itself is rendered on a new page (to ease printing). """ 
-    if (('classAbbr' in session) and (session['classAbbr'])):
-        classInfo = ClassInfo.get( session['classAbbr'] )
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         if g_CachedQuestions:
             quizNumber = request.args.get( 'quizID' )
             assert quizNumber, "Generate quiz without a quiz number??"
@@ -406,9 +432,9 @@ def generateQuiz():
 @admin_permission.require()
 def generateExam():
     """ Very similar to generateQuiz (above), except uses Question.generateFinalExam """
-    if (('classAbbr' in session) and (session['classAbbr'])):
+    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         if g_CachedQuestions:
-            classInfo = ClassInfo.get( session['classAbbr'] )
+            classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
             generatedExam, generatedID = Question.generateFinalExam( classInfo, g_CachedQuestions )
             return render_template( 'generatedQuizOrExam.html', quizNumberToDisplay = 0,\
                                     generatedIDToDisplay = generatedID, \
