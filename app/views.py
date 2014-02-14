@@ -5,6 +5,7 @@ import gzip
 import os
 import random
 import subprocess
+import traceback
 
 from app import app, db, lm, login_serializer, mail
 from app.forms import QuestionForm, ReviewQuestionForm, ReportForm
@@ -146,13 +147,12 @@ def manageMedia():
             except Exception as ex:
                 flash(instance.name + ": " +  str(ex))
             images.append( instance )
-        if ( len( images ) > 0 ):
-            return render_template('manageMedia.html', \
-                                   title="Manage Media for " + session[CLASS_ABBR_KEY] + " (" + classInfo.longName + ")", \
-                                   imagesToDisplay = images, \
-                                   isDebugging = app.config['DEBUG'] )
-        else:
-            flash( "%s, you don't have any images to edit for %s!" % ( currentUserFirstName(), classInfo ) )
+        if ( len( images ) == 0 ):
+            flash( "%s, you don't have any images to edit for %s (%s)!" % ( currentUserFirstName(), classInfo.classAbbr, classInfo.longName ) )
+        return render_template('manageMedia.html', \
+                               title="Manage Media for " + session[CLASS_ABBR_KEY] + " (" + classInfo.longName + ")", \
+                               imagesToDisplay = images, \
+                               isDebugging = app.config['DEBUG'] )
     elif 'mode' in session:
         flash( "Please choose a class first." )
         return redirect( url_for( 'chooseClass', mode = session['mode'] ) )
@@ -491,9 +491,8 @@ def adminDatabaseReset():
     try:
         messages = db_reset.resetDatabase(db)
     except Exception as ex:
-        import traceback
         messages = ["An exception occurred while resetting the database:",ex]
-        messages += traceback.extract_stack()
+        messages += [traceback.format_exc()]
     #flash("Database resetteded!")
     return render_template("adminOutput.html", messagesToDisplay = messages)
 

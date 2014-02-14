@@ -25,6 +25,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
 
 <span class="kn">from</span> <span class="nn">app</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">lm</span><span class="p">,</span> <span class="n">login_serializer</span><span class="p">,</span> <span class="n">mail</span>
 <span class="kn">from</span> <span class="nn">app.forms</span> <span class="kn">import</span> <span class="n">QuestionForm</span><span class="p">,</span> <span class="n">ReviewQuestionForm</span><span class="p">,</span> <span class="n">ReportForm</span>
@@ -380,13 +381,12 @@ app.logger.debug("render_template")</p>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
                 <span class="n">flash</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot;: &quot;</span> <span class="o">+</span>  <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
             <span class="n">images</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">instance</span> <span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="n">images</span> <span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">):</span>
-            <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;manageMedia.html&#39;</span><span class="p">,</span> \
-                                   <span class="n">title</span><span class="o">=</span><span class="s">&quot;Manage Media for &quot;</span> <span class="o">+</span> <span class="n">session</span><span class="p">[</span><span class="n">CLASS_ABBR_KEY</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; (&quot;</span> <span class="o">+</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">,</span> \
-                                   <span class="n">imagesToDisplay</span> <span class="o">=</span> <span class="n">images</span><span class="p">,</span> \
-                                   <span class="n">isDebugging</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;DEBUG&#39;</span><span class="p">]</span> <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">, you don&#39;t have any images to edit for </span><span class="si">%s</span><span class="s">!&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">currentUserFirstName</span><span class="p">(),</span> <span class="n">classInfo</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="n">images</span> <span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">):</span>
+            <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">, you don&#39;t have any images to edit for </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)!&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">currentUserFirstName</span><span class="p">(),</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">classAbbr</span><span class="p">,</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="p">)</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">&#39;manageMedia.html&#39;</span><span class="p">,</span> \
+                               <span class="n">title</span><span class="o">=</span><span class="s">&quot;Manage Media for &quot;</span> <span class="o">+</span> <span class="n">session</span><span class="p">[</span><span class="n">CLASS_ABBR_KEY</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; (&quot;</span> <span class="o">+</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span><span class="p">,</span> \
+                               <span class="n">imagesToDisplay</span> <span class="o">=</span> <span class="n">images</span><span class="p">,</span> \
+                               <span class="n">isDebugging</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;DEBUG&#39;</span><span class="p">]</span> <span class="p">)</span>
     <span class="k">elif</span> <span class="s">&#39;mode&#39;</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
         <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;Please choose a class first.&quot;</span> <span class="p">)</span>
         <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span> <span class="n">url_for</span><span class="p">(</span> <span class="s">&#39;chooseClass&#39;</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">]</span> <span class="p">)</span> <span class="p">)</span>
@@ -974,9 +974,8 @@ dminDatabaseReset():
 ry:
    messages = db_reset.resetDatabase(db)
 xcept Exception as ex:
-   import traceback
    messages = ["An exception occurred while resetting the database:",ex]
-   messages += traceback.extract_stack()
+   messages += [traceback.format_exc()]
 flash("Database resetteded!")
 eturn render_template("adminOutput.html", messagesToDisplay = messages)</p>
 <p>route( "/adminTesting" )
