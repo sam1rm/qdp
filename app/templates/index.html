@@ -62,15 +62,29 @@
 			</a>
 		</td>
 		{% if isAdmin %} 
+		<td>
+		<table>
 		{% if hasUnverifiedUsers %} 
-		<td style="vertical-align:center;">
+			<tr>
+		<td>
 			<a href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
 				<i class="glyphicon glyphicon-user">
 				</i>
 				Approve Users 
 			</a>
-		</td>
+		</td></tr>
 		{% endif %}
+					<tr><td>&nbsp;</td></tr>
+			<tr>
+				<td>
+					<a href="{{ url_for('downloadDatabase') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
+					<i class="glyphicon glyphicon-list-alt">
+						</i>
+						Download Database
+					</a>
+				</td>
+			</tr>
+			</table></td>
 		{% if isDebugging %} 
 		<td>
 		<table>
@@ -83,13 +97,13 @@
 					</a>
 				</td>
 			</tr>
-			<tr><td>&nbsp;</td></tr>
+            <tr><td>&nbsp;</td></tr>
 			<tr>
 				<td>
 					<a href="{{ url_for('adminTesting') }}" style="width: 200px; min-width:200px;" class="btn btn-danger btn-large">
 					<i class="glyphicon glyphicon-cog">
 						</i>
-						Testing...
+						Testing, 1, 2, 3, ...
 					</a>
 				</td>
 			</tr>

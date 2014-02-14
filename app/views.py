@@ -1,9 +1,11 @@
 # === Imports ===
 
 import datetime
+import gzip
 import os
 import random
 import subprocess
+
 from app import app, db, lm, login_serializer, mail
 from app.forms import QuestionForm, ReviewQuestionForm, ReportForm
 from app.models import User, Role, ClassInfo, Question, Image
@@ -16,10 +18,12 @@ from flask.ext.security import SQLAlchemyUserDatastore
 from flask.helpers import get_flashed_messages
 from werkzeug import secure_filename
 
+import db_reset
+
 # === Globals ===
 
-g_CachedQuestions = []
-g_HerokuPushVersion = None
+gCachedQuestions = []
+gHerokuPushVersion = None
 
 # Create a permission with a single Need, in this case a RoleNeed.
 user_permission = Permission( RoleNeed( 'user' ) )
@@ -28,22 +32,22 @@ admin_permission = Permission( RoleNeed( 'admin' ) )
 # === Constants ===
 
 CLASS_ABBR_KEY = 'classAbbr'
+QUESTION_ID_KEY = 'questionID'
 
-# === View Code ===
+# === View Code Begins ===
 
 @app.route( '/' )
 @login_required
 def index():
-    """ Top level site location. Displays additional buttons for admin: Verify users (if there
-        are any), and provide additional administration. """
+    """ Top level site location. Displays additional buttons for admin: Verify users (if there are any), and provide additional administration. """
     #app.logger.debug("user=g.user")
     user = g.user
     #app.logger.debug("user.is_verified()")
     if user.is_verified():
-        global g_HerokuPushVersion
-        if not g_HerokuPushVersion:
+        global gHerokuPushVersion
+        if not gHerokuPushVersion:
             fref=open("version.txt")
-            g_HerokuPushVersion = fref.readline()[:-1]
+            gHerokuPushVersion = fref.readline()[:-1]
         # imageFileURL = url_for( 'static', filename = 'img/possibly47abc.png' )
         #app.logger.debug("render_template")
         return render_template( 'index.html',
@@ -52,7 +56,7 @@ def index():
             hasUnverifiedUsers = ( user.is_admin() and User.hasUnverifiedUsers() ),  # redundant on purpose
             help = 'helpMain',
             isDebugging = app.config['DEBUG'],
-            version = g_HerokuPushVersion )
+            version = gHerokuPushVersion )
     else:
         #app.logger.debug("unverifiedUser")
         return redirect( url_for( 'unverifiedUser' ) )
@@ -61,8 +65,7 @@ def index():
 @login_required
 @user_permission.require()
 def helpMain():
-    """ Help page associated with the main page.
-        TODO: Make help dynamic (e.g. __page__Help.html)"""
+    """ Help page associated with the main page. TODO: Make help dynamic (e.g. __page__Help.html)"""
     return render_template( 'helpMain.html', title = "SAMPLE HELP PAGE" )
 
 # CHOOSERS
@@ -84,9 +87,7 @@ def chooseClass():
 @login_required
 @user_permission.require()
 def chooseQuestionToEdit():
-    """ Primary point for editing a question which begins with choosing questions that
-        exist for a previously chosen class.
-        TODO: Allow admins to edit _all_ questions. """
+    """ Primary point for editing a question which begins with choosing questions that exist for a previously chosen class. TODO: Allow admins to edit _all_ questions. """
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         user = g.user
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
@@ -112,14 +113,13 @@ def chooseQuestionToEdit():
 @login_required
 @admin_permission.require()
 def chooseQuiz():
-    """ Choose from existing unique quiz numbers available
-        TODO: Super-inefficient, but tries to cache questions for a generated quiz... """
+    """ Choose from existing unique quiz numbers available. TODO: Super-inefficient, but tries to cache questions for a generated quiz... """
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
-        global g_CachedQuestions
+        global gCachedQuestions
         quizzesFound = set()
-        g_CachedQuestions = Question.query.filter( Question.classAbbr == session[CLASS_ABBR_KEY] ).all()
-        for question in g_CachedQuestions:
+        gCachedQuestions = Question.query.filter( Question.classAbbr == session[CLASS_ABBR_KEY] ).all()
+        for question in gCachedQuestions:
             quizzesFound.add( question.quiz )
         return render_template( 'chooseQuiz.html', quizzes = quizzesFound, finalExamAvailable = ( len( quizzesFound ) > 0 ), title = "Choose Quiz for " + session[CLASS_ABBR_KEY] + " (" + classInfo.longName + ")" )
     elif 'mode' in session:
@@ -135,8 +135,7 @@ def chooseQuiz():
 @login_required
 @user_permission.require()
 def manageMedia():
-    """ Display uploaded media files, or upload a new one. 
-        TODO: Filter (optimization) by classAbbr. """
+    """ Display uploaded media files, or upload a new one. TODO: Filter (optimization) by classAbbr. """
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         images = []
@@ -242,7 +241,7 @@ def writeNewQuestion():
 def editQuestion():
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
-        rawQuestionIDAsString = request.args.get( 'questionID' )
+        rawQuestionIDAsString = request.args.get( QUESTION_ID_KEY )
         assert rawQuestionIDAsString, "rawQuestionID wasn't passed to editQuestion??"
         question = Question.get( int( rawQuestionIDAsString ) )
         if question:  # Can be None if there was a problem retrieving this question
@@ -272,7 +271,7 @@ def saveQuestion():
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         assert classInfo, "classInfo wasn't already stored for saveQuestion??"
-        rawQuestionIDAsString = request.args.get( 'questionID' )
+        rawQuestionIDAsString = request.args.get( QUESTION_ID_KEY )
         assert rawQuestionIDAsString, "rawQuestionID wasn't passed to saveQuestion??"
         question = Question.get( int( rawQuestionIDAsString ) )
         if request.method == 'POST':
@@ -341,7 +340,7 @@ def reviewQuestion():
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         # Handle a question review form
-        reviewQuestionIDAsString = request.args.get( 'questionID' )
+        reviewQuestionIDAsString = request.args.get( QUESTION_ID_KEY )
         assert( reviewQuestionIDAsString ), "reviewQuestionID wasn't passed to reviewQuestion"
         question = Question.get( int( reviewQuestionIDAsString ) )
         if question:
@@ -387,12 +386,13 @@ def reviewQuestion():
 
 @app.route( '/gatherSimilarQuestionsFromTags', methods = ['POST'] )
 @login_required
+@user_permission.require()
 def gatherSimilarQuestionsFromTags():
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
-        assert(request.form[ 'questionID' ] and request.form[ 'tags' ] and request.form[ 'quiz' ])  # Ensure that this data has been passed by the Javascript
+        assert(request.form[ QUESTION_ID_KEY ] and request.form[ 'tags' ] and request.form[ 'quiz' ])  # Ensure that this data has been passed by the Javascript
         classAbbr = session[CLASS_ABBR_KEY]
         assert(classAbbr)
-        thisQuestionIDAsString = request.form[ 'questionID' ]
+        thisQuestionIDAsString = request.form[ QUESTION_ID_KEY ]
         thisQuestionID = int(thisQuestionIDAsString)
         tags=request.form['tags']
         quizAsString=request.form['quiz']
@@ -415,10 +415,10 @@ def generateQuiz():
     information. The quiz itself is rendered on a new page (to ease printing). """ 
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
-        if g_CachedQuestions:
+        if gCachedQuestions:
             quizNumber = request.args.get( 'quizID' )
             assert quizNumber, "Generate quiz without a quiz number??"
-            generatedQuiz, generatedID = Question.generateQuiz( classInfo, int( quizNumber ), g_CachedQuestions, app.config['MAX_NUMBER_OF_QUESTIONS'] )
+            generatedQuiz, generatedID = Question.generateQuiz( classInfo, int( quizNumber ), gCachedQuestions, app.config['MAX_NUMBER_OF_QUESTIONS'] )
             return render_template( 'generatedQuizOrExam.html', quizNumberToDisplay = quizNumber, generatedIDToDisplay = generatedID, \
                                generatedQuestionsToDisplay = generatedQuiz, classInfoToDisplay = classInfo )
         else:
@@ -434,9 +434,9 @@ def generateQuiz():
 def generateExam():
     """ Very similar to generateQuiz (above), except uses Question.generateFinalExam """
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
-        if g_CachedQuestions:
+        if gCachedQuestions:
             classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
-            generatedExam, generatedID = Question.generateFinalExam( classInfo, g_CachedQuestions )
+            generatedExam, generatedID = Question.generateFinalExam( classInfo, gCachedQuestions )
             return render_template( 'generatedQuizOrExam.html', quizNumberToDisplay = 0,\
                                     generatedIDToDisplay = generatedID, \
                                     generatedQuestionsToDisplay = generatedExam, \
@@ -488,21 +488,14 @@ def imageStatistics():
 @login_required
 @admin_permission.require()
 def adminDatabaseReset():
-    import db_reset
-    messageList = []
-#     for entry in Question.query.all():
-#         messageList.append( "Deleting Question id: %d (class id: %d) (%s)" % ( entry.id, entry.classID, entry.shortenedDecryptedQuestionWithMarkup() ) )
-#         db.session.delete( entry )
-#     for entry in User.query.filter( User.fullname != "Glenn Sugden" ).all():
-#         messageList.append( "Deleting User id: %d (%s)" % ( entry.id, entry.fullname ) )
-#         db.session.delete( entry )
-#     for entry in ClassInfo.query.all():
-#         messageList.append( "Resetting class ids for: %s (id: %d)" % ( entry.longName, entry.id ) )
-#         entry.currentID = entry.startingID
-#     db.session.commit()
-    db_reset.resetDatabase(db)
-    messageList.append( "...done!" )
-    return render_template( 'adminOutput.html', title = "Admin. - Database Reset", messagesToDisplay = messageList )
+    try:
+        messages = db_reset.resetDatabase(db)
+    except Exception as ex:
+        import traceback
+        messages = ["An exception occurred while resetting the database:",ex]
+        messages += traceback.extract_stack()
+    #flash("Database resetteded!")
+    return render_template("adminOutput.html", messagesToDisplay = messages)
 
 @app.route( "/adminTesting" )
 @login_required
@@ -522,6 +515,8 @@ def adminTesting():
         print "OSError({0}): {1}".format(ex.errno, ex.strerror)
     messages.append(app.config['UPLOAD_FOLDER'])
     return render_template("adminTesting.html", imagesToDisplay = [path1,path2], messageToDisplay = messages)
+
+# === Report a Bug ===
 
 @app.route( "/reporting" )
 def reporting():
@@ -546,7 +541,20 @@ def sendOrDeleteReport():
     #return redirect( returnTo )
     return redirect( url_for( 'index' ) ) # Return to top, as request.args may be incorrect at this point (e.g. reviewQuestion and questionID)
 
-# UTILITES
+@app.route("/downloadDatabase")
+@login_required
+@admin_permission.require()
+def downloadDatabase():
+    # Check for valid file and assign it to `inbound_file`
+    f_in = open('app.db', 'rb')
+    f_out = gzip.open('/tmp/app.db.gz', 'wb')
+    f_out.writelines(f_in)
+    f_out.close()
+    f_in.close()
+    resp = makeTempFileResp("app.db.gz")
+    return resp
+
+# === UTILITES ===
 
 @app.route( "/tmp/<path:path>" )
 def tempPath( path ):

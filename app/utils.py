@@ -67,6 +67,9 @@ def makeTempFileResp(filename):
             resp.content_type = "image/GIF"
         elif (data[6:10]=="JFIF"):
             resp.content_type = "image/JPEG"
+        elif (filename[-3:]==".gz"):
+            resp.content_type = "application/x-gzip"
+            resp.headers["Content-Disposition"] = "attachment; filename=app.db.gz"
     except IOError as _:
         print 'Unable to open file for reading in makeTempFileResp: %s' % path
         resp = make_response(render_template('404.shtml'), 404)

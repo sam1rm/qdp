@@ -106,6 +106,9 @@ Get the file in a path, removing directories and invisibles</p>
 <span class="s">            resp.content_type = &quot;image/GIF&quot;</span>
 <span class="s">        elif (data[6:10]==&quot;JFIF&quot;):</span>
 <span class="s">            resp.content_type = &quot;image/JPEG&quot;</span>
+<span class="s">        elif (filename[-3:]==&quot;.gz&quot;):</span>
+<span class="s">            resp.content_type = &quot;application/x-gzip&quot;</span>
+<span class="s">            resp.headers[&quot;Content-Disposition&quot;] = &quot;attachment; filename=app.db.gz&quot;</span>
 <span class="s">    except IOError as _:</span>
 <span class="s">        print &#39;Unable to open file for reading in makeTempFileResp: </span><span class="si">%s</span><span class="s">&#39; % path</span>
 <span class="s">        resp = make_response(render_template(&#39;404.shtml&#39;), 404)</span>
