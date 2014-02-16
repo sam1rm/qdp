@@ -39,7 +39,8 @@ def doConversion():
     while(text!="convert"):
         text=unicode(raw_input("> "))
         if (text!=u"convert"):
-            line += convertTextToHTML(text)
+            line += convertTextToHTML(text) 
+            line += "\\r"
     while (line[-2:]=="\\r"):
         line=line[:-2]
     return line
