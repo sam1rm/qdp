@@ -2,7 +2,7 @@
 .pydevproject
 *.pyc
 app.db
-db_reset/*
+
 tmp/
 app copy.db
 hashpass.py

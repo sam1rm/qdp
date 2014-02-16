@@ -1,0 +1,2 @@
+description=C++
+startid=6000
