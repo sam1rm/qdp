@@ -2,9 +2,39 @@
 {% extends "layout.html" %}
  
 {% block head %}
- 
+<script src="{{ url_for('static', filename='js/tinymce.min.js') }}"></script>
 <script>
-
+        tinymce.init(
+        {
+            selector:'textarea',
+            plugins: "code image media", 
+            forced_root_block : "", 
+            force_br_newlines : true,
+            force_p_newlines : false,
+            toolbar: "code | undo redo | styleselect | pre bold italic | image",
+            setup: function(ed) 
+            {
+                ed.on('keydown', function(evt) {
+                {
+                    console.debug('Key down event: ' + evt.keyCode);
+                    if (evt.keyCode == 9)
+                    {
+                      ed.execCommand('mceInsertContent', false, '&emsp;&emsp;');
+                      evt.preventDefault();
+                    }
+                }});
+                ed.addButton('pre', 
+                {
+                    title: "Pre", 
+                    text: "<pre>",
+                    onclick : function()
+                    {
+                        ed.focus(); 
+                        ed.formatter.toggle("pre");
+                    } 
+                })
+            }
+        });
 $(document).ready(
     function() 
     {                      

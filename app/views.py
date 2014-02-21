@@ -8,9 +8,6 @@ import subprocess
 import traceback
 
 from app import app, db, lm, login_serializer, mail
-from app.forms import QuestionForm, ReviewQuestionForm, ReportForm
-from app.models import User, Role, ClassInfo, Question, Image
-from app.utils import makeTempFileResp
 from flask import render_template, flash, redirect, session, url_for, request, g
 from flask.ext.login import current_user, login_required
 from flask.ext.mail import Message
@@ -19,6 +16,10 @@ from flask.ext.security import SQLAlchemyUserDatastore
 from flask.helpers import get_flashed_messages
 from werkzeug import secure_filename
 
+from app.forms import QuestionForm, ReviewQuestionForm, ReportForm
+from app.models import User, Role, ClassInfo, Question, Image
+from app.utils import makeTempFileResp
+from app.oracle import generateIV, encrypt
 import db_reset
 
 # === Globals ===
@@ -145,7 +146,7 @@ def manageMedia():
             try:
                 instance.cacheByName()
             except Exception as ex:
-                flash(instance.name + ": " +  str(ex))
+                flash(instance.filename + ": " +  str(ex))
             images.append( instance )
         if ( len( images ) == 0 ):
             flash( "%s, you don't have any images to edit for %s (%s)!" % ( currentUserFirstName(), classInfo.classAbbr, classInfo.longName ) )
@@ -169,15 +170,23 @@ def uploadMedia():
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         if request.method == 'POST':
                 file = request.files['file']
-                humanReadableName = request.form['name']
+                #humanReadableName = request.form['name']
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    image = Image.imageFromUploadedFile(file, filepath, humanReadableName, classInfo.classAbbr)
+                    filenameSecure = secure_filename(file.filename)
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filenameSecure)
+                    # image = Image.imageFromUploadedFile(file, filepath, humanReadableName, classInfo.classAbbr)
+                    # Create an (encrypted) Image instance from an image file. The file is saved first as a way
+                    # to translate from Flask's file upload to the database - TODO: This conversion may not be necessary. """
+                    file.save(filepath)
+                    fref = open(filepath,"rb")
+                    data = fref.read()
+                    fref.close()
+                    dataIV,dataIV64 = generateIV();
+                    image = Image(filename=filenameSecure, classAbbr=classInfo.classAbbr, data=encrypt(data,dataIV), dataIV=dataIV64)
                     db.session.add(image)
                     db.session.commit()
-                    flash('Saved: ' + filename)
-                    return redirect(url_for('manageMedia', filename=filename))
+                    flash('Saved: ' + filenameSecure)
+                    return redirect(url_for('manageMedia', filename=filenameSecure))
                 else:
                     flash( "Invalid upload (file). Only accepting (extensions): "+str(app.config['ALLOWED_EXTENSIONS']))
                     return redirect( url_for( 'manageMedia' ) )
@@ -223,6 +232,7 @@ def choseClass():
 @login_required
 @user_permission.require()
 def writeNewQuestion():
+    """ Handler for writeNewQuestion. TODO: Handle missing required fields much more gracefully... """
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         question = Question( created = datetime.datetime.now(), classAbbr = session[CLASS_ABBR_KEY], classID = classInfo.currentID )
@@ -239,29 +249,34 @@ def writeNewQuestion():
 @login_required
 @user_permission.require()
 def editQuestion():
-    if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
-        classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
-        rawQuestionIDAsString = request.args.get( QUESTION_ID_KEY )
-        assert rawQuestionIDAsString, "rawQuestionID wasn't passed to editQuestion??"
-        question = Question.get( int( rawQuestionIDAsString ) )
-        if question:  # Can be None if there was a problem retrieving this question
-            question.decryptText()
-            rowCounts = question.calculateRows()
-            # TODO: Handle bad questions (errors on next line) gracefully!
-#            similarQuestions = question.retrieveAndDecryptSimilarQuestions()
-            form = QuestionForm( request.form, question )
-            return render_template( 'editQuestion.html', form = form, \
-#                                    similarQuestionsToDisplay = similarQuestions, \
-                                    questionToDisplay = question, \
-                                    rowCountsToDisplay = rowCounts, \
-                                    title = "%s Question #%d For %s" % \
-                                        ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), \
-                                    classInfo.longName ) )
+    if ('mode' in session):
+        if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
+            classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
+            rawQuestionIDAsString = request.args.get( QUESTION_ID_KEY )
+            assert rawQuestionIDAsString, "rawQuestionID wasn't passed to editQuestion??"
+            question = Question.get( int( rawQuestionIDAsString ) )
+            if question:  # Can be None if there was a problem retrieving this question
+                question.decryptText()
+                rowCounts = question.calculateRows()
+                # TODO: Handle bad questions (errors on next line) gracefully!
+    #            similarQuestions = question.retrieveAndDecryptSimilarQuestions()
+                form = QuestionForm( request.form, question )
+                return render_template( 'editQuestion.html', form = form, \
+    #                                    similarQuestionsToDisplay = similarQuestions, \
+                                        questionToDisplay = question, \
+                                        rowCountsToDisplay = rowCounts, \
+                                        title = "%s Question #%d For %s" % \
+                                            ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), \
+                                        classInfo.longName ) )
+            else:
+                flash("Unable to find Question ID: "+rawQuestionIDAsString)
+                return redirect( url_for( 'chooseQuestionToEdit' ) )
         else:
-            flash("Unable to find Question ID: "+rawQuestionIDAsString)
-            return redirect( url_for( 'chooseQuestionToEdit' ) )
+            flash( "Please choose a class first." )
     else:
-        flash( "Please choose a class first." )
+        flash( "Please choose a task (e.g., 'review') first." )
+        return redirect( url_for( 'index' ) )
+
     return redirect( url_for( "chooseClass", mode = session['mode'] ) )
 
 @app.route( '/saveQuestion', methods = ['POST'] )
@@ -477,7 +492,11 @@ def imageStatistics():
     assert rawImageIDAsString, "rawImageIDAsString wasn't passed to imageStatistics??"
     image = Image.get( int( rawImageIDAsString ) )
     if image:  # Can be None if there was a problem retrieving this image
-        return render_template( 'imageStatistics.html', title = "Image Statistics for "+image.name, imageToDisplay = image)
+        try:
+            image.cacheByName()
+        except Exception as ex:
+            flash(image.filename + ": " +  str(ex))
+        return render_template( 'imageStatistics.html', title = "Image Statistics for "+image.filename, imageToDisplay = image)
     else:
         flash("Unable to find Image ID: "+rawImageIDAsString)
         return redirect( url_for( 'manageMedia' ) )
@@ -491,8 +510,13 @@ def adminDatabaseReset():
     try:
         messages = db_reset.resetDatabase(db)
     except Exception as ex:
-        messages = ["An exception occurred while resetting the database:",ex]
-        messages += [traceback.format_exc()]
+        messages = ["An exception occurred while resetting the database:"]
+        if (str(ex)):
+            messages.append(str(ex))
+        formattedExceptionLines = traceback.format_exc().split("\n")
+        for line in formattedExceptionLines:
+            if (len(line)>0):
+                messages.append(line)
     #flash("Database resetteded!")
     return render_template("adminOutput.html", messagesToDisplay = messages)
 

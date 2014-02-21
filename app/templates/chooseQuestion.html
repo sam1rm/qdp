@@ -3,7 +3,7 @@
 <style>
     td {text-align:center;vertical-align:middle;}
 </style>
-<script type=text/javascript>>
+<script type=text/javascript>
     $('.table-hover tr').click(function () { question = $(this).data("question"); window.location.href = {{url_for('editQuestion',questionID=question)}}; })
 </script>
 {% endblock %}

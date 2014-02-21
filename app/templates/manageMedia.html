@@ -12,20 +12,14 @@
 	<thead>
 		<tr>
 			<td> ID </td>
-			{% if isDebugging %}
-			<td> DEBUGGING: /path/to </td>
-			{% endif %} 
-			<td> "Human Readable" Name </td>
+			<td> /path/to </td>
 			<td> Image </td>
 	</thead>
 	<tbody>
 		{% for image in imagesToDisplay %} 
 		<tr data-image=image.id>
 			<td> <a href="{{url_for('imageStatistics',imageID=image.id)}}"> {{image.id}} </a> </td>
-			{% if isDebugging %} 
 			<td> {{image.cachePath}} </td>
-			{% endif %} 
-			<td> {{image.name}} </td>
 			<td> <img src="{{image.cachePath}}"> </td>
 		<tr>
 			{% endfor %} 

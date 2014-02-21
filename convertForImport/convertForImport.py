@@ -1,6 +1,6 @@
 import html_entities
 
-text = None
+NEWLINE = "<br />"
 
 # def replaceAsciiWithMarkup(text,asciiChar,replaceMarkup):
 #     location = text.find(asciiChar)
@@ -40,9 +40,11 @@ def doConversion():
         text=unicode(raw_input("> "))
         if (text!=u"convert"):
             line += convertTextToHTML(text) 
-            line += "\\r"
-    while (line[-2:]=="\\r"):
-        line=line[:-2]
+            line += NEWLINE
+    while (line[:6]==NEWLINE):
+        line=line[6:]
+    while (line[-6:]==NEWLINE):
+        line=line[:-6]
     return line
     
 if __name__ == "__main__":

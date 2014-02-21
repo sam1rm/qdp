@@ -1,3 +1,3 @@
 tags=Matrix Basics, Vectors
 question=Give two ways to construct a vector containing the odd integers from 1 through N. One way should use a bracketed expression involving only the colon operator; the other should perform arithmetic on the vector of integers from 1 to (N+1)/2.
-answer=[1:2:N]\r[1:N]*2-1
+answer=[1:2:N]<br />[1:N]*2-1

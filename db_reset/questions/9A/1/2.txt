@@ -1,3 +1,3 @@
 tags=Matrix Basics, Vectors
 question=Suppose that A is a vector. Give two ways to define a vector that is as long as A and whose elements are all 1.
-answer=ones(size(A))\rones(1,length(A))\rA./A\rzeros(1,length(A))+1\rzeros(size(A))+1
+answer=ones(size(A))<br />ones(1,length(A))<br />A./A<br />zeros(1,length(A))+1<br />zeros(size(A))+1

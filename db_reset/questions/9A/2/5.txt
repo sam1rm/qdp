@@ -1,0 +1,3 @@
+tags=Advanced Matrices
+question=Suppose that A contains the following values.<br /><br />A = [0 1 0 1];<br /><br />&hellip;what is the value of B, C, D and E?<br /><br /><br />B = ~A;
+answer=[1     0     1     0]

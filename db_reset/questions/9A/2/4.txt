@@ -1,0 +1,3 @@
+tags=Advanced Matrices
+question=You collected (latitude,longitude,altitude) temperature data into a 3D matrix T, and where you weren&rsquo;t able to collect any data you have the value NaN. Your supervisor has an identically-sized (and identically registered) logical 3D matrix Could with a 1 where you could have collected data and a 0 where you couldn&rsquo;t possibly have collected data (under a mountain, say). Without using explicit loop constructs or if, write a single expression (using no temporary variables) that returns the scalar number of (latitude,longitude,altitude) locations you have left to collect data.
+answer=sum(sum(sum(isnan(T) &amp; Could)))<br />&hellip;or&hellip;<br />sum(isnan(T(:)) &amp; Could(:))

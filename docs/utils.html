@@ -26,7 +26,7 @@
 <span class="kn">import</span> <span class="nn">flask</span>
 
 <span class="n">TMP_PATH</span> <span class="o">=</span> <span class="s">&quot;/tmp&quot;</span>
-<span class="n">IMAGE_REGEX</span> <span class="o">=</span> <span class="s">r&quot;\[\[(.*?)\]\]&quot;</span></pre></div>
+<span class="n">IMAGE_REGEX</span> <span class="o">=</span> <span class="s">r&#39;&lt;img src=&quot;tmp/(.*?)&quot;.*?&gt;&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -106,6 +106,9 @@ Get the file in a path, removing directories and invisibles</p>
 <span class="s">            resp.content_type = &quot;image/GIF&quot;</span>
 <span class="s">        elif (data[6:10]==&quot;JFIF&quot;):</span>
 <span class="s">            resp.content_type = &quot;image/JPEG&quot;</span>
+<span class="s">        elif (data[6:10]==&quot;Exif&quot;):</span>
+<span class="s">            resp.content_type = &quot;image/JPEG&quot;</span>
+<span class="s">            app.logger.debug(&quot;Warning: image header for &quot;+filename+&quot; is &#39;Exif&#39; and not &#39;JFIF&#39;...&quot;)</span>
 <span class="s">        elif (filename[-3:]==&quot;.gz&quot;):</span>
 <span class="s">            resp.content_type = &quot;application/x-gzip&quot;</span>
 <span class="s">            resp.headers[&quot;Content-Disposition&quot;] = &quot;attachment; filename=app.db.gz&quot;</span>
@@ -114,7 +117,7 @@ Get the file in a path, removing directories and invisibles</p>
 <span class="s">        resp = make_response(render_template(&#39;404.shtml&#39;), 404)</span>
 <span class="s">    return resp</span>
 <span class="s">#DIVIDER</span>
-<span class="s">def replaceImageTags(text):</span>
+<span class="s">def findImageTags(text):</span>
 <span class="s">#DIVIDER</span>
 <span class="s">    if (type(text) == type(flask.Markup(&#39;&#39;))):</span>
 <span class="s">        result = flask.Markup.unescape(text)</span>
@@ -124,26 +127,16 @@ Get the file in a path, removing directories and invisibles</p>
 <span class="s">    if text:</span>
 <span class="s">        imageRegExPat = re.compile(IMAGE_REGEX)</span>
 <span class="s">        match = imageRegExPat.search(result)</span>
+<span class="s">        endMatchPos = 0</span>
 <span class="s">        while match:</span>
 <span class="s">            filename = match.group(1)</span>
 <span class="s">            imagesToCache.add(filename)</span>
-<span class="s">            result = result[:match.start(0)]+&#39;&lt;img src=&quot;&#39;+TMP_PATH+&#39;/&#39;+filename+&#39;&quot;&gt;&#39;+result[match.end(0):]</span>
-<span class="s">            match = imageRegExPat.search(result)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">            endMatchPos += match.span(0)[1]</span>
+<span class="s">            match = imageRegExPat.search(result[endMatchPos:])</span>
 <span class="s">    return flask.Markup(result), imagesToCache</span>
 <span class="s">#DIVIDER</span>
-<span class="s">def convertToHTML(text):</span>
-<span class="s">#DIVIDER</span>
-<span class="s">    result = &quot;&quot;</span>
-<span class="s">    if text:</span>
-<span class="s">        text = text.replace(&quot;</span><span class="se">\\</span><span class="s">r&quot;,&quot;</span><span class="se">\n</span><span class="s">&quot;)</span>
-<span class="s">        text = text.replace(&quot;</span><span class="se">\r</span><span class="s">&quot;,&quot;</span><span class="se">\n</span><span class="s">&quot;)</span>
-<span class="s">        text = text.replace(&quot;</span><span class="se">\\</span><span class="s">n&quot;,&quot;</span><span class="se">\n</span><span class="s">&quot;)</span>
-<span class="s">        for line in text.split(&#39;</span><span class="se">\n</span><span class="s">&#39;):</span>
-<span class="s">            result += flask.Markup.escape(line) + flask.Markup(&#39;&lt;br /&gt;&#39;)</span>
-<span class="s">        result = result[:-6] # Rip off the final (unnecessary) &lt;br /&gt;</span>
-<span class="s">        result = result.replace(&quot;</span><span class="se">\t</span><span class="s">&quot;,&quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot;)</span>
-<span class="s">        result = result.replace(&quot;</span><span class="se">\\</span><span class="s">t&quot;,&quot;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&quot;)</span>
-<span class="s">    return result</span>
+
 <span class="s">#DIVIDER</span>
 <span class="s">def commaDelimitedStringAsSet(text):</span>
 <span class="s">#DIVIDER</span>
@@ -156,6 +149,7 @@ Get the file in a path, removing directories and invisibles</p>
 <span class="s">if __name__ == &quot;__main__&quot;:</span>
 <span class="s">    import doctest</span>
 <span class="s">    doctest.testmod()</span>
+<span class="s">    print &quot;### DOCTEST COMPLETE ###&quot;</span>
 
 </pre></div>
     </div>
@@ -257,23 +251,22 @@ tmp/test.txt
       <div class='octowrap'>
         <a class='octothorpe' href='#section-10'>#</a>
       </div>
-      <p>TODO: Make this more efficient during <img> replacement by searching from replacement forward.</p>
+      <blockquote>
 <blockquote>
-<blockquote>
-<p>print replaceImageTags("this is a test")
+<p>print findImageTags('this is a test')
 Markup(u'this is a test'), set([]))
-print replaceImageTags("this is <a href="filename.html">filename.ext</a> a test")
-Markup(u'this is <img src="/tmp/filename.ext"> a test'), set(['filename.ext']))
-print replaceImageTags("this is [filename.ext]] another [<a href="filename.ext]]%20another%20[[filename2.html">filename2.ext2</a> test")
-Markup(u'this is <img src="/tmp/filename.ext"> another <img src="/tmp/filename2.ext2"> test'), set(['filename2.ext2', 'filename.ext']))
-print replaceImageTags(flask.Markup("this is <a href="filename.html">filename.ext</a> a test"))
-Markup(u'this is <img src="/tmp/filename.ext"> a test'), set([u'filename.ext']))
-print replaceImageTags(flask.Markup("this is <a href="filename.html">filename.ext</a> a <br />"))
-Markup(u'this is <img src="/tmp/filename.ext"> a <br />'), set([u'filename.ext']))
-print replaceImageTags(flask.Markup("this is <a href="filename.html">filename.ext</a> a &amp;"))
-Markup(u'this is <img src="/tmp/filename.ext"> a &amp;'), set([u'filename.ext']))
-print replaceImageTags(flask.Markup("this is [filename1.ext]] &amp; [<a href="filename1.ext]]%20&amp;amp;%20[[filename2.html">filename2.ext</a> test"))
-Markup(u'this is <img src="/tmp/filename1.ext"> &amp; <img src="/tmp/filename2.ext"> test'), set([u'filename1.ext', u'filename2.ext']))</p>
+print findImageTags('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a test')
+Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a test'), set(['3.1.gif']))
+print findImageTags('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> another <img src="tmp/3.2.gif" alt="yayface thingy image" width="170" height="98" /> test')
+Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> another <img src="tmp/3.2.gif" alt="yayface thingy image" width="170" height="98" /> test'), set(['tmp/3.2.gif', 'tmp/3.1.gif']))
+print findImageTags(flask.Markup('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a test'))
+Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a test'), set([u'3.1.gif']))
+print findImageTags(flask.Markup('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a <br />'))
+Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a <br />'), set([u'3.1.gif']))
+print findImageTags(flask.Markup('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a &amp;'))
+Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a &amp;'), set([u'3.1.gif']))
+print findImageTags(flask.Markup('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> &amp; <img src="tmp/3.2.gif" alt="yayface thingy image" width="170" height="98" /> test'))
+Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> &amp; <img src="tmp/3.2.gif" alt="yayface thingy image" width="170" height="98" /> test'), set([u'tmp/3.1.gif', u'tmp/3.2.gif']))</p>
 </blockquote>
 </blockquote>
     </div>
@@ -287,7 +280,8 @@ Markup(u'this is <img src="/tmp/filename1.ext"> &amp; <img src="/tmp/filename2.e
       <div class='octowrap'>
         <a class='octothorpe' href='#section-11'>#</a>
       </div>
-      <p>Simple convert some text into HTML code .. appends <br />'s correctly to text which contains</p>
+      <p>We don't have to replace the old <a href="filename.html">filename</a> tags anymore...
+result = result[:match.start(0)]+'<img src="'+TMP_PATH+'/'+filename+'">'+result[match.end(0):]</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -299,22 +293,31 @@ Markup(u'this is <img src="/tmp/filename1.ext"> &amp; <img src="/tmp/filename2.e
       <div class='octowrap'>
         <a class='octothorpe' href='#section-12'>#</a>
       </div>
-      <p>a newline (necessary to display multi-line text correctly). Also changes \tabs into (4) &nbsp;s </p>
-<blockquote>
-<blockquote>
-<p>print convertToHTML("test")
-est
-print convertToHTML("this\nis\na\ntest.")
-his<br />is<br />a<br />test.</p>
-<blockquote>
-<p>print convertToHTML(r"this\nis\na\ntest.") # Doctest doesn't work with \n's...
-this<br />is<br />a<br />test.
-print convertToHTML("this\nis\na\ntest.\n")
-this<br />is<br />a<br />test.
-"""</p>
-</blockquote>
-</blockquote>
-</blockquote>
+      <p>This should no longer be necessary with the tinymce entry box...
+def convertToHTML(text):
+    """ Simple convert some text into HTML code .. appends <br />'s correctly to text which contains 
+        a newline (necessary to display multi-line text correctly). Also changes \tabs into (4) &nbsp;s 
+    &gt;&gt;&gt; print convertToHTML("test")
+    test
+    &gt;&gt;&gt; print convertToHTML('this\nis\na\ntest.')
+    this<br />is<br />a<br />test.
+    """
+    #&gt;&gt;&gt; print convertToHTML(r'this\nis\na\ntest.") # Doctest doesn't work with \n's...
+    #this<br />is<br />a<br />test.
+    #&gt;&gt;&gt; print convertToHTML('this\nis\na\ntest.\n")
+    #this<br />is<br />a<br />test.
+    #"""
+    result = ""
+    if text:
+        text = text.replace("\r","\n")
+        text = text.replace("\r","\n")
+        text = text.replace("\n","\n")
+        for line in text.split('\n'):
+            result += flask.Markup.escape(line) + flask.Markup('<br />')
+        result = result[:-6] # Rip off the final (unnecessary) <br />
+        result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
+        result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
+    return result</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

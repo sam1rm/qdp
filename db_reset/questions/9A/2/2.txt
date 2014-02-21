@@ -1,0 +1,4 @@
+tags=Advanced Matrices
+question=Without using explicit loop constructs or if, how would you replace all of the values in a 2D matrix A with their standard deviation from the mean? If element A(i,j) were s standard deviations from the mean, set element A(i,j) to s. All elements of A which are equal to the mean would be replaced by 0. Use the built-in functions for calculating mean and standard deviation.
+example=if<br /><br />A =<br />     4    -2     1<br />     9     5     7<br /><br />&hellip;then since the standard deviation of A is 4, the new value of A would be:<br /><br />A =<br />         0   -1.5000   -0.7500<br />    1.2500    0.2500    0.7500
+answer=M=mean(reshape(A,prod(size(A)),1));<br />S=std(reshape(A,prod(size(A)),1));<br />A=(A-M)/S;

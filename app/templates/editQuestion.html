@@ -17,6 +17,15 @@
             toolbar: "code | undo redo | styleselect | pre bold italic | image",
             setup: function(ed) 
             {
+                ed.on('keydown', function(evt) {
+                {
+                    console.debug('Key down event: ' + evt.keyCode);
+                    if (evt.keyCode == 9)
+                    {
+                      ed.execCommand('mceInsertContent', false, '&emsp;&emsp;');
+                      evt.preventDefault();
+                    }
+                }});
                 ed.addButton('pre', 
                 {
                     title: "Pre", 

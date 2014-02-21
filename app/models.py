@@ -225,9 +225,9 @@ class Question( db.Model ):
         if self.question:
             self.decryptQuestionText()
             if ( len( self.question ) < 60 ):
-                return app.utils.convertToHTML( self.question )
+                return self.question[:]
             else:
-                return app.utils.convertToHTML( self.question[0:28].strip() ) + "..." + app.utils.convertToHTML( self.question[-28:].strip() )
+                return self.question[0:28].strip() + "..." + self.question[-28:].strip()
         else:
             return "?? NO QUESTION TEXT ??"
 
@@ -325,38 +325,39 @@ class Question( db.Model ):
             This is mostly used for: \n -> <br /> as well as replacing the [[image]] tags. """
         convertedQuestion = self.makeDecryptedTextVersion()
         overallImagesToCache = set( [] )
-        if convertedQuestion.tags:
-            convertedQuestion.tags, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.tags ) )
-            overallImagesToCache = overallImagesToCache.union( imagesToCache )
+# <img> tags shouldn't be in tags... this is leftover from needing to convert to HTML as well as find [[image]] tags...
+#         if convertedQuestion.tags:
+#             convertedQuestion.tags, imagesToCache = app.utils.findImageTags( convertedQuestion.tags )
+#             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.instructions:
-            convertedQuestion.instructions, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.instructions ) )
+            convertedQuestion.instructions, imagesToCache = app.utils.findImageTags( convertedQuestion.instructions )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.question:
-            convertedQuestion.question, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.question ) )
+            convertedQuestion.question, imagesToCache = app.utils.findImageTags( convertedQuestion.question )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.examples:
-            convertedQuestion.examples, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.examples ) )
+            convertedQuestion.examples, imagesToCache = app.utils.findImageTags( convertedQuestion.examples )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.hints:
-            convertedQuestion.hints, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.hints ) )
+            convertedQuestion.hints, imagesToCache = app.utils.findImageTags( convertedQuestion.hints )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.answer:
-            convertedQuestion.answer, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.answer ) )
+            convertedQuestion.answer, imagesToCache = app.utils.findImageTags( convertedQuestion.answer )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.instructionsComments:
-            convertedQuestion.instructionsComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.instructionsComments ) )
+            convertedQuestion.instructionsComments, imagesToCache = app.utils.findImageTags( convertedQuestion.instructionsComments )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.questionComments:
-            convertedQuestion.questionComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.questionComments ) )
+            convertedQuestion.questionComments, imagesToCache = app.utils.findImageTags( convertedQuestion.questionComments )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.examplesComments:
-            convertedQuestion.examplesComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.examplesComments ) )
+            convertedQuestion.examplesComments, imagesToCache = app.utils.findImageTags( convertedQuestion.examplesComments )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.hintsComments:
-            convertedQuestion.hintsComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.hintsComments ) )
+            convertedQuestion.hintsComments, imagesToCache = app.utils.findImageTags( convertedQuestion.hintsComments )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         if convertedQuestion.answerComments:
-            convertedQuestion.answerComments, imagesToCache = app.utils.replaceImageTags( app.utils.convertToHTML( convertedQuestion.answerComments ) )
+            convertedQuestion.answerComments, imagesToCache = app.utils.findImageTags( convertedQuestion.answerComments )
             overallImagesToCache = overallImagesToCache.union( imagesToCache )
         for filename in overallImagesToCache:
             _ = Image.getAndCacheByName( filename )
@@ -556,9 +557,9 @@ class Image( db.Model ):
         TODO: Categorize (for speed) by classAbbr.
         TODO: Handle PNGs """
     id = db.Column( db.Integer(), primary_key = True )
-    name = db.Column( db.String( 80 ), unique = True )
+    filename = db.Column( db.String( 80 ), unique = True )
     classAbbr = db.Column( db.String( 4 ) )
-    data = db.Column( db.LargeBinary( 4096 ), unique = True )
+    data = db.Column( db.LargeBinary( ), unique = True )
     dataIV = db.Column( db.String( 16 ) )
     cachePath = None
 
@@ -573,8 +574,8 @@ class Image( db.Model ):
         return image.one()
     
     @staticmethod
-    def getByName( filename ):
-        images = Image.query.filter_by( name = filename )
+    def getByName( filenameIn ):
+        images = Image.query.filter_by( filename = filenameIn )
         if ( ( images == None ) or ( images.count() == 0 ) ):
             flash( "Couldn't find any images in the database with filename: %s" % filename )
             return None
@@ -583,43 +584,32 @@ class Image( db.Model ):
         return images.one()
 
     @staticmethod
-    def getAndCacheByName( filename ):
+    def getAndCacheByName( filenameIn ):
         """ Get image from cache if it exists, if not, get it from the database and cache it (to a temporary file). """
         try:
-            data, _ = app.utils.readTempFile( filename )
+            data, _ = app.utils.readTempFile( filenameIn )
         except IOError as ex:
             data = None
         if ( data == None ):
-            image = Image.getByName( filename )
+            image = Image.getByName( filenameIn )
             if image:
                 data = image.data
                 if data:
                     image.cacheByName()
         return data
     
-    @staticmethod
-    def imageFromUploadedFile(file, filepath, humanReadableName, classAbbr):
-        """ Create an (encrypted) Image instance from an image file. The file is saved first as a way
-        to translate from Flask's file upload to the database - TODO: This may not be necessary. """
-        file.save(filepath)
-        fref = open(filepath,"rb")
-        data = fref.read()
-        fref.close()
-        dataIV,dataIV64 = oracle.generateIV();
-        image = Image(name=humanReadableName, classAbbr=classAbbr, data=oracle.encrypt(data,dataIV), dataIV=dataIV64)
-        return image
-
     def cacheByName( self ):
         """ Decrypt and write data to /path/to/tmp/filename (and store the generated path) """
+        assert(self.filename)
         if oracle.isEncrypted(self.data):
             self.data = oracle.decrypt(self.data, self.dataIV)
-        self.cachePath = app.utils.writeTempFile( self.name, self.data )
+        self.cachePath = app.utils.writeTempFile( self.filename, self.data )
 
     def __repr__( self ):
         return '<Image %r>' % ( self.id )
 
     def __str__( self ):
-        return "Image #%d: %s (cachePath=%s) (size=%d)" % ( self.id, self.name, self.cachePath, len( self.data ) )
+        return "Image #%d: %s (cachePath=%s) (size=%d)" % ( self.id, self.filename, self.cachePath, len( self.data ) )
     
 class History( db.Model ):
     """ A general way to store previously generated data, which, for now, is a workaround for long, 

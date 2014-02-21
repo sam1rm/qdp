@@ -1,3 +1,5 @@
+# ===== Imports =====
+
 import datetime
 import doctest
 import os
@@ -7,6 +9,21 @@ import sys
 import traceback
 
 from app import utils
+
+from migrate.versioning import api
+from config import SQLALCHEMY_DATABASE_URI
+from config import SQLALCHEMY_MIGRATE_REPO
+
+from flask import Flask
+from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.security import Security, SQLAlchemyUserDatastore
+from flask.ext.security.utils import encrypt_password
+
+from app.models import User, Role, Question, ClassInfo, Image
+
+import app.oracle
+
+# ===== Constants =====
 
 MAKE_HACKABLE_DATABASE = False
 
@@ -34,33 +51,27 @@ KEY_QUESTION_EXAMPLE = 'example'
 KEY_QUESTION_HINTS = 'hints'
 KEY_QUESTION_ANSWER = 'answer'
 
-from migrate.versioning import api
-from config import SQLALCHEMY_DATABASE_URI
-from config import SQLALCHEMY_MIGRATE_REPO
+# ===== Globals =====
+ 
+# gPathPrefix = "db_reset/"
 
-from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.security import Security, SQLAlchemyUserDatastore
-from flask.ext.security.utils import encrypt_password
-
-from app.models import User, Role, Question, ClassInfo, Image
-
-import app.oracle
+# ===== Code =====
 
 def removeOldDatabase():
-    """ Use the OS to delete the app.db file, the db_repository, and the tmp directory. """
-    try:
+    """ Use the OS to delete the app.db file, the db_repository, and the tmp/ directory. """
+    if os.path.exists("app.db"):
         subprocess.call(["rm","app.db"])
-    except OSError as ex:
-        print "OSError({0}): {1}".format(ex.errno, ex.strerror)
-    try:
+    if os.path.exists("db_repository"):
         subprocess.call(["rm","-R","db_repository"])
-    except OSError as ex:
-        print "OSError({0}): {1}".format(ex.errno, ex.strerror)
-    try:
+    if os.path.exists("tmp"):
         subprocess.call(["rm","-R","tmp"])
-    except OSError as ex:
-        print "OSError({0}): {1}".format(ex.errno, ex.strerror)
+
+    if os.path.exists("../app.db"):
+        subprocess.call(["rm","../app.db"])
+    if os.path.exists("../db_repository"):
+        subprocess.call(["rm","-R","../db_repository"])
+    if os.path.exists("../tmp"):
+        subprocess.call(["rm","-R","../tmp"])
         
 def readConfigFile(path,expectingKeys=None,optionalKeys=None):
     import copy
@@ -72,7 +83,7 @@ def readConfigFile(path,expectingKeys=None,optionalKeys=None):
         for line in fref.readlines():
             keyValue = line.strip().split("=")
             key = keyValue[0].strip().lower()
-            if (len(keyValue[1])>0):
+            if ((len(keyValue)>1) and (len(keyValue[1])>0)):
                 # A ="B =C = D " -> config[a]="B =C = D"
                 configuration[key] = string.join(keyValue[1:],"=").strip()
             else:
@@ -225,8 +236,8 @@ def addImages(db):
     images = {}
     for classAbbr in utils.listDirectories(IMAGE_FOLDER_PATH):
             fullPath = os.path.join(IMAGE_FOLDER_PATH, classAbbr)
-            for filename in utils.listFiles(fullPath):
-                fullPath = os.path.join(fullPath, filename)
+            for oneFilename in utils.listFiles(fullPath):
+                fullPath = os.path.join(fullPath, oneFilename)
                 # Read the image file
                 imageDataFileRef = open(fullPath)
                 assert imageDataFileRef,"Can't open '%s'??" % fullPath
@@ -236,13 +247,13 @@ def addImages(db):
                 # Encrypt the image data
                 dataIV,dataIV64 = app.oracle.generateIV();
                 # Create new Image instance & add it to the database
-                image = Image( name=filename, classAbbr=classAbbr, data=app.oracle.encrypt(imageData,dataIV), dataIV=dataIV64 )
+                image = Image( filename=oneFilename, classAbbr=classAbbr, data=app.oracle.encrypt(imageData,dataIV), dataIV=dataIV64 )
                 db.session.add(image)
                 # Used primarily for debugging, return the filenames in the images folder 
                 if classAbbr in images:
-                    images[classAbbr].append(filename)
+                    images[classAbbr].append(oneFilename)
                 else:
-                    images[classAbbr]=[filename]
+                    images[classAbbr]=[oneFilename]
     return images
 
 def initializeDatabase(db):
@@ -325,3 +336,6 @@ if __name__ == "__main__":
     messages = resetDatabase(db)
     for message in messages:
         print "-",message
+#     global gPathPrefix
+#     if ((os.path.exists("utils.py")==False) and (os.path.exists("../utils.py"))==True):
+#         gPathPrefix = ""
