@@ -54,7 +54,8 @@ def readTempFile(filename):
     return data, path
 
 def makeTempFileResp(filename):
-    """ Turn a filename request (e.g. tmp/image.jpg) into a valid request with the proper MIME type. """
+    """ Turn a filename request (e.g. tmp/image.jpg) into a valid request with the proper MIME type.
+    If there's a problem, return a string with a message to be 'flash'ed (since we can't import app here)"""
     from flask import make_response, render_template
     resp = None
     path = TMP_PATH+"/" + filename
@@ -65,14 +66,25 @@ def makeTempFileResp(filename):
         resp = make_response(data)
         if (data[:3]=="GIF"):
             resp.content_type = "image/GIF"
-        elif (data[6:10]=="JFIF"):
-            resp.content_type = "image/JPEG"
+        elif (data[1:4]=="PNG"):
+            resp.content_type = "image/PNG"
         elif (data[6:10]=="Exif"):
             resp.content_type = "image/JPEG"
-            app.logger.debug("Warning: image header for "+filename+" is 'Exif' and not 'JFIF'...")
+            resp = "*** warning: image header for "+filename+" is 'Exif' and not 'JFIF'..."
         elif (filename[-3:]==".gz"):
             resp.content_type = "application/x-gzip"
             resp.headers["Content-Disposition"] = "attachment; filename=app.db.gz"
+        # Fallbacks
+        else:
+            fileExt = filename.split(".")[-1].lower()
+            if (fileExt == 'gif'):
+                resp.content_type = "image/GIF"
+            elif (fileExt == 'png'):
+                resp.content_type = "image/PNG"
+            elif ((fileExt == 'jpg') or (fileExt == 'jpeg')):
+                resp.content_type = "image/JPEG"
+            else:
+                resp = "*** warning: unable to determine content type from "+filename+"'s data..."
     except IOError as _:
         print 'Unable to open file for reading in makeTempFileResp: %s' % path
         resp = make_response(render_template('404.shtml'), 404)

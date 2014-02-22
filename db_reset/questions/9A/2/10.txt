@@ -1,0 +1,4 @@
+tags=Advanced Matrices
+instructions=Suppose that A contains the following values:<br /><br />A = 0:10:41;
+question=&hellip;what is the value of B, C, D and E?<br /><br />B = A([2 1 4]);<br /><br /><br /><br /><br />C = A(logical([2 1 4]));<br /><br /><br /><br /><br />D = find(sort(C)-sort(B));<br /><br /><br /><br /><br />tmp = sort(B); E = tmp(D);
+answer=B = [10  0  30]<br />C = [0  10  20]<br />D = 3<br />E = 30

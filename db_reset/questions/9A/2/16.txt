@@ -1,0 +1,5 @@
+tags=Advanced Matrices
+instructions=Data is a column vector of numbers.
+question=Without using explicit loop constructs or if, define smooth, a new smoothed column vector by inserting new data in-between each row that is the average of the surrounding rows.
+example=examples=Before   After<br /><br />data =   smooth =<br />  1        1<br />  3        2<br /> -3        3<br /> -7        0<br />          -3<br />          -5<br />         - 7
+answer=R=size(data,2);                       % How big is data?<br />avg = data/2 + [data(2:R);data(1)]/2; % Avg of data(i,i+1)<br />smooth=reshape([data';avg'],2*R,1);     % Insert avg data<br />smooth(2*R)=[];                       % Remove last elt

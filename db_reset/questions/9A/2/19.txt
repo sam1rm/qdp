@@ -1,0 +1,4 @@
+tags=Advanced Matrices
+instructions=You collected (latitude, longitude) temperature data into a 2D matrix T, and your boss hands you bad, a 2-column array of the (r,c) location of &ldquo;bad data&rdquo;.
+question=Without using explicit loop constructs or if, replace this data from your array with NaNs.
+answer=% We recall that Matlab counts rows first, so it is COLUMN<br />% major (row minor). This differs from ROW major C arrays.<br />% This is the standard r=i%ROWS; c=i/ROWS; but we have to <br />% subtract 1 and put it back because that only works when<br />% we start counting from 0, but we count from 1 in Matlab.<br />% To get 0-indexed i from r,c we simply have i=r + ROWS*c<br /><br />bad0 = bad-1; % 0-indexed (r,c) of all the NaNs<br />T(bad0(:,1) + size(T,1)*bad0(:,2) + 1) = NaN

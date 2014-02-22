@@ -1,0 +1,4 @@
+tags=Advanced Matrices
+instructions=You collected (latitude, longitude) temperature data into a 2D matrix T, and where you weren&rsquo;t able to collect any data you have the value NaN.
+question=Without using explicit loop constructs or if, remove from T all the data from a particular latitude (row) if any value in that latitude (row) is a NaN.
+answer=X(any(isnan(X),2),:)=[];

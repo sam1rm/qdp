@@ -1,3 +1,4 @@
 tags=Advanced Matrices
-question=You find the following piece of code scrawled on your dorm whiteboard with the word &ldquo;Aha!&rdquo; next to it. In English, briefly explain what it computes:<br /><br />I=randperm(101);<br />N=randperm(101)-51;<br />N(I&gt;10)=[]
+instructions=You find the following piece of code scrawled on your dorm whiteboard with the word &ldquo;Aha!&rdquo; next to it. 
+question=In English, briefly explain what it computes:<br /><br />I=randperm(101);<br />N=randperm(101)-51;<br />N(I&gt;10)=[]
 answer=Generate a row vector of 10 integers chosen (without replacement) from the set [-50,50]

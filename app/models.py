@@ -320,7 +320,7 @@ class Question( db.Model ):
         else:
             self.reviewers[userIndex] = user
 
-    def makeMarkedUpVersion( self ):
+    def decryptAndCacheImages( self ):
         """ Add HTML markup to all of the question text, including tags and comments.
             This is mostly used for: \n -> <br /> as well as replacing the [[image]] tags. """
         convertedQuestion = self.makeDecryptedTextVersion()

@@ -1,0 +1,5 @@
+tags=Advanced Matrices
+instructions=You find the following piece of code scrawled on your dorm whiteboard with the word &ldquo;Aha!&rdquo; next to it.
+question=In English, briefly explain what it computes:
+example=all(abs(A(:)-B(:))&lt;eps)
+answer=This tests element-by-element equality of two matrices within an eps threshold. I.e., it returns true if every element of A is within eps of the corresponding element of B.

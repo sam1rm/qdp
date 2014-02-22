@@ -1,0 +1,4 @@
+tags=Advanced Matrices
+instructions=You find the following piece of code scrawled on your dorm whiteboard with the word &ldquo;Aha!&rdquo; next to it. 
+question=In English, briefly explain what it computes:<br /><b>find(randperm(45)&lt;=11)</b>
+answer=Generate a row vector of 11 integers chosen (without replacement) from the set [1-45]. This could be useful for the Niners head football coach in choosing a starting lineup, since football needs 11 men on the field and there are always 45 players on an NFL roster.

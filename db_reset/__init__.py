@@ -126,10 +126,11 @@ def addClasses(db):
                                startingID = int( configuration[KEY_CLASS_STARTING_DB_ID] ),               \
                                currentID = int( configuration[KEY_CLASS_STARTING_DB_ID] ) )
         db.session.add(classInfo)
+        db.session.commit() # Commit each time to get id # (for __repr__ below)
         classes[classAbbrName]=classInfo
     return classes
 
-def addRoles(user_datastore):
+def addRoles(db, user_datastore):
     """ Walk the user folder, adding found roles to the database, return roles for added users later. """
     roles = {}
     for filename in utils.listFiles(ROLE_FOLDER_PATH):
@@ -138,10 +139,11 @@ def addRoles(user_datastore):
         print "Adding role:",roleName
         configuration = readConfigFile(fullPath,[KEY_ROLE_DESCRIPTION])
         role = user_datastore.create_role(name=roleName, description=configuration[KEY_ROLE_DESCRIPTION])
+        db.session.commit() # Commit each time to get id # (for __repr__ below)
         roles[roleName]=role
     return roles
 
-def addUsers(user_datastore, roles):
+def addUsers(db, user_datastore, roles):
     """ Walk the user folder and associate prior roles to a user. """
     assert len(roles) > 0, "NO ROLES GIVEN FOR addUsers()!"
     users = {}
@@ -228,16 +230,17 @@ def addQuestions(db, classes, users):
                 else:
                     questions[classAbbr]=[question]
                 # Add the question to the database
-                db.session.add(question)   
+                db.session.add(question)  
+                db.session.commit() # Commit each time to get id # (for __repr__ below) 
     return questions
 
 def addImages(db):
     """ Walk the images folder, storing the names and paths of images found in a dictionary. """
     images = {}
     for classAbbr in utils.listDirectories(IMAGE_FOLDER_PATH):
-            fullPath = os.path.join(IMAGE_FOLDER_PATH, classAbbr)
-            for oneFilename in utils.listFiles(fullPath):
-                fullPath = os.path.join(fullPath, oneFilename)
+            imageFullPath = os.path.join(IMAGE_FOLDER_PATH, classAbbr)
+            for oneFilename in utils.listFiles(imageFullPath):
+                fullPath = os.path.join(imageFullPath, oneFilename)
                 # Read the image file
                 imageDataFileRef = open(fullPath)
                 assert imageDataFileRef,"Can't open '%s'??" % fullPath
@@ -249,6 +252,7 @@ def addImages(db):
                 # Create new Image instance & add it to the database
                 image = Image( filename=oneFilename, classAbbr=classAbbr, data=app.oracle.encrypt(imageData,dataIV), dataIV=dataIV64 )
                 db.session.add(image)
+                db.session.commit() # Commit each time to get id # (for __repr__ below)
                 # Used primarily for debugging, return the filenames in the images folder 
                 if classAbbr in images:
                     images[classAbbr].append(oneFilename)
@@ -302,11 +306,11 @@ def resetDatabase(db):
     
     messages.append("Added classes: "+str(classes))
         
-    roles = addRoles(user_datastore)
+    roles = addRoles(db, user_datastore)
     
     messages.append("Added roles: "+str(roles))
     
-    users = addUsers(user_datastore, roles)
+    users = addUsers(db, user_datastore, roles)
     
     messages.append("Added users: "+str(users))
         
@@ -318,7 +322,7 @@ def resetDatabase(db):
     
     messages.append("Added images: "+str(images))
     
-    messages.append("...committing to database...");
+    messages.append("...final committing to database...");
     
     db.session.commit()
     

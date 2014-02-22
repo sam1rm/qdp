@@ -1,3 +1,4 @@
 tags=Matrix Basics, Vectors
-question=Suppose A is the vector [1 2 3]. What are each of the following?<br />a.&nbsp;&nbsp;&nbsp;&nbsp;[A  A  A]<br />b.&nbsp;&nbsp;&nbsp;&nbsp;[A; A; A]<br />c.&nbsp;&nbsp;&nbsp;&nbsp;[A, A, A]<br />d.&nbsp;&nbsp;&nbsp;&nbsp;A.*A+2
+instructions=Suppose A is the vector [1 2 3]
+question=What are each of the following?<br />a.&nbsp;&nbsp;&nbsp;&nbsp;[A  A  A]<br />b.&nbsp;&nbsp;&nbsp;&nbsp;[A; A; A]<br />c.&nbsp;&nbsp;&nbsp;&nbsp;[A, A, A]<br />d.&nbsp;&nbsp;&nbsp;&nbsp;A.*A+2
 answer=[1 2 3 1 2 3 1 2 3]<br /><br />| 1 2 3 |<br />| 1 2 3 |<br />| 1 2 3 |<br /><br />[1 2 3 1 2 3 1 2 3]<br /><br />[3 6 11]

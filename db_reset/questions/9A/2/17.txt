@@ -1,0 +1,5 @@
+tags=Advanced Matrices
+question=You are given a binary number secretly encoded in a logical array b and would like a single expression to decode it into its decimal equivalent.
+example=That is, if b were:  <br /><br />b =<br />     1     0     1     1     0<br /><br />&hellip;which encodes the number<br /> 1*24 + 0*23 + 1*22 + 1*21 + 0*20 = 16 + 4 + 2 = 22, <br />the decimal equivalent would be<br /><br />ans =<br />    		22
+hints=Here's a quick table of some numbers in decimal and in binary in case you need a refresher:<br />Decimal  Binary<br />   0      0<br />   1      1<br />   2      10<br />   3      11<br />   4      100<br />   5      101<br />   6      110<br />   7      111<br />   8      1000<br />   9      1001<br />   10     1010<br />   11     1011<br />   12     1100<br />   13     1101<br />   14     1110<br />   15     1111<br />   16     10000
+answer=% The &ldquo;size(b,2)-1:-1:0&rdquo; &rArr; [4 3 2 1 0]<br />% The &ldquo;2.^ [4 3 2 1 0&rdquo;] &rArr; [16 8 4 2 1]. <br />% The &ldquo;[16 8 4 2 1] .* b&rdquo; &rArr; [16 0 4 2 0]<br />% The &ldquo;sum([16 0 4 2 0],2)&rdquo; &rArr; 22<br />sum((2 .^ (size(b,2)-1:-1:0)) .* b,2)

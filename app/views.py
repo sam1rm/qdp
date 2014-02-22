@@ -259,14 +259,11 @@ def editQuestion():
                 question.decryptText()
                 rowCounts = question.calculateRows()
                 # TODO: Handle bad questions (errors on next line) gracefully!
-    #            similarQuestions = question.retrieveAndDecryptSimilarQuestions()
                 form = QuestionForm( request.form, question )
                 return render_template( 'editQuestion.html', form = form, \
-    #                                    similarQuestionsToDisplay = similarQuestions, \
-                                        questionToDisplay = question, \
+                                        questionToDisplay = question.decryptAndCacheImages(), \
                                         rowCountsToDisplay = rowCounts, \
-                                        title = "%s Question #%d For %s" % \
-                                            ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), \
+                                        title = "%s Question #%d For %s" % ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), \
                                         classInfo.longName ) )
             else:
                 flash("Unable to find Question ID: "+rawQuestionIDAsString)
@@ -384,8 +381,7 @@ def reviewQuestion():
                 reviewersSaidOK.append( question.isOKFlags & 1 << n )
             return render_template( 'reviewQuestion.html', \
                                     form = form, \
-                                    #similarQuestionsToDisplay = similarQuestions, \
-                                    questionToDisplay = question.makeMarkedUpVersion(), \
+                                    questionToDisplay = question.decryptAndCacheImages(), \
                                     rowCountsToDisplay = rowCounts, \
                                     title = "%s Question #%d For %s (%s)" % \
                                         ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), session[CLASS_ABBR_KEY], classInfo.longName ), \
@@ -583,6 +579,8 @@ def downloadDatabase():
 def tempPath( path ):
     ''' Shiv (to utils) to handle tmp/FILE URL requests (used for images). '''
     resp = makeTempFileResp( path )
+    if (type(resp)==type(u"string")):
+        app.logger.debug(resp)
     return resp
 
 def currentUserFirstName():

@@ -44,7 +44,8 @@ def encrypt( message, IV):
     >>> init('cecb3442f0203f52693295e1e3d07c63', encryptedPrefixFlag='DocTest'); iv,b64iv=generateIV(); message=encrypt("QDPTHIS_IS_A_TESTQDP",iv); decrypt(message,b64iv)
     'QDPTHIS_IS_A_TESTQDP'
     """
-    assert(message)
+    if (message == None): # TODO: Is this hACKY?
+        message = ""
     assert(IV)
     assert(len(IV)==16),"Length of IV is incorrect"
     assert(len(message) < 10**MAX_SIZE_DIGITS), "Message is too long (%d > %d)" % (len(message), 10**MAX_SIZE_DIGITS)

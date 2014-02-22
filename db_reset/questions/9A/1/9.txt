@@ -1,3 +1,4 @@
 tags=Matrix Basics, Vectors
-question=Let&rsquo;s say A is [0 1 2 Inf NaN]. What is A&rsquo;*A?
+instructions=Let&rsquo;s say A is [0 1 2 Inf NaN].
+question=What is A&rsquo;*A?
 answer=%NaN op x -&gt; NaN (bottom row and right columns are NaN)<br />%Inf * 0 -&gt; NaN (so (4,1) and (1,4) are NaN)<br />%inf * [1 2 Inf] = [Inf Inf Inf]<br /><br />[ 0   0   0  NaN NaN]<br />[ 0   1   2  Inf Nan]<br />[ 0   2   4  Inf NaN]<br />[Nan Inf Inf Inf NaN]<br />[Nan NaN Nan Nan NaN]

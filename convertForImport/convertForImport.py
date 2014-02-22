@@ -2,6 +2,8 @@ import html_entities
 
 NEWLINE = "<br />"
 
+KEYS=["tags","instructions","question","examples","hints","answer"]
+
 # def replaceAsciiWithMarkup(text,asciiChar,replaceMarkup):
 #     location = text.find(asciiChar)
 #     while(location != -1):
@@ -33,12 +35,12 @@ def convertTextToHTML(text):
 #             text = replaceAsciiWithMarkup(text,'\xc9',"&hellip;")
     return line
                 
-def doConversion():
+def doConversion(key):
     line = ""
     text = None
-    while(text!="convert"):
-        text=unicode(raw_input("> "))
-        if (text!=u"convert"):
+    while(text!="`"):
+        text=unicode(raw_input(key+"="))
+        if (text!=u"`"):
             line += convertTextToHTML(text) 
             line += NEWLINE
     while (line[:6]==NEWLINE):
@@ -50,10 +52,12 @@ def doConversion():
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-    text = None
-    while ( text != "quit" ):
-        text = doConversion()
-        if (text != "quit"):
-            print
-            print text
-            print
+    while True:
+        text = {}
+        for key in KEYS:
+            text[key] = doConversion(key)
+        print
+        for key in KEYS:
+            if (text[key]!=""):
+                print key+"="+text[key]
+        print
