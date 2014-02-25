@@ -94,62 +94,32 @@ Get the file in a path, removing directories and invisibles</p>
 <span class="s">#DIVIDER</span>
 <span class="s">def makeTempFileResp(filename):</span>
 <span class="s">#DIVIDER</span>
-<span class="s">    from flask import make_response, render_template</span>
-<span class="s">    resp = None</span>
-<span class="s">    path = TMP_PATH+&quot;/&quot; + filename</span>
-<span class="s">    try:</span>
-<span class="s">        fref=open(path,&quot;rb&quot;)</span>
-<span class="s">        data=fref.read()</span>
-<span class="s">        fref.close()</span>
-<span class="s">        resp = make_response(data)</span>
-<span class="s">        if (data[:3]==&quot;GIF&quot;):</span>
-<span class="s">            resp.content_type = &quot;image/GIF&quot;</span>
-<span class="s">        elif (data[6:10]==&quot;JFIF&quot;):</span>
-<span class="s">            resp.content_type = &quot;image/JPEG&quot;</span>
-<span class="s">        elif (data[6:10]==&quot;Exif&quot;):</span>
-<span class="s">            resp.content_type = &quot;image/JPEG&quot;</span>
-<span class="s">            app.logger.debug(&quot;Warning: image header for &quot;+filename+&quot; is &#39;Exif&#39; and not &#39;JFIF&#39;...&quot;)</span>
-<span class="s">        elif (filename[-3:]==&quot;.gz&quot;):</span>
-<span class="s">            resp.content_type = &quot;application/x-gzip&quot;</span>
-<span class="s">            resp.headers[&quot;Content-Disposition&quot;] = &quot;attachment; filename=app.db.gz&quot;</span>
-<span class="s">    except IOError as _:</span>
-<span class="s">        print &#39;Unable to open file for reading in makeTempFileResp: </span><span class="si">%s</span><span class="s">&#39; % path</span>
-<span class="s">        resp = make_response(render_template(&#39;404.shtml&#39;), 404)</span>
-<span class="s">    return resp</span>
+<span class="s">    &gt;&gt;&gt; print findImageTags(&#39;this is a test&#39;)</span>
+<span class="s">    (Markup(u&#39;this is a test&#39;), set([]))</span>
+<span class="s">    &gt;&gt;&gt; print findImageTags(&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; a test&#39;)</span>
+<span class="s">    (Markup(u&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; a test&#39;), set([&#39;3.1.gif&#39;]))</span>
+<span class="s">    &gt;&gt;&gt; print findImageTags(&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; another &lt;img src=&quot;tmp/3.2.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; test&#39;)</span>
+<span class="s">    (Markup(u&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; another &lt;img src=&quot;tmp/3.2.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; test&#39;), set([&#39;tmp/3.2.gif&#39;, &#39;tmp/3.1.gif&#39;]))</span>
+<span class="s">    &gt;&gt;&gt; print findImageTags(flask.Markup(&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; a test&#39;))</span>
+<span class="s">    (Markup(u&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; a test&#39;), set([u&#39;3.1.gif&#39;]))</span>
+<span class="s">    &gt;&gt;&gt; print findImageTags(flask.Markup(&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; a &lt;br /&gt;&#39;))</span>
+<span class="s">    (Markup(u&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; a &lt;br /&gt;&#39;), set([u&#39;3.1.gif&#39;]))</span>
+<span class="s">    &gt;&gt;&gt; print findImageTags(flask.Markup(&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; a &amp;amp;&#39;))</span>
+<span class="s">    (Markup(u&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; a &amp;&#39;), set([u&#39;3.1.gif&#39;]))</span>
+<span class="s">    &gt;&gt;&gt; print findImageTags(flask.Markup(&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; &amp;amp; &lt;img src=&quot;tmp/3.2.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; test&#39;))</span>
+<span class="s">    (Markup(u&#39;this is &lt;img src=&quot;tmp/3.1.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; &amp; &lt;img src=&quot;tmp/3.2.gif&quot; alt=&quot;yayface thingy image&quot; width=&quot;170&quot; height=&quot;98&quot; /&gt; test&#39;), set([u&#39;tmp/3.1.gif&#39;, u&#39;tmp/3.2.gif&#39;]))</span>
 <span class="s">#DIVIDER</span>
-<span class="s">def findImageTags(text):</span>
+<span class="s">    &gt;&gt;&gt; commaDelimitedStringAsSet(None)</span>
+<span class="s">    set([])</span>
+<span class="s">    &gt;&gt;&gt; commaDelimitedStringAsSet(&quot;&quot;)</span>
+<span class="s">    set([])</span>
+<span class="s">    &gt;&gt;&gt; commaDelimitedStringAsSet(&quot;a&quot;)</span>
+<span class="s">    set([&#39;a&#39;])</span>
+<span class="s">    &gt;&gt;&gt; commaDelimitedStringAsSet(&quot;a,b&quot;)</span>
+<span class="s">    set([&#39;a&#39;, &#39;b&#39;])</span>
+<span class="s">    &gt;&gt;&gt; commaDelimitedStringAsSet(&quot;a,b,a&quot;)</span>
+<span class="s">    set([&#39;a&#39;, &#39;b&#39;])</span>
 <span class="s">#DIVIDER</span>
-<span class="s">    if (type(text) == type(flask.Markup(&#39;&#39;))):</span>
-<span class="s">        result = flask.Markup.unescape(text)</span>
-<span class="s">    else:</span>
-<span class="s">        result = text[:]</span>
-<span class="s">    imagesToCache = set([])</span>
-<span class="s">    if text:</span>
-<span class="s">        imageRegExPat = re.compile(IMAGE_REGEX)</span>
-<span class="s">        match = imageRegExPat.search(result)</span>
-<span class="s">        endMatchPos = 0</span>
-<span class="s">        while match:</span>
-<span class="s">            filename = match.group(1)</span>
-<span class="s">            imagesToCache.add(filename)</span>
-<span class="s">#DIVIDER</span>
-<span class="s">            endMatchPos += match.span(0)[1]</span>
-<span class="s">            match = imageRegExPat.search(result[endMatchPos:])</span>
-<span class="s">    return flask.Markup(result), imagesToCache</span>
-<span class="s">#DIVIDER</span>
-
-<span class="s">#DIVIDER</span>
-<span class="s">def commaDelimitedStringAsSet(text):</span>
-<span class="s">#DIVIDER</span>
-<span class="s">    itemSet=set()</span>
-<span class="s">    if text:</span>
-<span class="s">        for item in text.split( &quot;,&quot; ):</span>
-<span class="s">            itemSet.add(item.lower().strip())</span>
-<span class="s">    return itemSet</span>
-
-<span class="s">if __name__ == &quot;__main__&quot;:</span>
-<span class="s">    import doctest</span>
-<span class="s">    doctest.testmod()</span>
-<span class="s">    print &quot;### DOCTEST COMPLETE ###&quot;</span>
 
 </pre></div>
     </div>
@@ -227,7 +197,42 @@ tmp/test.txt
       <div class='octowrap'>
         <a class='octothorpe' href='#section-8'>#</a>
       </div>
-      
+      <p>f there's a problem, return a string with a message to be 'flash'ed (since we can't import app here)"""
+rom flask import make_response, render_template
+esp = None
+ath = TMP_PATH+"/" + filename
+ry:
+   fref=open(path,"rb")
+   data=fref.read()
+   fref.close()
+   resp = make_response(data)
+   if (data[:3]=="GIF"):
+       resp.content_type = "image/GIF"
+   elif (data[1:4]=="PNG"):
+       resp.content_type = "image/PNG"
+   elif (data[6:10]=="Exif"):
+       resp.content_type = "image/JPEG"
+       resp = "<strong><em> warning: image header for "+filename+" is 'Exif' and not 'JFIF'..."
+   elif (filename[-3:]==".gz"):
+       resp.content_type = "application/x-gzip"
+       resp.headers["Content-Disposition"] = "attachment; filename=app.db.gz"
+   # Fallbacks
+   else:
+       fileExt = filename.split(".")[-1].lower()
+       if (fileExt == 'gif'):
+           resp.content_type = "image/GIF"
+       elif (fileExt == 'png'):
+           resp.content_type = "image/PNG"
+       elif ((fileExt == 'jpg') or (fileExt == 'jpeg')):
+           resp.content_type = "image/JPEG"
+       else:
+           resp = "</em></strong> warning: unable to determine content type from "+filename+"'s data..."
+xcept IOError as _:
+   print 'Unable to open file for reading in makeTempFileResp: %s' % path
+   resp = make_response(render_template('404.shtml'), 404)
+eturn resp</p>
+<p>indImageTags(text):
+Replaces <a href="filename.html">filename</a> with <img src="filename">, and returns the file names of the images to be cached (can't do it here because we need Image (which needs this file))</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -239,7 +244,56 @@ tmp/test.txt
       <div class='octowrap'>
         <a class='octothorpe' href='#section-9'>#</a>
       </div>
-      <p>Replaces <a href="filename.html">filename</a> with <img src="filename">, and returns the file names of the images to be cached (can't do it here because we need Image (which needs this file))</p>
+      <p>if (type(text) == type(flask.Markup(''))):
+    result = flask.Markup.unescape(text)
+else:
+    result = text[:]
+imagesToCache = set([])
+if text:
+    imageRegExPat = re.compile(IMAGE_REGEX)
+    match = imageRegExPat.search(result)
+    endMatchPos = 0
+    while match:
+        filename = match.group(1)
+        imagesToCache.add(filename)
+        # We don't have to replace the old <a href="filename.html">filename</a> tags anymore...
+        #result = result[:match.start(0)]+'<img src="'+TMP_PATH+'/'+filename+'">'+result[match.end(0):]
+        endMatchPos += match.span(0)[1]
+        match = imageRegExPat.search(result[endMatchPos:])
+return flask.Markup(result), imagesToCache</p>
+<p>is should no longer be necessary with the tinymce entry box...
+f convertToHTML(text):
+  """ Simple convert some text into HTML code .. appends <br />'s correctly to text which contains 
+      a newline (necessary to display multi-line text correctly). Also changes \tabs into (4) &nbsp;s </p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>print convertToHTML("test")
+  test
+print convertToHTML('this\nis\na\ntest.')
+  this<br />is<br />a<br />test.
+  """
+  #&gt;&gt;&gt; print convertToHTML(r'this\nis\na\ntest.") # Doctest doesn't work with \n's...
+  #this<br />is<br />a<br />test.
+  #&gt;&gt;&gt; print convertToHTML('this\nis\na\ntest.\n")
+  #this<br />is<br />a<br />test.
+  #"""
+  result = ""
+  if text:
+      text = text.replace("\r","\n")
+      text = text.replace("\r","\n")
+      text = text.replace("\n","\n")
+      for line in text.split('\n'):
+          result += flask.Markup.escape(line) + flask.Markup('<br />')
+      result = result[:-6] # Rip off the final (unnecessary) <br />
+      result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
+      result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
+  return result</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>commaDelimitedStringAsSet(text):
+Take a comma delimited string and return it as a set: "1,2,3,2,1" -&gt; (1,2,3)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -251,110 +305,15 @@ tmp/test.txt
       <div class='octowrap'>
         <a class='octothorpe' href='#section-10'>#</a>
       </div>
-      <blockquote>
-<blockquote>
-<p>print findImageTags('this is a test')
-Markup(u'this is a test'), set([]))
-print findImageTags('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a test')
-Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a test'), set(['3.1.gif']))
-print findImageTags('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> another <img src="tmp/3.2.gif" alt="yayface thingy image" width="170" height="98" /> test')
-Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> another <img src="tmp/3.2.gif" alt="yayface thingy image" width="170" height="98" /> test'), set(['tmp/3.2.gif', 'tmp/3.1.gif']))
-print findImageTags(flask.Markup('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a test'))
-Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a test'), set([u'3.1.gif']))
-print findImageTags(flask.Markup('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a <br />'))
-Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a <br />'), set([u'3.1.gif']))
-print findImageTags(flask.Markup('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a &amp;'))
-Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> a &amp;'), set([u'3.1.gif']))
-print findImageTags(flask.Markup('this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> &amp; <img src="tmp/3.2.gif" alt="yayface thingy image" width="170" height="98" /> test'))
-Markup(u'this is <img src="tmp/3.1.gif" alt="yayface thingy image" width="170" height="98" /> &amp; <img src="tmp/3.2.gif" alt="yayface thingy image" width="170" height="98" /> test'), set([u'tmp/3.1.gif', u'tmp/3.2.gif']))</p>
-</blockquote>
-</blockquote>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-11'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-11'>#</a>
-      </div>
-      <p>We don't have to replace the old <a href="filename.html">filename</a> tags anymore...
-result = result[:match.start(0)]+'<img src="'+TMP_PATH+'/'+filename+'">'+result[match.end(0):]</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-12'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-12'>#</a>
-      </div>
-      <p>This should no longer be necessary with the tinymce entry box...
-def convertToHTML(text):
-    """ Simple convert some text into HTML code .. appends <br />'s correctly to text which contains 
-        a newline (necessary to display multi-line text correctly). Also changes \tabs into (4) &nbsp;s 
-    &gt;&gt;&gt; print convertToHTML("test")
-    test
-    &gt;&gt;&gt; print convertToHTML('this\nis\na\ntest.')
-    this<br />is<br />a<br />test.
-    """
-    #&gt;&gt;&gt; print convertToHTML(r'this\nis\na\ntest.") # Doctest doesn't work with \n's...
-    #this<br />is<br />a<br />test.
-    #&gt;&gt;&gt; print convertToHTML('this\nis\na\ntest.\n")
-    #this<br />is<br />a<br />test.
-    #"""
-    result = ""
-    if text:
-        text = text.replace("\r","\n")
-        text = text.replace("\r","\n")
-        text = text.replace("\n","\n")
-        for line in text.split('\n'):
-            result += flask.Markup.escape(line) + flask.Markup('<br />')
-        result = result[:-6] # Rip off the final (unnecessary) <br />
-        result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
-        result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
-    return result</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-13'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-13'>#</a>
-      </div>
-      <p>Take a comma delimited string and return it as a set: "1,2,3,2,1" -&gt; (1,2,3)</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-14'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
-      </div>
-      <blockquote>
-<blockquote>
-<p>commaDelimitedStringAsSet(None)
-et([])
-commaDelimitedStringAsSet("")
-et([])
-commaDelimitedStringAsSet("a")
-et(['a'])
-commaDelimitedStringAsSet("a,b")
-et(['a', 'b'])
-commaDelimitedStringAsSet("a,b,a")
-et(['a', 'b'])</p>
-</blockquote>
-</blockquote>
+      <p>Set=set()
+ext:
+for item in text.split( "," ):
+    itemSet.add(item.lower().strip())
+rn itemSet</p>
+<p>e<strong> == "</strong>main__":
+rt doctest
+est.testmod()
+t "### DOCTEST COMPLETE ###"</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

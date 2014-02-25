@@ -209,7 +209,7 @@ class Question( db.Model ):
             flash( "Found more than one question (%d) in the database with (class) ID: %d" % ( questions.count(), classID ) )
         question = questions.one()
         return questions.one()
-        
+
     def tagsAsSet( self ):
         result = set()
         if self.tags:
@@ -219,7 +219,7 @@ class Question( db.Model ):
         else:
             result.add( "?? MISSING TAGS ??")
         return result
-    
+
     def shortenedQuestionWithMarkup( self ):
         """ Returned a short..ed version of the (unencrypted) question text with HTML markup """
         if self.question:
@@ -249,7 +249,7 @@ class Question( db.Model ):
         offsetNumber = ( self.classID - classInfo.startingID )
         assert ( type( offsetNumber ) == type( 1 ) ), "offsetNumber (%r) != int??" % offsetNumber
         return offsetNumber
-    
+
     def calculateRows(self):
         rowCounts={}
         if self.tagsComments:
@@ -297,10 +297,10 @@ class Question( db.Model ):
         else:
             rowCounts['answerComments']=4
         return rowCounts
-    
+
     def addReviewer( self, user, isOKFlag, maxReviewers ):
         """ Add a user to a question's "reviewers" as well as set the "is this question OK" flag.
-            maxReviewers is necessary to shift out old reviewers and keep the most recent ones. """ 
+            maxReviewers is necessary to shift out old reviewers and keep the most recent ones. """
         if ( self.isOKFlags == None ):  # Initialize flags if none have been set
             self.isOKFlags = 0
         try:
@@ -379,13 +379,13 @@ class Question( db.Model ):
             self.decryptQuestionText()
         if decryptComments:
             self.decryptCommentText()
-    
+
     def decryptTagText(self):
         """ Decrypt a question's tags (if they exist) if they aren't already decrypted. """
         if self.tags:
             if oracle.isEncrypted(self.tags):
                 self.tags = oracle.decrypt( self.tags, self.tagsIV )
-            
+
     def decryptQuestionText(self):
         """ Decrypt a question's text parts (if they exist) if they aren't already decrypted. """
         if oracle.isEncrypted(self.question):
@@ -455,11 +455,11 @@ class Question( db.Model ):
         for instance in instances:
             instanceTags = instance.tagsAsSet()
             if ( len( instanceTags.intersection( tagSet ) ) > 0 ):
-                existing.append( instance.makeDecryptedTextVersion() )
+                existing.append( instance.makeDecryptedTextVersion(True,True,False) )
         return existing
 
     # Generate Quizzes and Exams
-    
+
     @staticmethod
     def generateQuiz( classInfo, quizNumber, cachedQuestions, maxNumberOfQuestions ):
         """ Generate quiz # for a class, using previously cached questions (caller is responsible for these).
@@ -469,7 +469,7 @@ class Question( db.Model ):
         # questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
             if ( question.quiz == quizNumber ):
-                markedUpQuestion = question.makeMarkedUpVersion()
+                markedUpQuestion = question.decryptAndCacheImages()
                 quizQuestions.append( markedUpQuestion )
                 if ( len( quizQuestions ) > maxNumberOfQuestions ):
                     break
@@ -483,7 +483,7 @@ class Question( db.Model ):
         examQuestions = []
         # questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
         for question in cachedQuestions:
-            markedUpQuestion = question.makeMarkedUpVersion()
+            markedUpQuestion = question.decryptAndCacheImages()
             examQuestions.append( markedUpQuestion )
             if ( len( examQuestions ) > 5 ):
                 break
@@ -493,7 +493,7 @@ class Question( db.Model ):
     def generateIDFromQuestions( classInfo, questions ):
         """ Generate an ID from quiz question ids.
             1024 questions per quiz possible. Question IDs in the database
-            are offsets from the ClassInfo starting IDs. 
+            are offsets from the ClassInfo starting IDs.
             TODO: Turn this into a History instead. """
         validIDSymbols = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         numIDSymbols = len( validIDSymbols )
@@ -542,7 +542,7 @@ class Question( db.Model ):
                 except Exception as ex:
                     flash ( "ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % ( questionNumbers[index], questionClassID, questionNumbers[index], idSymbols ), category = "warning" )
                     continue
-                decryptedQuestion = question.makeMarkedUpVersion()
+                decryptedQuestion = question.decryptAndCacheImages()
                 questions.append( decryptedQuestion )
         return questions, classInfo
 
@@ -553,7 +553,7 @@ class Question( db.Model ):
         return "Question #%d (classID: %d): %s" % ( self.id, self.classID, self.decryptAndShortenQuestion() )
 
 class Image( db.Model ):
-    """ Class to encapsulate the storage and retrieval of images from the database. 
+    """ Class to encapsulate the storage and retrieval of images from the database.
         TODO: Categorize (for speed) by classAbbr.
         TODO: Handle PNGs """
     id = db.Column( db.Integer(), primary_key = True )
@@ -572,7 +572,7 @@ class Image( db.Model ):
         elif ( image.count() != 1 ):
             flash( "Found more than one user with (raw) ID: %d!" % uid )
         return image.one()
-    
+
     @staticmethod
     def getByName( filenameIn ):
         images = Image.query.filter_by( filename = filenameIn )
@@ -597,7 +597,7 @@ class Image( db.Model ):
                 if data:
                     image.cacheByName()
         return data
-    
+
     def cacheByName( self ):
         """ Decrypt and write data to /path/to/tmp/filename (and store the generated path) """
         assert(self.filename)
@@ -610,17 +610,17 @@ class Image( db.Model ):
 
     def __str__( self ):
         return "Image #%d: %s (cachePath=%s) (size=%d)" % ( self.id, self.filename, self.cachePath, len( self.data ) )
-    
+
 class History( db.Model ):
-    """ A general way to store previously generated data, which, for now, is a workaround for long, 
+    """ A general way to store previously generated data, which, for now, is a workaround for long,
         clunky IDs to retrieve previously generated quizzes and exams. Class abbreviation (e.g., 9F) and
         quiz number are to aid in retrieval and display.
         TODO: Implement """
     id = db.Column( db.Integer(), primary_key = True )
     classAbbr = db.Column( db.String( 4 ) )
-    quiz = db.Column( db.Integer )   
+    quiz = db.Column( db.Integer )
     questions = db.relationship( 'Question', secondary = questions_histories, backref = db.backref( 'histories', lazy = 'dynamic' ) )
-  
+
     def __repr__( self ):
         return '<History %r>' % ( self.id )
 

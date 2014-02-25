@@ -616,7 +616,7 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">#DIVIDER</span>
 <span class="s">        for question in cachedQuestions:</span>
 <span class="s">            if ( question.quiz == quizNumber ):</span>
-<span class="s">                markedUpQuestion = question.makeMarkedUpVersion()</span>
+<span class="s">                markedUpQuestion = question.decryptAndCacheImages()</span>
 <span class="s">                quizQuestions.append( markedUpQuestion )</span>
 <span class="s">                if ( len( quizQuestions ) &gt; maxNumberOfQuestions ):</span>
 <span class="s">                    break</span>
@@ -626,7 +626,7 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">    def generateFinalExam( classInfo, cachedQuestions ):</span>
 <span class="s">#DIVIDER</span>
 <span class="s">            1024 questions per quiz possible. Question IDs in the database</span>
-<span class="s">            are offsets from the ClassInfo starting IDs. </span>
+<span class="s">            are offsets from the ClassInfo starting IDs.</span>
 <span class="s">            TODO: Turn this into a History instead. &quot;&quot;&quot;</span>
         <span class="n">validIDSymbols</span> <span class="o">=</span> <span class="s">&quot;ABCDEFGHJKLMNPQRSTUVWXYZ23456789&quot;</span>
         <span class="n">numIDSymbols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="n">validIDSymbols</span> <span class="p">)</span>
@@ -701,7 +701,7 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
 <span class="s">        elif ( image.count() != 1 ):</span>
 <span class="s">            flash( &quot;Found more than one user with (raw) ID: </span><span class="si">%d</span><span class="s">!&quot; </span><span class="si">% u</span><span class="s">id )</span>
 <span class="s">        return image.one()</span>
-<span class="s">    </span>
+
 <span class="s">    @staticmethod</span>
 <span class="s">    def getByName( filenameIn ):</span>
 <span class="s">        images = Image.query.filter_by( filename = filenameIn )</span>
@@ -824,7 +824,7 @@ Returned a short..ed version of the (unencrypted) question text with HTML markup
       <div class='octowrap'>
         <a class='octothorpe' href='#section-29'>#</a>
       </div>
-      <p>maxReviewers is necessary to shift out old reviewers and keep the most recent ones. """ 
+      <p>maxReviewers is necessary to shift out old reviewers and keep the most recent ones. """
 f ( self.isOKFlags == None ):  # Initialize flags if none have been set
    self.isOKFlags = 0
 ry:
@@ -843,7 +843,7 @@ f ( userIndex &gt;= len( self.reviewers ) ):
    self.reviewers.append( user )
 lse:
    self.reviewers[userIndex] = user</p>
-<p>akeMarkedUpVersion( self ):
+<p>ecryptAndCacheImages( self ):
 Add HTML markup to all of the question text, including tags and comments.</p>
     </div>
     <div class='code'>
@@ -1050,7 +1050,7 @@ nstances = Question.query.filter( Question.classAbbr == classAbbr, Question.id !
 or instance in instances:
    instanceTags = instance.tagsAsSet()
    if ( len( instanceTags.intersection( tagSet ) ) &gt; 0 ):
-       existing.append( instance.makeDecryptedTextVersion() )
+       existing.append( instance.makeDecryptedTextVersion(True,True,False) )
 eturn existing</p>
 <p>erate Quizzes and Exams</p>
 <p>icmethod
@@ -1096,7 +1096,7 @@ Generate quiz # for a class, using previously cached questions (caller is respon
 xamQuestions = []
  questions = Question.query.filter(Question.classAbbr == session['classAbbr']).all()
 or question in cachedQuestions:
-   markedUpQuestion = question.makeMarkedUpVersion()
+   markedUpQuestion = question.decryptAndCacheImages()
    examQuestions.append( markedUpQuestion )
    if ( len( examQuestions ) &gt; 5 ):
        break
@@ -1160,7 +1160,7 @@ lse:
        except Exception as ex:
            flash ( "ID '%s' isn't a valid question [class] id (%d) for class: %s in code: %s" % ( questionNumbers[index], questionClassID, questionNumbers[index], idSymbols ), category = "warning" )
            continue
-       decryptedQuestion = question.makeMarkedUpVersion()
+       decryptedQuestion = question.decryptAndCacheImages()
        questions.append( decryptedQuestion )
 eturn questions, classInfo</p>
 <p>_repr__( self ):
@@ -1269,7 +1269,7 @@ Class to encapsulate the storage and retrieval of images from the database.</p>
    TODO: Implement """
 d = db.Column( db.Integer(), primary_key = True )
 lassAbbr = db.Column( db.String( 4 ) )
-uiz = db.Column( db.Integer ) <br />
+uiz = db.Column( db.Integer )
 uestions = db.relationship( 'Question', secondary = questions_histories, backref = db.backref( 'histories', lazy = 'dynamic' ) )</p>
 <p>ef <strong>repr</strong>( self ):
    return '<History %r>' % ( self.id )</p>

@@ -610,28 +610,14 @@ to translate from Flask's file upload to the database - TODO: This conversion ma
       <div class='octowrap'>
         <a class='octothorpe' href='#section-34'>#</a>
       </div>
-      <p>TODO: Handle bad questions (errors on next line) gracefully!
-           similarQuestions = question.retrieveAndDecryptSimilarQuestions()</p>
+      <p>TODO: Handle bad questions (errors on next line) gracefully!</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>                <span class="n">form</span> <span class="o">=</span> <span class="n">QuestionForm</span><span class="p">(</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,</span> <span class="n">question</span> <span class="p">)</span>
-                <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;editQuestion.html&#39;</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">,</span> \</pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-35'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
-      </div>
-      <pre><code>                               similarQuestionsToDisplay = similarQuestions, \
-</code></pre>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>                                        <span class="n">questionToDisplay</span> <span class="o">=</span> <span class="n">question</span><span class="p">,</span> \
+                <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;editQuestion.html&#39;</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">,</span> \
+                                        <span class="n">questionToDisplay</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">decryptAndCacheImages</span><span class="p">(),</span> \
                                         <span class="n">rowCountsToDisplay</span> <span class="o">=</span> <span class="n">rowCounts</span><span class="p">,</span> \
-                                        <span class="n">title</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
-                                            <span class="p">(</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">],</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span> <span class="n">classInfo</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">),</span> \
+                                        <span class="n">title</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">],</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span> <span class="n">classInfo</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">),</span> \
                                         <span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="p">)</span> <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">flash</span><span class="p">(</span><span class="s">&quot;Unable to find Question ID: &quot;</span><span class="o">+</span><span class="n">rawQuestionIDAsString</span><span class="p">)</span>
@@ -646,10 +632,10 @@ to translate from Flask's file upload to the database - TODO: This conversion ma
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       
     </div>
@@ -670,10 +656,10 @@ to translate from Flask's file upload to the database - TODO: This conversion ma
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
+  <div class='section' id='section-36'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
+        <a class='octothorpe' href='#section-36'>#</a>
       </div>
       <p>TODO: Add confirmation!</p>
     </div>
@@ -703,10 +689,10 @@ to translate from Flask's file upload to the database - TODO: This conversion ma
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-38'>
+  <div class='section' id='section-37'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-38'>#</a>
+        <a class='octothorpe' href='#section-37'>#</a>
       </div>
       <p>Retrieve a question that's been least reviewed for a chosen class.</p>
     </div>
@@ -718,10 +704,10 @@ to translate from Flask's file upload to the database - TODO: This conversion ma
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-39'>
+  <div class='section' id='section-38'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-39'>#</a>
+        <a class='octothorpe' href='#section-38'>#</a>
       </div>
       <p>Least reviewed is found by looking for 0, 1, 2, etc. up to 10 prior reviews."""
 f ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
@@ -787,8 +773,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
 <span class="s">                reviewersSaidOK.append( question.isOKFlags &amp; 1 &lt;&lt; n )</span>
 <span class="s">            return render_template( &#39;reviewQuestion.html&#39;, </span><span class="se">\</span>
 <span class="s">                                    form = form, </span><span class="se">\</span>
-<span class="s">#DIVIDER</span>
-<span class="s">                                    questionToDisplay = question.makeMarkedUpVersion(), </span><span class="se">\</span>
+<span class="s">                                    questionToDisplay = question.decryptAndCacheImages(), </span><span class="se">\</span>
 <span class="s">                                    rowCountsToDisplay = rowCounts, </span><span class="se">\</span>
 <span class="s">                                    title = &quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s"> (</span><span class="si">%s</span><span class="s">)&quot; % </span><span class="se">\</span>
 <span class="s">                                        ( session[&#39;mode&#39;], ( question.offsetNumberFromClass( classInfo ) + 1 ), session[CLASS_ABBR_KEY], classInfo.longName ), </span><span class="se">\</span>
@@ -857,10 +842,10 @@ Handler for the "Review question" functionality. Redisplays the original questio
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-40'>
+  <div class='section' id='section-39'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
+        <a class='octothorpe' href='#section-39'>#</a>
       </div>
       <p>Handle a question review form</p>
     </div>
@@ -870,10 +855,10 @@ Handler for the "Review question" functionality. Redisplays the original questio
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-41'>
+  <div class='section' id='section-40'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
+        <a class='octothorpe' href='#section-40'>#</a>
       </div>
       <p>similarQuestions = question.retrieveAndDecryptSimilarQuestions()</p>
     </div>
@@ -882,12 +867,12 @@ Handler for the "Review question" functionality. Redisplays the original questio
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-42'>
+  <div class='section' id='section-41'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
-      <p>similarQuestionsToDisplay = similarQuestions, \</p>
+      <p>Generate a printable quiz (see Question.generateQuiz for more information). Utilizes questions</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span> <span class="s">&quot;/verifyUsers&quot;</span> <span class="p">)</span>
@@ -897,23 +882,10 @@ Handler for the "Review question" functionality. Redisplays the original questio
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-43'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-43'>#</a>
-      </div>
-      <p>Generate a printable quiz (see Question.generateQuiz for more information). Utilizes questions</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">getAllUnverifiedUsers</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;verifyUsers.html&#39;</span><span class="p">,</span> <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">unverifiedUsers</span> <span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-44'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       <p>hat were previously cached when choosing which quiz to generate (See chooseQuiz (above) for more 
 nformation. The quiz itself is rendered on a new page (to ease printing). """ 
@@ -936,6 +908,19 @@ n_required
 n_permission.require()
 enerateExam():
 Very similar to generateQuiz (above), except uses Question.generateFinalExam</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">getAllUnverifiedUsers</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;verifyUsers.html&#39;</span><span class="p">,</span> <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">unverifiedUsers</span> <span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      <p>Retrieve and render a previous quiz or final exam given a code that is displayed on generated quizzes or finals.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span> <span class="s">&quot;/verifyingUser&quot;</span> <span class="p">)</span>
@@ -977,22 +962,10 @@ Very similar to generateQuiz (above), except uses Question.generateFinalExam</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-45'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
-      </div>
-      <p>Retrieve and render a previous quiz or final exam given a code that is displayed on generated quizzes or finals.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    <span class="n">identity</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-46'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>TODO: Fix "Quiz" or "Final Exam" titles """
 f request.method == 'POST':
@@ -1099,9 +1072,26 @@ eturn resp</p>
 empPath( path ):
 '' Shiv (to utils) to handle tmp/FILE URL requests (used for images). '''
 esp = makeTempFileResp( path )
+f (type(resp)==type(u"string")):
+   app.logger.debug(resp)
 eturn resp</p>
 <p>urrentUserFirstName():
 Helper function to return the full name associated with the currently logged in user.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">identity</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-45'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      <pre><code>    if g.user.fullname:
+        return g.user.fullname.split( " " )[0]
+    else:
+</code></pre>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span> <span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;id&#39;</span> <span class="p">):</span>
@@ -1109,15 +1099,12 @@ Helper function to return the full name associated with the currently logged in 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-47'>
+  <div class='section' id='section-46'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
-      <pre><code>    if g.user.fullname:
-        return g.user.fullname.split( " " )[0]
-    else:
-</code></pre>
+      <p>SECURITY</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span> <span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;roles&#39;</span> <span class="p">):</span>
@@ -1126,24 +1113,24 @@ Helper function to return the full name associated with the currently logged in 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-47'>#</a>
       </div>
-      <p>SECURITY</p>
+      <p>Admin page for verifying users that have successfully registered.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-48'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-48'>#</a>
       </div>
-      <p>Admin page for verifying users that have successfully registered.</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">def</span> <span class="nf">generate_csrf_token</span><span class="p">():</span>
@@ -1154,10 +1141,10 @@ Helper function to return the full name associated with the currently logged in 
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-49'>#</a>
       </div>
       
     </div>
@@ -1167,12 +1154,24 @@ Helper function to return the full name associated with the currently logged in 
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>Set the identity user object</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-51'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-51'>#</a>
       </div>
-      
+      <p>Add the UserNeed to the identity</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1184,10 +1183,11 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-52'>#</a>
       </div>
-      <p>Set the identity user object</p>
+      <p>Assuming the User model has a list of roles, update the
+identity with the roles that the user provides</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre>    <span class="n">max_age</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;REMEMBER_COOKIE_DURATION&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1196,10 +1196,13 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-53'>#</a>
       </div>
-      <p>Add the UserNeed to the identity</p>
+      <p>This processor is added to only the register view
+@security.register_context_processor
+def security_register_processor():
+    app.logger.debug("security_register_processor")</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">max_age</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;REMEMBER_COOKIE_DURATION&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">data</span> <span class="o">=</span> <span class="n">login_serializer</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">token</span><span class="p">,</span> <span class="n">max_age</span> <span class="o">=</span> <span class="n">max_age</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1208,11 +1211,10 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-54'>#</a>
       </div>
-      <p>Assuming the User model has a list of roles, update the
-identity with the roles that the user provides</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">data</span> <span class="o">=</span> <span class="n">login_serializer</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">token</span><span class="p">,</span> <span class="n">max_age</span> <span class="o">=</span> <span class="n">max_age</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1221,13 +1223,17 @@ identity with the roles that the user provides</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-55'>#</a>
       </div>
-      <p>This processor is added to only the register view
-@security.register_context_processor
-def security_register_processor():
-    app.logger.debug("security_register_processor")</p>
+      <p>Flask-Login token_loader callback.
+The token_loader function asks this function to take the token that was
+stored on the users computer process it to check if its valid and then
+return a User Object if its valid or None if its not valid.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">user</span>
+    <span class="k">return</span> <span class="bp">None</span>
+
+</pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1239,11 +1245,7 @@ def security_register_processor():
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">user</span>
-    <span class="k">return</span> <span class="bp">None</span>
-
-</pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1252,10 +1254,8 @@ def security_register_processor():
       <div class='octowrap'>
         <a class='octothorpe' href='#section-57'>#</a>
       </div>
-      <p>Flask-Login token_loader callback.
-The token_loader function asks this function to take the token that was
-stored on the users computer process it to check if its valid and then
-return a User Object if its valid or None if its not valid.</p>
+      <p>The Token itself was generated by User.get_auth_token.  So it is up to
+us to known the format of the token data itself.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1266,31 +1266,6 @@ return a User Object if its valid or None if its not valid.</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-58'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-59'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-59'>#</a>
-      </div>
-      <p>The Token itself was generated by User.get_auth_token.  So it is up to
-us to known the format of the token data itself.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-60'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-60'>#</a>
       </div>
       <p>The Token was encrypted using itsdangerous.URLSafeTimedSerializer which
 allows us to have a max_age on the token itself.  When the cookie is stored
@@ -1303,10 +1278,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-61'>
+  <div class='section' id='section-59'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-61'>#</a>
+        <a class='octothorpe' href='#section-59'>#</a>
       </div>
       <p>Decrypt the Security Token, data = [username, hashpass]</p>
     </div>
@@ -1315,10 +1290,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-62'>
+  <div class='section' id='section-60'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-62'>#</a>
+        <a class='octothorpe' href='#section-60'>#</a>
       </div>
       <p>Find the User</p>
     </div>
@@ -1327,10 +1302,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-63'>
+  <div class='section' id='section-61'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-63'>#</a>
+        <a class='octothorpe' href='#section-61'>#</a>
       </div>
       <p>Check Password and return user or None</p>
     </div>
