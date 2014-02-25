@@ -224,10 +224,11 @@ class Question( db.Model ):
         """ Returned a short..ed version of the (unencrypted) question text with HTML markup """
         if self.question:
             self.decryptQuestionText()
-            if ( len( self.question ) < 60 ):
-                return self.question[:]
+            shortened = self.question.replace("<br />","&para;")
+            if ( len( shortened ) < 60 ):
+                return shortened
             else:
-                return self.question[0:28].strip() + "..." + self.question[-28:].strip()
+                return shortened[0:28].strip() + " &hellip; " + shortened[-28:].strip()
         else:
             return "?? NO QUESTION TEXT ??"
 

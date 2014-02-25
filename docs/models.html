@@ -254,10 +254,11 @@ Stores user information, including the password in encrypted form. Also handles 
 <span class="s">#DIVIDER</span>
 <span class="s">        if self.question:</span>
 <span class="s">            self.decryptQuestionText()</span>
-<span class="s">            if ( len( self.question ) &lt; 60 ):</span>
-<span class="s">                return self.question[:]</span>
+<span class="s">            shortened = self.question.replace(&quot;&lt;br /&gt;&quot;,&quot;&amp;para;&quot;)</span>
+<span class="s">            if ( len( shortened ) &lt; 60 ):</span>
+<span class="s">                return shortened</span>
 <span class="s">            else:</span>
-<span class="s">                return self.question[0:28].strip() + &quot;...&quot; + self.question[-28:].strip()</span>
+<span class="s">                return shortened[0:28].strip() + &quot; &amp;hellip; &quot; + shortened[-28:].strip()</span>
 <span class="s">        else:</span>
 <span class="s">            return &quot;?? NO QUESTION TEXT ??&quot;</span>
 <span class="s">#DIVIDER</span>
