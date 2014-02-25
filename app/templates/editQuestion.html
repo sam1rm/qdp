@@ -125,39 +125,22 @@ $(document).ready(
                     </label>
                     {{form.answer(rows=rowCountsToDisplay['answer'],cols=100)}} 
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="reviewed1">
-                        Reviewed by: 
-                    </label>
-                {% if questionToDisplay.reviewers[0] %}
-                    {{questionToDisplay.reviewers[0].fullname}} 
-                    &lt;{{questionToDisplay.reviewers[0].email}}&gt;
-                {% else %}
-                    <i>Nobody</i>
-                {% endif %}
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="reviewed2">
-                        Reviewed by: 
-                    </label>
-                {% if questionToDisplay.reviewers[1] %}
-                    {{questionToDisplay.reviewers[1].fullname}} 
-                    &lt;{{questionToDisplay.reviewers[1].email}}&gt;
-                {% else %}
-                    <i>Nobody</i>
-                {% endif %}
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="reviewed3">
-                        Reviewed by: 
-                    </label>
-                {% if questionToDisplay.reviewers[2] %}
-                    {{questionToDisplay.reviewers[2].fullname}} 
-                    &lt;{{questionToDisplay.reviewers[2].email}}&gt;
-                {% else %}
-                    <i>Nobody</i>
-                {% endif %}
-                </div>
+                <table table-striped table-hover>
+                    {% for reviewer in questionToDisplay.reviewers %}
+                        <tr>
+                            <td><label class="control-label" for="reviewed1">Reviewed by:&nbsp;</label>{{reviewer.fullname}}</td>
+                            <td>&lt;{{reviewer.email}}&gt;</td>
+                            <td>&nbsp;
+                                {% if reviewersSaidOKToDisplay[loop.index] %}
+                                 <span class="glyphicon glyphicon-ok"> </span> 
+                                {% else %}
+                                 <span class="glyphicon glyphicon-thumbs-down"> </span> 
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+				</table>
+				<br> <br />
  				<div class="control-group">
                     <button type="submit" class="btn btn-primary center" name='button' value="done">
                         Save 

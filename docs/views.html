@@ -614,9 +614,13 @@ to translate from Flask's file upload to the database - TODO: This conversion ma
     </div>
     <div class='code'>
       <div class="highlight"><pre>                <span class="n">form</span> <span class="o">=</span> <span class="n">QuestionForm</span><span class="p">(</span> <span class="n">request</span><span class="o">.</span><span class="n">form</span><span class="p">,</span> <span class="n">question</span> <span class="p">)</span>
+                <span class="n">reviewersSaidOK</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Jinga loop.index starts index at 1</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="nb">len</span><span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">reviewers</span> <span class="p">)</span> <span class="p">):</span>
+                    <span class="n">reviewersSaidOK</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">isOKFlags</span> <span class="o">&amp;</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">n</span> <span class="p">)</span>
                 <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;editQuestion.html&#39;</span><span class="p">,</span> <span class="n">form</span> <span class="o">=</span> <span class="n">form</span><span class="p">,</span> \
                                         <span class="n">questionToDisplay</span> <span class="o">=</span> <span class="n">question</span><span class="o">.</span><span class="n">decryptAndCacheImages</span><span class="p">(),</span> \
                                         <span class="n">rowCountsToDisplay</span> <span class="o">=</span> <span class="n">rowCounts</span><span class="p">,</span> \
+                                        <span class="n">reviewersSaidOKToDisplay</span> <span class="o">=</span> <span class="n">reviewersSaidOK</span><span class="p">,</span> \
                                         <span class="n">title</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> Question #</span><span class="si">%d</span><span class="s"> For </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;mode&#39;</span><span class="p">],</span> <span class="p">(</span> <span class="n">question</span><span class="o">.</span><span class="n">offsetNumberFromClass</span><span class="p">(</span> <span class="n">classInfo</span> <span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">),</span> \
                                         <span class="n">classInfo</span><span class="o">.</span><span class="n">longName</span> <span class="p">)</span> <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -768,7 +772,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
 <span class="s">                        return redirect( url_for( &quot;requestReviewQuestion&quot; ) )</span>
 <span class="s">                    else:</span>
 <span class="s">                        flash( &#39;There was a problem handling the form POST for Question ID:</span><span class="si">%d</span><span class="s">&#39; % ( question.id ) )</span>
-<span class="s">            reviewersSaidOK = [0]  # loop.index starts index at 1</span>
+<span class="s">            reviewersSaidOK = [0]  # Jinga loop.index starts index at 1</span>
 <span class="s">            for n in range( len( question.reviewers ) ):</span>
 <span class="s">                reviewersSaidOK.append( question.isOKFlags &amp; 1 &lt;&lt; n )</span>
 <span class="s">            return render_template( &#39;reviewQuestion.html&#39;, </span><span class="se">\</span>
@@ -808,7 +812,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
 <span class="s">    else:</span>
 <span class="s">        flash( &quot;Please choose a task (e.g., &#39;review&#39;) first.&quot; )</span>
 <span class="s">        return redirect( url_for( &#39;index&#39; ) )</span>
-<span class="s">        </span>
+
 <span class="s">@app.route( &#39;/generateQuiz&#39; )</span>
 <span class="s">@login_required</span>
 <span class="s">@admin_permission.require()</span>
@@ -887,8 +891,8 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <div class='octowrap'>
         <a class='octothorpe' href='#section-42'>#</a>
       </div>
-      <p>hat were previously cached when choosing which quiz to generate (See chooseQuiz (above) for more 
-nformation. The quiz itself is rendered on a new page (to ease printing). """ 
+      <p>hat were previously cached when choosing which quiz to generate (See chooseQuiz (above) for more
+nformation. The quiz itself is rendered on a new page (to ease printing). """
 f ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
    classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
    if gCachedQuestions:

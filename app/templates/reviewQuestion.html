@@ -84,23 +84,19 @@ $(document).ready(
 					<label class="control-label" for="answer"> Answer: </label> {{questionToDisplay.answer}} {{form.answerComments(rows=rowCountsToDisplay['answerComments'],cols=100,placeholder="Comments on Answers")}} <br />
 				</div>
 				<table table-striped table-hover>
-					
-{% for reviewer in questionToDisplay.reviewers %}
- 
-					<tr>
-						<td> <label class="control-label" for="reviewed1"> Reviewed by: </label> {{reviewer.fullname}} </td>
-						<td> &lt;{{reviewer.email}}&gt; </td>
-						<td> 
-{% if reviewersSaidOKToDisplay[loop.index] %}
- <span class="glyphicon glyphicon-ok"> </span> 
-{% else %}
- <span class="glyphicon glyphicon-thumbs-down"> </span> 
-{% endif %}
- </td>
-					</tr>
-					
-{% endfor %}
- 
+                    {% for reviewer in questionToDisplay.reviewers %}
+                        <tr>
+                            <td><label class="control-label" for="reviewed1">Reviewed by:&nbsp;</label>{{reviewer.fullname}}</td>
+                            <td>&lt;{{reviewer.email}}&gt;</td>
+                            <td>&nbsp;
+                                {% if reviewersSaidOKToDisplay[loop.index] %}
+                                 <span class="glyphicon glyphicon-ok"> </span> 
+                                {% else %}
+                                 <span class="glyphicon glyphicon-thumbs-down"> </span> 
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
 				</table>
 				<br> <br />
 				<button type="submit" class="btn btn-success center" name='button' value="good"> Looks Good </button> <button type="submit" class="btn btn-warning center" name='button' value="needswork"> Needs Work </button> 

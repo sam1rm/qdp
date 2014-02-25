@@ -110,7 +110,7 @@ def chooseQuestionToEdit():
     else:
         flash( "Please choose a task (e.g., 'review') first." )
         return redirect( url_for( 'index' ) )
-    
+
 @app.route( '/chooseQuiz' )
 @login_required
 @admin_permission.require()
@@ -130,9 +130,9 @@ def chooseQuiz():
     else:
         flash( "Please choose a task (e.g., 'review') first." )
         return redirect( url_for( 'index' ) )
-    
+
 # Media upload
-    
+
 @app.route( "/manageMedia" )
 @login_required
 @user_permission.require()
@@ -160,7 +160,7 @@ def manageMedia():
     else:
         flash( "Please choose a task (e.g., 'review') first." )
         return redirect( url_for( 'index' ) )
-    
+
 @app.route( "/uploadMedia", methods=['GET', 'POST'] )
 @login_required
 @user_permission.require()
@@ -260,9 +260,13 @@ def editQuestion():
                 rowCounts = question.calculateRows()
                 # TODO: Handle bad questions (errors on next line) gracefully!
                 form = QuestionForm( request.form, question )
+                reviewersSaidOK = [0]  # Jinga loop.index starts index at 1
+                for n in range( len( question.reviewers ) ):
+                    reviewersSaidOK.append( question.isOKFlags & 1 << n )
                 return render_template( 'editQuestion.html', form = form, \
                                         questionToDisplay = question.decryptAndCacheImages(), \
                                         rowCountsToDisplay = rowCounts, \
+                                        reviewersSaidOKToDisplay = reviewersSaidOK, \
                                         title = "%s Question #%d For %s" % ( session['mode'], ( question.offsetNumberFromClass( classInfo ) + 1 ), \
                                         classInfo.longName ) )
             else:
@@ -376,7 +380,7 @@ def reviewQuestion():
                         return redirect( url_for( "requestReviewQuestion" ) )
                     else:
                         flash( 'There was a problem handling the form POST for Question ID:%d' % ( question.id ) )
-            reviewersSaidOK = [0]  # loop.index starts index at 1
+            reviewersSaidOK = [0]  # Jinga loop.index starts index at 1
             for n in range( len( question.reviewers ) ):
                 reviewersSaidOK.append( question.isOKFlags & 1 << n )
             return render_template( 'reviewQuestion.html', \
@@ -416,14 +420,14 @@ def gatherSimilarQuestionsFromTags():
     else:
         flash( "Please choose a task (e.g., 'review') first." )
         return redirect( url_for( 'index' ) )
-        
+
 @app.route( '/generateQuiz' )
 @login_required
 @admin_permission.require()
 def generateQuiz():
     """ Generate a printable quiz (see Question.generateQuiz for more information). Utilizes questions
-    that were previously cached when choosing which quiz to generate (See chooseQuiz (above) for more 
-    information. The quiz itself is rendered on a new page (to ease printing). """ 
+    that were previously cached when choosing which quiz to generate (See chooseQuiz (above) for more
+    information. The quiz itself is rendered on a new page (to ease printing). """
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         if gCachedQuestions:
@@ -496,7 +500,7 @@ def imageStatistics():
     else:
         flash("Unable to find Image ID: "+rawImageIDAsString)
         return redirect( url_for( 'manageMedia' ) )
-    
+
 # ADMIN
 
 @app.route( "/adminDatabaseReset" )
