@@ -1,13 +1,17 @@
 {% extends "layout.html" %} {% block content %} 
 <table width="100%">
 	<tr>
-	<th></th>
-	{% if isAdmin %} 
-	<th>Administrative Tools</th>
-	{% if isDebugging %}
-	<th>Debugging Functions</th>
-	{% endif %}
-	{% endif %}
+		<th>
+		</th>
+		{% if isAdmin %} 
+		<th>
+			Administrative Tools 
+		</th>
+		{% if isDebugging %} 
+		<th>
+			Debugging Functions 
+		</th>
+		{% endif %} {% endif %} 
 	</tr>
 	<tr>
 		<td>
@@ -15,47 +19,45 @@
 				Questions 
 			</h2>
 			<br /> 
-			<a href="{{ url_for('chooseClass', mode='Write') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+			<a class="btn btn-primary btn-large" href="{{ url_for('chooseClass', mode='Write') }}" style="width: 200px; min-width:200px;">
 				<i class="glyphicon glyphicon-plus">
 				</i>
 				Write 
 			</a>
 			<br /> <br /> 
-			<a href="{{ url_for('chooseClass', mode='Edit') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+			<a class="btn btn-primary btn-large" href="{{ url_for('chooseClass', mode='Edit') }}" style="width: 200px; min-width:200px;">
 				<i class="glyphicon glyphicon-pencil">
 				</i>
 				Edit 
 			</a>
 			<br /> <br /> 
-			<a href="{{ url_for('chooseClass', mode='Review') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+			<a class="btn btn-primary btn-large" href="{{ url_for('chooseClass', mode='Review') }}" style="width: 200px; min-width:200px;">
 				<i class="glyphicon glyphicon-ok">
 				</i>
 				Review 
 			</a>
-			{% if isAdmin %}
-			<br /> <br /> 
+			{% if isAdmin %} <br /> <br /> 
 			<h2>
 				Quizzes &amp; Exams 
 			</h2>
 			<br /> 
-			<a href="{{ url_for('chooseClass', mode='Generate') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+			<a class="btn btn-primary btn-large" href="{{ url_for('chooseClass', mode='Generate') }}" style="width: 200px; min-width:200px;">
 				<i class="glyphicon glyphicon-print">
 				</i>
 				Generate 
 			</a>
 			<br /> <br /> 
-			<a href="{{ url_for('retrieveQuizOrExam') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+			<a class="btn btn-primary btn-large" href="{{ url_for('retrieveQuizOrExam') }}" style="width: 200px; min-width:200px;">
 				<i class="glyphicon glyphicon-file">
 				</i>
 				Retrieve 
 			</a>
-			{% endif %}
-			<br /> <br /> 
+			{% endif %} <br /> <br /> 
 			<h2>
-				Media
+				Media 
 			</h2>
 			<br /> 
-			<a href="{{ url_for('chooseClass', mode='Media') }}" style="width: 200px; min-width:200px;" class="btn btn-primary btn-large">
+			<a class="btn btn-primary btn-large" href="{{ url_for('chooseClass', mode='Media') }}" style="width: 200px; min-width:200px;">
 				<i class="glyphicon glyphicon-th-list">
 				</i>
 				Manage 
@@ -63,54 +65,77 @@
 		</td>
 		{% if isAdmin %} 
 		<td>
-		<table>
-		{% if hasUnverifiedUsers %} 
-			<tr>
-		<td>
-			<a href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
-				<i class="glyphicon glyphicon-user">
-				</i>
-				Approve Users 
-			</a>
-		</td></tr>
-		{% endif %}
-					<tr><td>&nbsp;</td></tr>
-			<tr>
-				<td>
-					<a href="{{ url_for('downloadDatabase') }}" style="width: 200px; min-width:200px;" class="btn btn-warning btn-large">
-					<i class="glyphicon glyphicon-list-alt">
-						</i>
-						Download Database
-					</a>
-				</td>
-			</tr>
-			</table></td>
-		{% if isDebugging %} 
-		<td>
-		<table>
-			<tr>
-				<td>
-					<a href="{{ url_for('adminDatabaseReset') }}" style="width: 200px; min-width:200px;" class="btn btn-danger btn-large">
-						<i class="glyphicon glyphicon-trash">
-						</i>
-						Reset Database 
-					</a>
-				</td>
-			</tr>
-            <tr><td>&nbsp;</td></tr>
-			<tr>
-				<td>
-					<a href="{{ url_for('adminTesting') }}" style="width: 200px; min-width:200px;" class="btn btn-danger btn-large">
-					<i class="glyphicon glyphicon-cog">
-						</i>
-						Testing, 1, 2, 3, ...
-					</a>
-				</td>
-			</tr>
+			<table>
+				{% if hasUnverifiedUsers %} 
+				<tr>
+					<td>
+						<a class="btn btn-warning btn-large" href="{{ url_for('verifyUsers') }}" style="width: 200px; min-width:200px;">
+							<i class="glyphicon glyphicon-user">
+							</i>
+							Approve Users 
+						</a>
+					</td>
+				</tr>
+				{% endif %} 
+				<tr>
+					<td>
+					<br /> <br /> 
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a class="btn btn-warning btn-large" href="{{ url_for('downloadDatabase') }}" style="width: 200px; min-width:200px;">
+							<i class="glyphicon glyphicon-list-alt">
+							</i>
+							Download Database
+						</a>
+					</td>
+				</tr>
+				<tr>
+					<td>
+					<br /> <br /> 
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a class="btn btn-warning btn-large" href="{{ url_for('exportDatabase') }}" style="width: 200px; min-width:200px;">
+							<i class="glyphicon glyphicon-folder-open">
+							</i>
+							Export Database
+						</a>
+					</td>
+				</tr>
 			</table>
 		</td>
-		{% endif %} 
-		{% endif %}
+		{% if isDebugging %} 
+		<td>
+			<table>
+				<tr>
+					<td>
+						<a class="btn btn-danger btn-large" href="{{ url_for('adminDatabaseReset') }}" style="width: 200px; min-width:200px;">
+							<i class="glyphicon glyphicon-trash">
+							</i>
+							Reset Database 
+						</a>
+					</td>
+				</tr>
+				<tr>
+					<td>
+					<br /> <br /> 
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a class="btn btn-danger btn-large" href="{{ url_for('adminTesting') }}" style="width: 200px; min-width:200px;">
+							<i class="glyphicon glyphicon-cog">
+							</i>
+							Testing, 1, 2, 3, ... 
+						</a>
+					</td>
+				</tr>
+			</table>
+		</td>
+		{% endif %} {% endif %} 
 	</tr>
 </table>
-{% endblock %}
+{% endblock %} 

@@ -1,5 +1,8 @@
+classid=83
+created=2014-02-28 15:21:55.150206
+modified=2014-02-28 15:21:55.150212
 tags=Advanced Matrices
-instructions=You find the following piece of code scrawled on your dorm whiteboard with the word &ldquo;Vegas, baby!&rdquo; next to it.
+instructions=You find the following piece of code scrawled on your dorm whiteboard with the word &ldquo;Aha!&rdquo; next to it.
 question=In English, briefly explain what it computes:
-example=<b>fix(6*rand(100,2))+1</b>
-answer=This produces a 100x2 matrix with 100 different simulations of a pair of dice.
+examples=all(abs(A(:)-B(:))&lt;eps)
+answer=This tests element-by-element equality of two matrices within an eps threshold. I.e., it returns true if every element of A is within eps of the corresponding element of B.

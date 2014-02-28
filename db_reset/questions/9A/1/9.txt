@@ -1,3 +1,6 @@
+classid=69
+created=2014-02-28 15:21:55.006431
+modified=2014-02-28 15:21:55.006438
 tags=Matrix Basics, Vectors
 instructions=Let&rsquo;s say A is [0 1 2 Inf NaN].
 question=What is A&rsquo;*A?

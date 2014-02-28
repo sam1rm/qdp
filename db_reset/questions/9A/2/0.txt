@@ -1,0 +1,8 @@
+classid=70
+created=2014-02-28 15:21:55.016267
+modified=2014-02-28 15:21:55.016273
+tags=Advanced Matrices
+question=Without using explicit loop constructs or if, give two different ways to construct a 1,000 x 1,000 matrix containing alternating zeros and ones. One solution should use repmat and one should not.
+examples=0 1 0 &hellip; 0 1<br />1 0 1 &hellip; 1 0<br />0 1 0 &hellip; 0 1<br />&hellip; &hellip; &hellip; &hellip; &hellip; &hellip;<br />1 0 1 &hellip; 1 0<br />0 1 0 &hellip; 0 1 <br />1 0 1 &hellip; 1 0
+hints=You might find meshgrid handy here.
+answer=~repmat(eye(2),500,500)<br />cv01 = repmat([0;1],500,1);<br />cv10 = ~cv01;<br />repmat([cv01 cv10],1,500)<br />%%%%%%% alternative solution without using repmat %%%%%%%<br />[X,Y]=meshgrid(1:1000,1:1000);<br />A=X+Y;<br />2*fix(A/2) ~= A<br />[X,Y]=meshgrid(1:1000,1:1000);<br />X = 2*fix(X/2) ~= X;<br />Y = 2*fix(Y/2) ~= Y;<br />xor(X,Y)

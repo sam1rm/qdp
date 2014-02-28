@@ -1,1 +1,1 @@
-Description=Generic user role
+description=Generic user role

@@ -1,2 +1,3 @@
 description=Java
-startid=8000
+startID=8000
+currentID=8000

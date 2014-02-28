@@ -1,1 +1,1 @@
-Description=Generic administrator role
+description=Generic administrator role

@@ -1,4 +1,7 @@
+classid=79
+created=2014-02-28 15:21:55.110071
+modified=2014-02-28 15:21:55.110078
 tags=Advanced Matrices
-instructions=You collected (latitude, longitude) temperature data into a 2D matrix T, and where you weren&rsquo;t able to collect any data you have the value NaN.
-question=Without using explicit loop constructs or if, remove from T all the data from a particular latitude (row) if any value in that latitude (row) is a NaN.
-answer=X(any(isnan(X),2),:)=[];
+instructions=Suppose that A contains the following values:<br /><br />A = [0 1 2 Inf NaN];
+question=&hellip;what is the value of B, C, D and E?<br />B = A+1;<br /><br /><br />C = A/Inf;<br /><br /><br />D = A(find(A));<br /><br /><br />E = A(logical(A));
+answer=% This one should be easy; Inf and NaNs are black holes<br /><br />B =<br /><br />     1     2     3   Inf   NaN<br /><br />% x/Inf ? 0, Inf/Inf ? NaN, A op NaN ? NaN<br /><br />C =<br /><br />     0     0     0   NaN   NaN<br /><br />% find doesn&rsquo;t care about NaN or Inf, only 0, so it returns<br />% [2 3 4 5], which when used to pick the elements yields&hellip;<br /><br />D =<br /><br />     1     2   Inf   NaN<br /><br />% This one can be confusing. While find doesn&rsquo;t care about<br />% Inf or NaN, logical does and complains. What would it be,<br />% a 0 or a 1? Find would say &ldquo;1&rdquo;, but logical gives an err.<br /><br />??? Error using ==&gt; logical<br />NaN's cannot be converted to logicals.

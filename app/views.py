@@ -4,6 +4,7 @@ import datetime
 import gzip
 import os
 import random
+import shutil
 import subprocess
 import traceback
 
@@ -16,11 +17,12 @@ from flask.ext.security import SQLAlchemyUserDatastore
 from flask.helpers import get_flashed_messages
 from werkzeug import secure_filename
 
+from app.utils import makeTempFileResp, zipdir
+import db_reset
+
 from app.forms import QuestionForm, ReviewQuestionForm, ReportForm
 from app.models import User, Role, ClassInfo, Question, Image
-from app.utils import makeTempFileResp
 from app.oracle import generateIV, encrypt
-import db_reset
 
 # === Globals ===
 
@@ -35,6 +37,9 @@ admin_permission = Permission( RoleNeed( 'admin' ) )
 
 CLASS_ABBR_KEY = 'classAbbr'
 QUESTION_ID_KEY = 'questionID'
+
+EXPORT_DB_PATH = '/tmp/exportedAppDB'
+EXPORT_DB_FILENAME = "app.db.export.zip"
 
 # === View Code Begins ===
 
@@ -236,6 +241,7 @@ def writeNewQuestion():
     if ((CLASS_ABBR_KEY in session) and (session[CLASS_ABBR_KEY])):
         classInfo = ClassInfo.get( session[CLASS_ABBR_KEY] )
         question = Question( created = datetime.datetime.now(), classAbbr = session[CLASS_ABBR_KEY], classID = classInfo.currentID )
+        g.user.wrote_question(classInfo.currentID)
         db.session.add( question )
         classInfo.currentID = classInfo.currentID + 1
         db.session.merge( classInfo )
@@ -507,9 +513,12 @@ def imageStatistics():
 @login_required
 @admin_permission.require()
 def adminDatabaseReset():
-    try:
+    #try:
+    if True:
         messages = db_reset.resetDatabase(db)
-    except Exception as ex:
+    #except Exception as ex:
+    if False:
+        ex = "Foobar"
         messages = ["An exception occurred while resetting the database:"]
         if (str(ex)):
             messages.append(str(ex))
@@ -517,7 +526,6 @@ def adminDatabaseReset():
         for line in formattedExceptionLines:
             if (len(line)>0):
                 messages.append(line)
-    #flash("Database resetteded!")
     return render_template("adminOutput.html", messagesToDisplay = messages)
 
 @app.route( "/adminTesting" )
@@ -568,13 +576,81 @@ def sendOrDeleteReport():
 @login_required
 @admin_permission.require()
 def downloadDatabase():
+    """ Zip up and send the database file. TODO: Use constants instead of literals here. Gross. """
     # Check for valid file and assign it to `inbound_file`
     f_in = open('app.db', 'rb')
     f_out = gzip.open('/tmp/app.db.gz', 'wb')
     f_out.writelines(f_in)
     f_out.close()
     f_in.close()
-    resp = makeTempFileResp("app.db.gz")
+    resp =  makeTempFileResp("app.db.gz")
+    return resp
+
+@app.route("/exportDatabase")
+@login_required
+@admin_permission.require()
+def exportDatabase():
+    """ Export (in db_reset readable format), Zip (file) it up, and send for download. """
+    classInfos = ClassInfo.getAll()
+    if (os.path.exists(EXPORT_DB_PATH)):
+        shutil.rmtree(EXPORT_DB_PATH)
+    os.mkdir(EXPORT_DB_PATH)
+    # Roles
+    rolesPath = os.path.join(EXPORT_DB_PATH,'roles')
+    os.mkdir(rolesPath)
+    roles = Role.getAll()
+    for role in roles:
+        fref = open(os.path.join(rolesPath,role.name)+".txt","w")
+        role.write(fref)
+        fref.close()
+    # Users
+    userPath = os.path.join(EXPORT_DB_PATH,'users')
+    os.mkdir(userPath)
+    users = User.getAll()
+    for user in users:
+        fref = open(os.path.join(userPath,user.fullname)+".txt","w")
+        user.write(fref)
+        fref.close()
+    # Classes
+    classesPath = os.path.join(EXPORT_DB_PATH,'classes')
+    os.mkdir(classesPath)
+    classInfos = ClassInfo.getAll()
+    for classInfo in classInfos:
+        fref = open(os.path.join(classesPath,classInfo.classAbbr)+".txt","w")
+        classInfo.write(fref)
+        fref.close()
+    # Images
+    imagesPath = os.path.join(EXPORT_DB_PATH,'images')
+    os.mkdir(imagesPath)
+    for classInfo in classInfos:
+        imagePath = os.path.join(imagesPath,classInfo.classAbbr)
+        os.mkdir(imagePath)
+        images = Image.getAllByClass(classInfo.classAbbr)
+        for image in images:
+            image.cacheByName()
+            shutil.move(image.cachePath, os.path.join(imagePath,image.filename))
+    # Questions
+    questionsPath = os.path.join(EXPORT_DB_PATH,'questions')
+    os.mkdir(questionsPath)
+    for classInfo in classInfos:
+        classQuestionsPath = os.path.join(questionsPath,classInfo.classAbbr)
+        os.mkdir(classQuestionsPath)
+        for quizIndex in range(1,6):
+            classQuizQuestionsPath = os.path.join(classQuestionsPath,str(quizIndex))
+            os.mkdir(classQuizQuestionsPath)
+            questions = Question.getAllByClassAndQuiz(classInfo.classAbbr, quizIndex)
+            if questions:
+                for questionIndex in range(0,len(questions)):
+                    fref = open(os.path.join(classQuizQuestionsPath,str(questionIndex))+".txt","w")
+                    question = questions[questionIndex].makeDecryptedTextVersion()
+                    question.write(fref)
+                    fref.close()
+    # Compress it
+    zipdir(EXPORT_DB_PATH,os.path.join('/tmp/',EXPORT_DB_FILENAME))
+    # Remove temporary files
+    shutil.rmtree(EXPORT_DB_PATH)
+    # Make the http response for downloading file
+    resp = makeTempFileResp(EXPORT_DB_FILENAME)
     return resp
 
 # === UTILITES ===

@@ -22,6 +22,7 @@ from flask.ext.security.utils import encrypt_password
 from app.models import User, Role, Question, ClassInfo, Image
 
 import app.oracle
+import app.keys
 
 # ===== Constants =====
 
@@ -35,24 +36,8 @@ QUESTION_BASE_FOLDER_PATH = "db_reset/questions/"
 
 CLASSES = ['9A','9C','9E','9F','9G','9H','47B']
 
-KEY_ROLE_DESCRIPTION = "description"
-
-KEY_USER_EMAIL = "email"
-KEY_USER_PASSWORD = "password" # Encrypted! See hashpass.py
-KEY_USER_ROLES = "roles"
-
-KEY_CLASS_DESCRIPTION = "description"
-KEY_CLASS_STARTING_DB_ID  = "startid"
-
-KEY_QUESTION_TAGS = 'tags'
-KEY_QUESTION_INSTRUCTIONS = 'instructions'
-KEY_QUESTION_QUESTION = 'question'
-KEY_QUESTION_EXAMPLE = 'example'
-KEY_QUESTION_HINTS = 'hints'
-KEY_QUESTION_ANSWER = 'answer'
-
 # ===== Globals =====
- 
+
 # gPathPrefix = "db_reset/"
 
 # ===== Code =====
@@ -72,7 +57,7 @@ def removeOldDatabase():
         subprocess.call(["rm","-R","../db_repository"])
     if os.path.exists("../tmp"):
         subprocess.call(["rm","-R","../tmp"])
-        
+
 def readConfigFile(path,expectingKeys=None,optionalKeys=None):
     import copy
     configuration = {}
@@ -95,7 +80,7 @@ def readConfigFile(path,expectingKeys=None,optionalKeys=None):
                     expectingKeysCopy.remove(key)
                 else:
                     if ((optionalKeys == None) or (key not in optionalKeys)):
-                        print "*** ERROR *** NOT EXPECTING KEY in '%s': '%s'" % (path,key) 
+                        print "*** ERROR *** NOT EXPECTING KEY in '%s': '%s'" % (path,key)
             for expectingKey in expectingKeysCopy:
                 print "*** ERROR *** MISSING KEY in '%s': '%s'" % (path,expectingKey)
         if optionalKeysCopy:
@@ -104,7 +89,7 @@ def readConfigFile(path,expectingKeys=None,optionalKeys=None):
                     optionalKeysCopy.remove(key)
                 else:
                     if ((expectingKeys == None) or (key not in expectingKeys)):
-                        print "*** warning *** NOT EXPECTING (optional) KEY in '%s': '%s'" % (path,key) 
+                        print "*** warning *** NOT EXPECTING (optional) KEY in '%s': '%s'" % (path,key)
             for optionalKey in optionalKeysCopy:
                 print "*** warning *** MISSING (optional) KEY in '%s': '%s'" % (path,optionalKey)
     except Exception:
@@ -112,7 +97,7 @@ def readConfigFile(path,expectingKeys=None,optionalKeys=None):
     finally:
         fref.close()
     return configuration
-        
+
 def addClasses(db):
     """ Walk the classes folder, adding found classes to the database, return class info for added questions later. """
     classes = {}
@@ -120,11 +105,11 @@ def addClasses(db):
         fullPath = os.path.join(CLASSES_FOLDER_PATH, filename)
         classAbbrName = string.join(filename.split(".")[:-1],".") # words.blah.foo.txt -> words.blah.foo
         print "Adding class:",classAbbrName
-        configuration = readConfigFile(fullPath,[KEY_CLASS_DESCRIPTION,KEY_CLASS_STARTING_DB_ID])
-        assert len(configuration[KEY_CLASS_DESCRIPTION])>0, "Class is missing description"
-        classInfo = ClassInfo( classAbbr = classAbbrName, longName=configuration[KEY_CLASS_DESCRIPTION],  \
-                               startingID = int( configuration[KEY_CLASS_STARTING_DB_ID] ),               \
-                               currentID = int( configuration[KEY_CLASS_STARTING_DB_ID] ) )
+        configuration = readConfigFile(fullPath,[app.keys.CLASS_DESCRIPTION,app.keys.CLASS_STARTING_DB_ID,app.keys.CLASS_CURRENT_DB_ID])
+        assert len(configuration[app.keys.CLASS_DESCRIPTION])>0, "Class is missing description"
+        classInfo = ClassInfo( classAbbr = classAbbrName, longName=configuration[app.keys.CLASS_DESCRIPTION],  \
+                               startingID = int( configuration[app.keys.CLASS_STARTING_DB_ID] ),               \
+                               currentID = int( configuration[app.keys.CLASS_CURRENT_DB_ID] ) )
         db.session.add(classInfo)
         db.session.commit() # Commit each time to get id # (for __repr__ below)
         classes[classAbbrName]=classInfo
@@ -137,8 +122,8 @@ def addRoles(db, user_datastore):
         fullPath = os.path.join(ROLE_FOLDER_PATH, filename)
         roleName = string.join(filename.split(".")[:-1],".") # words.blah.foo.txt -> words.blah.foo                print "Adding class:",classAbbrName
         print "Adding role:",roleName
-        configuration = readConfigFile(fullPath,[KEY_ROLE_DESCRIPTION])
-        role = user_datastore.create_role(name=roleName, description=configuration[KEY_ROLE_DESCRIPTION])
+        configuration = readConfigFile(fullPath,[app.keys.ROLE_DESCRIPTION])
+        role = user_datastore.create_role(name=roleName, description=configuration[app.keys.ROLE_DESCRIPTION])
         db.session.commit() # Commit each time to get id # (for __repr__ below)
         roles[roleName]=role
     return roles
@@ -151,12 +136,25 @@ def addUsers(db, user_datastore, roles):
         fullPath = os.path.join(USER_FOLDER_PATH, filename)
         userName = string.join(filename.split(".")[:-1],".") # words.blah.foo.txt -> words.blah.foo
         print "Adding user:",userName
-        configuration = readConfigFile(fullPath,[KEY_USER_PASSWORD,KEY_USER_EMAIL,KEY_USER_ROLES])
-        user = user_datastore.create_user(password=configuration[KEY_USER_PASSWORD], \
-                                          email=configuration[KEY_USER_EMAIL], fullname = userName, \
-                                          confirmed_at=datetime.datetime.now() )
-        if configuration[KEY_USER_ROLES]:
-            rolesToAdd = configuration[KEY_USER_ROLES].split(",")
+        configuration = readConfigFile(fullPath,[   app.keys.USER_EMAIL, \
+                                                    app.keys.USER_PASSWORD, \
+                                                    app.keys.USER_CREATED, \
+                                                    app.keys.USER_CONFIRMED_AT, \
+                                                    app.keys.USER_LOGIN_COUNT, \
+                                                    app.keys.USER_LAST_LOGIN_IP, \
+                                                    app.keys.USER_LAST_LOGIN_AT, \
+                                                    app.keys.USER_QUESTIONS, \
+                                                    app.keys.USER_ACTIVE, \
+                                                    app.keys.USER_CURRENT_LOGIN_IP, \
+                                                    app.keys.USER_ROLES ])
+        user = user_datastore.create_user(password=configuration[app.keys.USER_PASSWORD], \
+                                          email=configuration[app.keys.USER_EMAIL], fullname = userName, \
+                                          confirmed_at=datetime.datetime.now(), \
+                                          created=datetime.datetime.now(),last_login_at=datetime.datetime.now(), \
+                                          current_login_at=datetime.datetime.now(),last_login_ip="127.0.0.1", \
+                                          current_login_ip="127.0.0.1",login_count=0)
+        if configuration[app.keys.USER_ROLES]:
+            rolesToAdd = configuration[app.keys.USER_ROLES].split(",")
             for roleToAdd in rolesToAdd:
                 if roleToAdd in roles:
                     role = roles[roleToAdd] # 'admin' -> admin_role object previously added to the database
@@ -169,8 +167,8 @@ def addUsers(db, user_datastore, roles):
     return users
 
 def addQuestions(db, classes, users):
-    """ Walk the db_reset/questions folder, processing the directories and text files and 
-    adding them to the database. Structure is "questions:class:quiz#:question1.txt,question2.txt,etc.""" 
+    """ Walk the db_reset/questions folder, processing the directories and text files and
+    adding them to the database. Structure is "questions:class:quiz#:question1.txt,question2.txt,etc."""
     assert len(users) > 0, "NO USERS FOR addQuestions()!"
     questions = {}
     for classAbbr in utils.listDirectories(QUESTION_BASE_FOLDER_PATH):
@@ -182,30 +180,35 @@ def addQuestions(db, classes, users):
             for filename in utils.listFiles(quizFullPath):
                 fullPath = os.path.join(quizFullPath, filename)
                 # Read the text file, looking for all parts of a question
-                configuration = readConfigFile(fullPath,[KEY_QUESTION_TAGS, \
-                                                         KEY_QUESTION_QUESTION, \
-                                                         KEY_QUESTION_ANSWER],\
-                                                        [KEY_QUESTION_INSTRUCTIONS, \
-                                                         KEY_QUESTION_EXAMPLE, KEY_QUESTION_HINTS])
+                configuration = readConfigFile(fullPath,[   app.keys.QUESTION_CLASSID, \
+                                                            app.keys.QUESTION_CREATED, \
+                                                            app.keys.QUESTION_MODIFIED, \
+                                                            app.keys.QUESTION_TAGS, \
+                                                            app.keys.QUESTION_QUESTION, \
+                                                            app.keys.QUESTION_ANSWER ], \
+                                                        [   app.keys.QUESTION_INSTRUCTIONS, \
+                                                            app.keys.QUESTION_HINTS, \
+                                                            app.keys.QUESTION_EXAMPLES ])
+
                 # Encrypt all of the question parts
                 tagIV, tagIVb64 = app.oracle.generateIV()
                 questionIV, questionIVb64 = app.oracle.generateIV()
                 _, commentIVb64 = app.oracle.generateIV()
-                encryptedTags = app.oracle.encrypt(configuration[KEY_QUESTION_TAGS], tagIV)
-                if ((KEY_QUESTION_INSTRUCTIONS in configuration) and (configuration[KEY_QUESTION_INSTRUCTIONS])):
-                    encryptedInstructions = app.oracle.encrypt(configuration[KEY_QUESTION_INSTRUCTIONS], questionIV)
+                encryptedTags = app.oracle.encrypt(configuration[app.keys.QUESTION_TAGS], tagIV)
+                if ((app.keys.QUESTION_INSTRUCTIONS in configuration) and (configuration[app.keys.QUESTION_INSTRUCTIONS])):
+                    encryptedInstructions = app.oracle.encrypt(configuration[app.keys.QUESTION_INSTRUCTIONS], questionIV)
                 else:
                     encryptedInstructions = None
-                encryptedQuestion = app.oracle.encrypt(configuration[KEY_QUESTION_QUESTION], questionIV)
-                if ((KEY_QUESTION_EXAMPLE in configuration) and (configuration[KEY_QUESTION_EXAMPLE])):
-                    encryptedExample = app.oracle.encrypt(configuration[KEY_QUESTION_EXAMPLE], questionIV)
+                encryptedQuestion = app.oracle.encrypt(configuration[app.keys.QUESTION_QUESTION], questionIV)
+                if ((app.keys.QUESTION_EXAMPLES in configuration) and (configuration[app.keys.QUESTION_EXAMPLES])):
+                    encryptedExample = app.oracle.encrypt(configuration[app.keys.QUESTION_EXAMPLES], questionIV)
                 else:
                     encryptedExample = None
-                if ((KEY_QUESTION_HINTS in configuration) and (configuration[KEY_QUESTION_HINTS])):
-                    encryptedHints = app.oracle.encrypt(configuration[KEY_QUESTION_HINTS], questionIV)
+                if ((app.keys.QUESTION_HINTS in configuration) and (configuration[app.keys.QUESTION_HINTS])):
+                    encryptedHints = app.oracle.encrypt(configuration[app.keys.QUESTION_HINTS], questionIV)
                 else:
                     encryptedHints = None
-                encryptedAnswer = app.oracle.encrypt(configuration[KEY_QUESTION_ANSWER], questionIV)
+                encryptedAnswer = app.oracle.encrypt(configuration[app.keys.QUESTION_ANSWER], questionIV)
                 # Create question instance
                 question = Question(classID = classes[classAbbr].currentID, classAbbr = classAbbr, \
                                     created = datetime.datetime.now(), modified = datetime.datetime.now(), \
@@ -230,8 +233,8 @@ def addQuestions(db, classes, users):
                 else:
                     questions[classAbbr]=[question]
                 # Add the question to the database
-                db.session.add(question)  
-                db.session.commit() # Commit each time to get id # (for __repr__ below) 
+                db.session.add(question)
+                db.session.commit() # Commit each time to get id # (for __repr__ below)
     return questions
 
 def addImages(db):
@@ -253,7 +256,7 @@ def addImages(db):
                 image = Image( filename=oneFilename, classAbbr=classAbbr, data=app.oracle.encrypt(imageData,dataIV), dataIV=dataIV64 )
                 db.session.add(image)
                 db.session.commit() # Commit each time to get id # (for __repr__ below)
-                # Used primarily for debugging, return the filenames in the images folder 
+                # Used primarily for debugging, return the filenames in the images folder
                 if classAbbr in images:
                     images[classAbbr].append(oneFilename)
                 else:
@@ -263,9 +266,9 @@ def addImages(db):
 def initializeDatabase(db):
 
     db.create_all()
-    
+
     # Create a new migration repository
-    
+
     if not os.path.exists(SQLALCHEMY_MIGRATE_REPO):
         api.create(SQLALCHEMY_MIGRATE_REPO, 'database repository')
         api.version_control(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO)
@@ -273,67 +276,67 @@ def initializeDatabase(db):
         api.version_control(SQLALCHEMY_DATABASE_URI, SQLALCHEMY_MIGRATE_REPO, api.version(SQLALCHEMY_MIGRATE_REPO))
 
 def resetDatabase(db):
-    
+
     messages = []
-        
+
     # Remove old database
-    
+
     removeOldDatabase()
-    
+
     messages.append("Removed old database")
-    
+
     # Create a new, empty database
-    
+
     initializeDatabase(db)
 
     messages.append("Initialized new database")
-            
+
     # Load up Flask
-    
+
     app = Flask(__name__)
     app.config.from_object('config')
-    
+
     db = SQLAlchemy(app)
-    
+
     # Set up Flask-Security
-    
+
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
-    
+
     # Populate the database
-    
+
     classes = addClasses(db)
-    
+
     messages.append("Added classes: "+str(classes))
-        
+
     roles = addRoles(db, user_datastore)
-    
+
     messages.append("Added roles: "+str(roles))
-    
+
     users = addUsers(db, user_datastore, roles)
-    
+
     messages.append("Added users: "+str(users))
-        
+
     questions = addQuestions(db, classes, users)
-    
+
     messages.append("Added questions: "+str(questions))
-    
+
     images = addImages(db)
-    
+
     messages.append("Added images: "+str(images))
-    
+
     messages.append("...final committing to database...");
-    
+
     db.session.commit()
-    
+
     messages.append("...done!")
-    
+
     return messages
-  
+
 ###############################################################
 # MAIN (if run from the command line, execute doctests first) #
 ###############################################################
-  
+
 if __name__ == "__main__":
     from app import db
     doctest.testmod()

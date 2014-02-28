@@ -1,5 +1,6 @@
 import re
 import os
+import zipfile
 
 import flask
 
@@ -16,7 +17,7 @@ def listDirectories(filepath):
     for index in range(len(dirs),0,-1):
         if ((os.path.isfile(os.path.join(filepath,dirs[index-1]))) or (dirs[index-1][0] == '.')):
             dirs.pop(index-1)
-    return dirs        
+    return dirs
 
 def listFiles(filepath):
     """ Get the file in a path, removing directories and invisibles
@@ -28,7 +29,7 @@ def listFiles(filepath):
     for index in range(len(dirs),0,-1):
         if ((os.path.isdir(os.path.join(filepath,dirs[index-1]))) or (dirs[index-1][0] == '.')):
             dirs.pop(index-1)
-    return dirs        
+    return dirs
 
 def writeTempFile(filename,data):
     """ Write some data to a temporary file. Used by Image to pull dynamic images from database
@@ -44,7 +45,7 @@ def writeTempFile(filename,data):
     fref.write(data)
     fref.close()
     return path
-    
+
 def readTempFile(filename):
     """ Read some data from a temporary file. (See sister-function "write" for more info and tests) """
     path = TMP_PATH+"/"+filename
@@ -58,7 +59,8 @@ def makeTempFileResp(filename):
     If there's a problem, return a string with a message to be 'flash'ed (since we can't import app here)"""
     from flask import make_response, render_template
     resp = None
-    path = TMP_PATH+"/" + filename
+    path = TMP_PATH + "/" + filename
+    fileExt = filename.split(".")[-1].lower()
     try:
         fref=open(path,"rb")
         data=fref.read()
@@ -71,12 +73,14 @@ def makeTempFileResp(filename):
         elif (data[6:10]=="Exif"):
             resp.content_type = "image/JPEG"
             resp = "*** warning: image header for "+filename+" is 'Exif' and not 'JFIF'..."
-        elif (filename[-3:]==".gz"):
+        elif (fileExt=="gz"):
             resp.content_type = "application/x-gzip"
-            resp.headers["Content-Disposition"] = "attachment; filename=app.db.gz"
+            resp.headers["Content-Disposition"] = "attachment; filename="+filename
+        elif (fileExt=="zip"):
+            resp.content_type = "application/zip"
+            resp.headers["Content-Disposition"] = "attachment; filename="+filename
         # Fallbacks
         else:
-            fileExt = filename.split(".")[-1].lower()
             if (fileExt == 'gif'):
                 resp.content_type = "image/GIF"
             elif (fileExt == 'png'):
@@ -125,32 +129,6 @@ def findImageTags(text):
             match = imageRegExPat.search(result[endMatchPos:])
     return flask.Markup(result), imagesToCache
 
-# This should no longer be necessary with the tinymce entry box...
-# def convertToHTML(text):
-#     """ Simple convert some text into HTML code .. appends <br />'s correctly to text which contains 
-#         a newline (necessary to display multi-line text correctly). Also changes \tabs into (4) &nbsp;s 
-#     >>> print convertToHTML("test")
-#     test
-#     >>> print convertToHTML('this\\nis\\na\\ntest.')
-#     this<br />is<br />a<br />test.
-#     """
-#     #>>> print convertToHTML(r'this\nis\na\ntest.") # Doctest doesn't work with \n's...
-#     #this<br />is<br />a<br />test.
-#     #>>> print convertToHTML('this\nis\\na\ntest.\n")
-#     #this<br />is<br />a<br />test.
-#     #"""
-#     result = ""
-#     if text:
-#         text = text.replace("\\r","\n")
-#         text = text.replace("\r","\n")
-#         text = text.replace("\\n","\n")
-#         for line in text.split('\n'):
-#             result += flask.Markup.escape(line) + flask.Markup('<br />')
-#         result = result[:-6] # Rip off the final (unnecessary) <br />
-#         result = result.replace("\t","&nbsp;&nbsp;&nbsp;&nbsp;")
-#         result = result.replace("\\t","&nbsp;&nbsp;&nbsp;&nbsp;")
-#     return result
-
 def commaDelimitedStringAsSet(text):
     """ Take a comma delimited string and return it as a set: "1,2,3,2,1" -> (1,2,3)
     >>> commaDelimitedStringAsSet(None)
@@ -163,12 +141,23 @@ def commaDelimitedStringAsSet(text):
     set(['a', 'b'])
     >>> commaDelimitedStringAsSet("a,b,a")
     set(['a', 'b'])
-    """    
+    """
     itemSet=set()
     if text:
         for item in text.split( "," ):
             itemSet.add(item.lower().strip())
     return itemSet
+
+def zipdir(zipDirPath, zipSavePath):
+    """ Zip an entire directory of files. Used for "export database (as text files)"
+    http://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory-in-python """
+    zipf = zipfile.ZipFile(zipSavePath, 'w')
+    for root, dirs, files in os.walk(zipDirPath):
+        for dirname in dirs:
+            zipf.write(os.path.join(root, dirname))
+        for filename in files:
+            zipf.write(os.path.join(root, filename))
+    zipf.close()
 
 if __name__ == "__main__":
     import doctest

@@ -1,3 +1,7 @@
+classid=64
+created=2014-02-28 15:21:54.955967
+modified=2014-02-28 15:21:54.955976
 tags=Matrix Basics, Vectors
-question=Give two ways to construct a vector containing the odd integers from 1 through N. One way should use a bracketed expression involving only the colon operator; the other should perform arithmetic on the vector of integers from 1 to (N+1)/2.
-answer=[1:2:N]<br />[1:N]*2-1
+question=Construct a matrix whose first column contains the integers from 1 to N, and whose second column contains the odd integers as shown below.
+examples=1&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;3<br />3&nbsp;&nbsp;&nbsp;&nbsp;5<br /> ...
+answer=[1:N; 1:2:N]'

@@ -1,3 +1,11 @@
 email=cuzimsummer@gmail.com
 password=$pbkdf2-sha512$12000$mJNyLqWUshZirHVujTEGQA$pOy.fhK7TUcvcO7eNemoekbuIyQNnDIRmaKI2OTSuB2Xowh4xXvZD/OjoUz2vSEm3Mp8qiZbv8RUGPbnO0qFRg
+active=True
+created=2014-02-28 15:21:54.882384
+confirmed_at=2014-02-28 15:21:54.882380
+last_login_at=2014-02-28 15:21:54.882385
+last_login_ip=127.0.0.1
+current_login_ip=127.0.0.1
+login_count=0
 roles=admin,user
+questions=

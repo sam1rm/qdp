@@ -1,4 +1,6 @@
+classid=63
+created=2014-02-28 15:21:54.945141
+modified=2014-02-28 15:21:54.945148
 tags=Matrix Basics, Vectors
-instructions=Suppose A is the vector [1 2 3]
-question=What are each of the following?<br />a.&nbsp;&nbsp;&nbsp;&nbsp;[A  A  A]<br />b.&nbsp;&nbsp;&nbsp;&nbsp;[A; A; A]<br />c.&nbsp;&nbsp;&nbsp;&nbsp;[A, A, A]<br />d.&nbsp;&nbsp;&nbsp;&nbsp;A.*A+2
-answer=[1 2 3 1 2 3 1 2 3]<br /><br />| 1 2 3 |<br />| 1 2 3 |<br />| 1 2 3 |<br /><br />[1 2 3 1 2 3 1 2 3]<br /><br />[3 6 11]
+question=Give two ways to construct a vector containing the odd integers from 1 through N. One way should use a bracketed expression involving only the colon operator; the other should perform arithmetic on the vector of integers from 1 to (N+1)/2.
+answer=[1:2:N]<br />[1:N]*2-1

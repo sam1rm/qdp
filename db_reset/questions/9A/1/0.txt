@@ -1,0 +1,7 @@
+classid=60
+created=2014-02-28 15:21:54.896235
+modified=2014-02-28 15:21:54.896242
+tags=Matrix Basics, Vectors
+question=What is the difference between a cell array and a regular vector/matrix?
+examples=x = {1,2,3}<br />y = [1,2,3]
+answer=2 primary things:<br />1. A cell array may contain any arbitrary type of element in each cell; while a matrix/vector requires the types of its elements to be homogeneous i.e. of the same type.<br />2. Memory layout : arrays are contiguous in memory while cell arrays are not necessary contiguous.

@@ -1,5 +1,7 @@
-tags=Matrix Basics
-instructions=You collect data every minute for an entire 24-hour day starting at midnight and store it in M. Every row is a different hour and every column is a different minute. Your first piece of data is therefore at the top left at M(1,1). You collected your data in military time mh:mm (where mh= [0,11], mm=[0, 59]), but the people who are going to be reading your matrix think in &ldquo;regular&rdquo; time (where rh= [1,12], rm=[1, 60]) and want the data for time rh:rm to be at location M(rh,rm) (right now aside from the last hour and minute it is at M(rh+1,rm+1)).
-question=Create an array R so that the data is at regular time and can be accessed with R(rh,rm). Said another way, define R to be a copy of M &ldquo;shifted up&rdquo; (with the top row wrapping to the bottom) and &ldquo;shifted left&rdquo; (with the left column wrapping to the end). E.g.,
-example=This example assumes there are only 3 hours/day and 4 minutes/hour.Military time M([0,2],[0,3])Regular time R([1,3],[1,4])% The labels are mh:mm time% Which != Matlab indices&hellip;M =      0     1     2     3  +-------------------------0 |   1     2     3     41 |   5     6     7     82 |   9     10    11    12% The labels are rh:rm time% Which = Matlab indices!R =      1     2     3     4  +-------------------------1 |   6     7     8     52 |   10    11    12    93 |   2     3     4     1
-answer=[r,c]=size(M);            %Grab the # rows and # columnsR=[M(2:r,:) ; M(1,:)];    %Rotate-wrap the rows &ldquo;up&rdquo;R=[R(:,2:c) R(:,1)];      %Rotate-wrap the columns &ldquo;left&rdquo;
+classid=68
+created=2014-02-28 15:21:54.996589
+modified=2014-02-28 15:21:54.996595
+tags=Matrix Basics, Vectors
+instructions=Let&rsquo;s say A is [0 1 2 Inf NaN].
+question=What is A&rsquo;*A?
+answer=%NaN op x -&gt; NaN (bottom row and right columns are NaN)<br />%Inf * 0 -&gt; NaN (so (4,1) and (1,4) are NaN)<br />%inf * [1 2 Inf] = [Inf Inf Inf]<br /><br />[ 0   0   0  NaN NaN]<br />[ 0   1   2  Inf Nan]<br />[ 0   2   4  Inf NaN]<br />[Nan Inf Inf Inf NaN]<br />[Nan NaN Nan Nan NaN]

@@ -24,6 +24,7 @@
 <span class="kn">import</span> <span class="nn">gzip</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 
@@ -36,11 +37,12 @@
 <span class="kn">from</span> <span class="nn">flask.helpers</span> <span class="kn">import</span> <span class="n">get_flashed_messages</span>
 <span class="kn">from</span> <span class="nn">werkzeug</span> <span class="kn">import</span> <span class="n">secure_filename</span>
 
+<span class="kn">from</span> <span class="nn">app.utils</span> <span class="kn">import</span> <span class="n">makeTempFileResp</span><span class="p">,</span> <span class="n">zipdir</span>
+<span class="kn">import</span> <span class="nn">db_reset</span>
+
 <span class="kn">from</span> <span class="nn">app.forms</span> <span class="kn">import</span> <span class="n">QuestionForm</span><span class="p">,</span> <span class="n">ReviewQuestionForm</span><span class="p">,</span> <span class="n">ReportForm</span>
 <span class="kn">from</span> <span class="nn">app.models</span> <span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span><span class="p">,</span> <span class="n">ClassInfo</span><span class="p">,</span> <span class="n">Question</span><span class="p">,</span> <span class="n">Image</span>
-<span class="kn">from</span> <span class="nn">app.utils</span> <span class="kn">import</span> <span class="n">makeTempFileResp</span>
-<span class="kn">from</span> <span class="nn">app.oracle</span> <span class="kn">import</span> <span class="n">generateIV</span><span class="p">,</span> <span class="n">encrypt</span>
-<span class="kn">import</span> <span class="nn">db_reset</span></pre></div>
+<span class="kn">from</span> <span class="nn">app.oracle</span> <span class="kn">import</span> <span class="n">generateIV</span><span class="p">,</span> <span class="n">encrypt</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -79,7 +81,10 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="n">CLASS_ABBR_KEY</span> <span class="o">=</span> <span class="s">&#39;classAbbr&#39;</span>
-<span class="n">QUESTION_ID_KEY</span> <span class="o">=</span> <span class="s">&#39;questionID&#39;</span></pre></div>
+<span class="n">QUESTION_ID_KEY</span> <span class="o">=</span> <span class="s">&#39;questionID&#39;</span>
+
+<span class="n">EXPORT_DB_PATH</span> <span class="o">=</span> <span class="s">&#39;/tmp/exportedAppDB&#39;</span>
+<span class="n">EXPORT_DB_FILENAME</span> <span class="o">=</span> <span class="s">&quot;app.db.export.zip&quot;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -570,6 +575,7 @@ to translate from Flask's file upload to the database - TODO: This conversion ma
       <div class="highlight"><pre>    <span class="k">if</span> <span class="p">((</span><span class="n">CLASS_ABBR_KEY</span> <span class="ow">in</span> <span class="n">session</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="n">CLASS_ABBR_KEY</span><span class="p">])):</span>
         <span class="n">classInfo</span> <span class="o">=</span> <span class="n">ClassInfo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">session</span><span class="p">[</span><span class="n">CLASS_ABBR_KEY</span><span class="p">]</span> <span class="p">)</span>
         <span class="n">question</span> <span class="o">=</span> <span class="n">Question</span><span class="p">(</span> <span class="n">created</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(),</span> <span class="n">classAbbr</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="n">CLASS_ABBR_KEY</span><span class="p">],</span> <span class="n">classID</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">currentID</span> <span class="p">)</span>
+        <span class="n">g</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">wrote_question</span><span class="p">(</span><span class="n">classInfo</span><span class="o">.</span><span class="n">currentID</span><span class="p">)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span> <span class="n">question</span> <span class="p">)</span>
         <span class="n">classInfo</span><span class="o">.</span><span class="n">currentID</span> <span class="o">=</span> <span class="n">classInfo</span><span class="o">.</span><span class="n">currentID</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span> <span class="n">classInfo</span> <span class="p">)</span>
@@ -838,11 +844,168 @@ Handler for the "Review question" functionality. Redisplays the original questio
 <span class="s">@admin_permission.require()</span>
 <span class="s">def retrieveQuizOrExam():</span>
 <span class="s">#DIVIDER</span>
-<span class="s">        TODO: Replaced with email, for now, because the registration module doesn&#39;t yet ask for full name. &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">g</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">email</span>
-        <span class="k">else</span><span class="p">:</span></pre></div>
+<span class="s">    f_in = open(&#39;app.db&#39;, &#39;rb&#39;)</span>
+<span class="s">    f_out = gzip.open(&#39;/tmp/app.db.gz&#39;, &#39;wb&#39;)</span>
+<span class="s">    f_out.writelines(f_in)</span>
+<span class="s">    f_out.close()</span>
+<span class="s">    f_in.close()</span>
+<span class="s">    resp =  makeTempFileResp(&quot;app.db.gz&quot;)</span>
+<span class="s">    return resp</span>
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route(&quot;/exportDatabase&quot;)</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def exportDatabase():</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    classInfos = ClassInfo.getAll()</span>
+<span class="s">    if (os.path.exists(EXPORT_DB_PATH)):</span>
+<span class="s">        shutil.rmtree(EXPORT_DB_PATH)</span>
+<span class="s">    os.mkdir(EXPORT_DB_PATH)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    rolesPath = os.path.join(EXPORT_DB_PATH,&#39;roles&#39;)</span>
+<span class="s">    os.mkdir(rolesPath)</span>
+<span class="s">    roles = Role.getAll()</span>
+<span class="s">    for role in roles:</span>
+<span class="s">        fref = open(os.path.join(rolesPath,role.name)+&quot;.txt&quot;,&quot;w&quot;)</span>
+<span class="s">        role.write(fref)</span>
+<span class="s">        fref.close()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    userPath = os.path.join(EXPORT_DB_PATH,&#39;users&#39;)</span>
+<span class="s">    os.mkdir(userPath)</span>
+<span class="s">    users = User.getAll()</span>
+<span class="s">    for user in users:</span>
+<span class="s">        fref = open(os.path.join(userPath,user.fullname)+&quot;.txt&quot;,&quot;w&quot;)</span>
+<span class="s">        user.write(fref)</span>
+<span class="s">        fref.close()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    classesPath = os.path.join(EXPORT_DB_PATH,&#39;classes&#39;)</span>
+<span class="s">    os.mkdir(classesPath)</span>
+<span class="s">    classInfos = ClassInfo.getAll()</span>
+<span class="s">    for classInfo in classInfos:</span>
+<span class="s">        fref = open(os.path.join(classesPath,classInfo.classAbbr)+&quot;.txt&quot;,&quot;w&quot;)</span>
+<span class="s">        classInfo.write(fref)</span>
+<span class="s">        fref.close()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    imagesPath = os.path.join(EXPORT_DB_PATH,&#39;images&#39;)</span>
+<span class="s">    os.mkdir(imagesPath)</span>
+<span class="s">    for classInfo in classInfos:</span>
+<span class="s">        imagePath = os.path.join(imagesPath,classInfo.classAbbr)</span>
+<span class="s">        os.mkdir(imagePath)</span>
+<span class="s">        images = Image.getAllByClass(classInfo.classAbbr)</span>
+<span class="s">        for image in images:</span>
+<span class="s">            image.cacheByName()</span>
+<span class="s">            shutil.move(image.cachePath, os.path.join(imagePath,image.filename))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    questionsPath = os.path.join(EXPORT_DB_PATH,&#39;questions&#39;)</span>
+<span class="s">    os.mkdir(questionsPath)</span>
+<span class="s">    for classInfo in classInfos:</span>
+<span class="s">        classQuestionsPath = os.path.join(questionsPath,classInfo.classAbbr)</span>
+<span class="s">        os.mkdir(classQuestionsPath)</span>
+<span class="s">        for quizIndex in range(1,6):</span>
+<span class="s">            classQuizQuestionsPath = os.path.join(classQuestionsPath,str(quizIndex))</span>
+<span class="s">            os.mkdir(classQuizQuestionsPath)</span>
+<span class="s">            questions = Question.getAllByClassAndQuiz(classInfo.classAbbr, quizIndex)</span>
+<span class="s">            if questions:</span>
+<span class="s">                for questionIndex in range(0,len(questions)):</span>
+<span class="s">                    fref = open(os.path.join(classQuizQuestionsPath,str(questionIndex))+&quot;.txt&quot;,&quot;w&quot;)</span>
+<span class="s">                    question = questions[questionIndex].makeDecryptedTextVersion()</span>
+<span class="s">                    question.write(fref)</span>
+<span class="s">                    fref.close()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    zipdir(EXPORT_DB_PATH,os.path.join(&#39;/tmp/&#39;,EXPORT_DB_FILENAME))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    shutil.rmtree(EXPORT_DB_PATH)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    resp = makeTempFileResp(EXPORT_DB_FILENAME)</span>
+<span class="s">    return resp</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route( &quot;/tmp/&lt;path:path&gt;&quot; )</span>
+<span class="s">def tempPath( path ):</span>
+<span class="s">    &#39;&#39;&#39; Shiv (to utils) to handle tmp/FILE URL requests (used for images). &#39;&#39;&#39;</span>
+<span class="s">    resp = makeTempFileResp( path )</span>
+<span class="s">    if (type(resp)==type(u&quot;string&quot;)):</span>
+<span class="s">        app.logger.debug(resp)</span>
+<span class="s">    return resp</span>
+
+<span class="s">def currentUserFirstName():</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    unverifiedUsers = User.getAllUnverifiedUsers()</span>
+<span class="s">    return render_template( &#39;verifyUsers.html&#39;, unverifiedUsers = unverifiedUsers )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">@app.route( &quot;/verifyingUser&quot; )</span>
+<span class="s">@login_required</span>
+<span class="s">@admin_permission.require()</span>
+<span class="s">def verifyingUser():</span>
+<span class="s">    idAsString = request.args.get( &#39;id&#39; )</span>
+<span class="s">    assert idAsString, &quot;ID wasn&#39;t passed to verifyingUser??&quot;</span>
+<span class="s">    user = User.query.filter( User.id == int( idAsString ) ).first()</span>
+<span class="s">    if user:</span>
+<span class="s">        if ( user.is_verified() == False ):</span>
+<span class="s">            user_datastore = SQLAlchemyUserDatastore( db, User, Role )</span>
+<span class="s">            default_role = user_datastore.find_or_create_role( &#39;user&#39; )</span>
+<span class="s">            user_datastore.add_role_to_user( user, default_role )</span>
+<span class="s">            db.session.merge( user )</span>
+<span class="s">            db.session.commit()</span>
+<span class="s">        else:</span>
+<span class="s">            flash( &quot;User ID </span><span class="si">%s</span><span class="s"> is already verified?&quot; % ( idAsString ) )</span>
+<span class="s">    else:</span>
+<span class="s">        flash( &quot;Couldn&#39;t find User ID </span><span class="si">%s</span><span class="s"> to verify?&quot; % ( idAsString ) )</span>
+<span class="s">    return redirect( url_for( &#39;verifyUsers&#39; ) )</span>
+
+<span class="s">@app.route( &quot;/unverifiedUser&quot; )</span>
+<span class="s">@login_required</span>
+<span class="s">def unverifiedUser():</span>
+<span class="s">    return render_template( &#39;unverifiedUser.html&#39;,</span>
+<span class="s">        admins = User.getAllAdmins() )</span>
+
+<span class="s">@lm.user_loader</span>
+<span class="s">def load_user( uid ):</span>
+<span class="s">    return User.get( int( uid ) )</span>
+
+<span class="s">@app.before_request</span>
+<span class="s">def before_request():</span>
+<span class="s">    g.user = current_user</span>
+
+<span class="s">@identity_loaded.connect_via( app )</span>
+<span class="s">def on_identity_loaded( sender, identity ):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    identity.user = current_user</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    if hasattr( current_user, &#39;id&#39; ):</span>
+<span class="s">        identity.provides.add( UserNeed( current_user.id ) )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    if hasattr( current_user, &#39;roles&#39; ):</span>
+<span class="s">        for role in current_user.roles:</span>
+<span class="s">            identity.provides.add( RoleNeed( role.name ) )</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">def generate_csrf_token():</span>
+<span class="s">    app.logger.debug( &quot;generate_csrf_token&quot; )</span>
+<span class="s">    if &#39;_csrf_token&#39; not in session:</span>
+<span class="s">        session[&#39;_csrf_token&#39;] = app.config[&#39;SECRET_KEY&#39;]</span>
+<span class="s">    return session[&#39;_csrf_token&#39;]</span>
+<span class="s">#DIVIDER</span>
+<span class="s">@lm.token_loader</span>
+<span class="s">def load_token( token ):</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">    max_age = app.config[&quot;REMEMBER_COOKIE_DURATION&quot;].total_seconds()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    data = login_serializer.loads( token, max_age = max_age )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    user = User.get( data[0] )</span>
+<span class="s">#DIVIDER</span>
+<span class="s">    if user and data[1] == user.password:</span>
+<span class="s">        return user</span>
+<span class="s">    return None</span>
+
+</pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -854,8 +1017,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <p>Handle a question review form</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="k">return</span> <span class="s">&quot;?? anonymous ??&quot;</span>
-    <span class="k">return</span> <span class="s">&quot;?? NO GLOBAL USER ??&quot;</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -879,10 +1041,7 @@ Handler for the "Review question" functionality. Redisplays the original questio
       <p>Generate a printable quiz (see Question.generateQuiz for more information). Utilizes questions</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span> <span class="s">&quot;/verifyUsers&quot;</span> <span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">verifyUsers</span><span class="p">():</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -914,8 +1073,7 @@ enerateExam():
 Very similar to generateQuiz (above), except uses Question.generateFinalExam</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">getAllUnverifiedUsers</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;verifyUsers.html&#39;</span><span class="p">,</span> <span class="n">unverifiedUsers</span> <span class="o">=</span> <span class="n">unverifiedUsers</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -927,42 +1085,7 @@ Very similar to generateQuiz (above), except uses Question.generateFinalExam</p>
       <p>Retrieve and render a previous quiz or final exam given a code that is displayed on generated quizzes or finals.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@app.route</span><span class="p">(</span> <span class="s">&quot;/verifyingUser&quot;</span> <span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="nd">@admin_permission.require</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">verifyingUser</span><span class="p">():</span>
-    <span class="n">idAsString</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="s">&#39;id&#39;</span> <span class="p">)</span>
-    <span class="k">assert</span> <span class="n">idAsString</span><span class="p">,</span> <span class="s">&quot;ID wasn&#39;t passed to verifyingUser??&quot;</span>
-    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span> <span class="n">User</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span> <span class="n">idAsString</span> <span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">user</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span> <span class="n">user</span><span class="o">.</span><span class="n">is_verified</span><span class="p">()</span> <span class="o">==</span> <span class="bp">False</span> <span class="p">):</span>
-            <span class="n">user_datastore</span> <span class="o">=</span> <span class="n">SQLAlchemyUserDatastore</span><span class="p">(</span> <span class="n">db</span><span class="p">,</span> <span class="n">User</span><span class="p">,</span> <span class="n">Role</span> <span class="p">)</span>
-            <span class="n">default_role</span> <span class="o">=</span> <span class="n">user_datastore</span><span class="o">.</span><span class="n">find_or_create_role</span><span class="p">(</span> <span class="s">&#39;user&#39;</span> <span class="p">)</span>
-            <span class="n">user_datastore</span><span class="o">.</span><span class="n">add_role_to_user</span><span class="p">(</span> <span class="n">user</span><span class="p">,</span> <span class="n">default_role</span> <span class="p">)</span>
-            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span> <span class="n">user</span> <span class="p">)</span>
-            <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;User ID </span><span class="si">%s</span><span class="s"> is already verified?&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">idAsString</span> <span class="p">)</span> <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">flash</span><span class="p">(</span> <span class="s">&quot;Couldn&#39;t find User ID </span><span class="si">%s</span><span class="s"> to verify?&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">idAsString</span> <span class="p">)</span> <span class="p">)</span>
-    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span> <span class="n">url_for</span><span class="p">(</span> <span class="s">&#39;verifyUsers&#39;</span> <span class="p">)</span> <span class="p">)</span>
-
-<span class="nd">@app.route</span><span class="p">(</span> <span class="s">&quot;/unverifiedUser&quot;</span> <span class="p">)</span>
-<span class="nd">@login_required</span>
-<span class="k">def</span> <span class="nf">unverifiedUser</span><span class="p">():</span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span> <span class="s">&#39;unverifiedUser.html&#39;</span><span class="p">,</span>
-        <span class="n">admins</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">getAllAdmins</span><span class="p">()</span> <span class="p">)</span>
-
-<span class="nd">@lm.user_loader</span>
-<span class="k">def</span> <span class="nf">load_user</span><span class="p">(</span> <span class="n">uid</span> <span class="p">):</span>
-    <span class="k">return</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="nb">int</span><span class="p">(</span> <span class="n">uid</span> <span class="p">)</span> <span class="p">)</span>
-
-<span class="nd">@app.before_request</span>
-<span class="k">def</span> <span class="nf">before_request</span><span class="p">():</span>
-    <span class="n">g</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span>
-
-<span class="nd">@identity_loaded.connect_via</span><span class="p">(</span> <span class="n">app</span> <span class="p">)</span>
-<span class="k">def</span> <span class="nf">on_identity_loaded</span><span class="p">(</span> <span class="n">sender</span><span class="p">,</span> <span class="n">identity</span> <span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1007,9 +1130,12 @@ lse:
 n_required
 n_permission.require()
 dminDatabaseReset():
-ry:
+try:
+f True:
    messages = db_reset.resetDatabase(db)
-xcept Exception as ex:
+except Exception as ex:
+f False:
+   ex = "Foobar"
    messages = ["An exception occurred while resetting the database:"]
    if (str(ex)):
        messages.append(str(ex))
@@ -1017,7 +1143,6 @@ xcept Exception as ex:
    for line in formattedExceptionLines:
        if (len(line)&gt;0):
            messages.append(line)
-flash("Database resetteded!")
 eturn render_template("adminOutput.html", messagesToDisplay = messages)</p>
 <p>route( "/adminTesting" )
 n_required
@@ -1063,27 +1188,11 @@ eturn redirect( url_for( 'index' ) ) # Return to top, as request.args may be inc
 n_required
 n_permission.require()
 ownloadDatabase():
- Check for valid file and assign it to <code>inbound_file</code>
-_in = open('app.db', 'rb')
-_out = gzip.open('/tmp/app.db.gz', 'wb')
-_out.writelines(f_in)
-_out.close()
-_in.close()
-esp = makeTempFileResp("app.db.gz")
-eturn resp</p>
-<p>UTILITES ===</p>
-<p>route( "/tmp/<path:path>" )
-empPath( path ):
-'' Shiv (to utils) to handle tmp/FILE URL requests (used for images). '''
-esp = makeTempFileResp( path )
-f (type(resp)==type(u"string")):
-   app.logger.debug(resp)
-eturn resp</p>
-<p>urrentUserFirstName():
-Helper function to return the full name associated with the currently logged in user.</p>
+Zip up and send the database file. TODO: Use constants instead of literals here. Gross.
+Check for valid file and assign it to <code>inbound_file</code></p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">identity</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">current_user</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1092,14 +1201,10 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-45'>#</a>
       </div>
-      <pre><code>    if g.user.fullname:
-        return g.user.fullname.split( " " )[0]
-    else:
-</code></pre>
+      <p>Export (in db_reset readable format), Zip (file) it up, and send for download.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span> <span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;id&#39;</span> <span class="p">):</span>
-        <span class="n">identity</span><span class="o">.</span><span class="n">provides</span><span class="o">.</span><span class="n">add</span><span class="p">(</span> <span class="n">UserNeed</span><span class="p">(</span> <span class="n">current_user</span><span class="o">.</span><span class="n">id</span> <span class="p">)</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1108,12 +1213,10 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-46'>#</a>
       </div>
-      <p>SECURITY</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span> <span class="n">current_user</span><span class="p">,</span> <span class="s">&#39;roles&#39;</span> <span class="p">):</span>
-        <span class="k">for</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">current_user</span><span class="o">.</span><span class="n">roles</span><span class="p">:</span>
-            <span class="n">identity</span><span class="o">.</span><span class="n">provides</span><span class="o">.</span><span class="n">add</span><span class="p">(</span> <span class="n">RoleNeed</span><span class="p">(</span> <span class="n">role</span><span class="o">.</span><span class="n">name</span> <span class="p">)</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1122,7 +1225,7 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-47'>#</a>
       </div>
-      <p>Admin page for verifying users that have successfully registered.</p>
+      <p>Roles</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1134,14 +1237,10 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-48'>#</a>
       </div>
-      
+      <p>Users</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">generate_csrf_token</span><span class="p">():</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span> <span class="s">&quot;generate_csrf_token&quot;</span> <span class="p">)</span>
-    <span class="k">if</span> <span class="s">&#39;_csrf_token&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
-        <span class="n">session</span><span class="p">[</span><span class="s">&#39;_csrf_token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&#39;SECRET_KEY&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;_csrf_token&#39;</span><span class="p">]</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1150,11 +1249,10 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-49'>#</a>
       </div>
-      
+      <p>Classes</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="nd">@lm.token_loader</span>
-<span class="k">def</span> <span class="nf">load_token</span><span class="p">(</span> <span class="n">token</span> <span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1163,7 +1261,7 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-50'>#</a>
       </div>
-      <p>Set the identity user object</p>
+      <p>Images</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1175,7 +1273,7 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-51'>#</a>
       </div>
-      <p>Add the UserNeed to the identity</p>
+      <p>Questions</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1187,11 +1285,10 @@ Helper function to return the full name associated with the currently logged in 
       <div class='octowrap'>
         <a class='octothorpe' href='#section-52'>#</a>
       </div>
-      <p>Assuming the User model has a list of roles, update the
-identity with the roles that the user provides</p>
+      <p>Compress it</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">max_age</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">&quot;REMEMBER_COOKIE_DURATION&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1200,13 +1297,10 @@ identity with the roles that the user provides</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-53'>#</a>
       </div>
-      <p>This processor is added to only the register view
-@security.register_context_processor
-def security_register_processor():
-    app.logger.debug("security_register_processor")</p>
+      <p>Remove temporary files</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">data</span> <span class="o">=</span> <span class="n">login_serializer</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span> <span class="n">token</span><span class="p">,</span> <span class="n">max_age</span> <span class="o">=</span> <span class="n">max_age</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1215,10 +1309,10 @@ def security_register_processor():
       <div class='octowrap'>
         <a class='octothorpe' href='#section-54'>#</a>
       </div>
-      
+      <p>Make the http response for downloading file</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">get</span><span class="p">(</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1227,17 +1321,10 @@ def security_register_processor():
       <div class='octowrap'>
         <a class='octothorpe' href='#section-55'>#</a>
       </div>
-      <p>Flask-Login token_loader callback.
-The token_loader function asks this function to take the token that was
-stored on the users computer process it to check if its valid and then
-return a User Object if its valid or None if its not valid.</p>
+      <h3><span id="utilites" href="utilites"> UTILITES </span></h3>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>    <span class="k">if</span> <span class="n">user</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">user</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">user</span>
-    <span class="k">return</span> <span class="bp">None</span>
-
-</pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1246,7 +1333,7 @@ return a User Object if its valid or None if its not valid.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-56'>#</a>
       </div>
-      
+      <p>Helper function to return the full name associated with the currently logged in user.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1258,8 +1345,22 @@ return a User Object if its valid or None if its not valid.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-57'>#</a>
       </div>
-      <p>The Token itself was generated by User.get_auth_token.  So it is up to
-us to known the format of the token data itself.</p>
+      <p>TODO: Replaced with email, for now, because the registration module doesn't yet ask for full name. """
+f g.user:
+   if g.user.email:
+       return g.user.email
+   else:
+     if g.user.fullname:
+         return g.user.fullname.split( " " )[0]
+     else:
+       return "?? anonymous ??"
+eturn "?? NO GLOBAL USER ??"</p>
+<p>URITY</p>
+<p>route( "/verifyUsers" )
+n_required
+n_permission.require()
+erifyUsers():
+Admin page for verifying users that have successfully registered.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1270,6 +1371,122 @@ us to known the format of the token data itself.</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-58'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-59'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-59'>#</a>
+      </div>
+      <p>Set the identity user object</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-60'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-60'>#</a>
+      </div>
+      <p>Add the UserNeed to the identity</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-61'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-61'>#</a>
+      </div>
+      <p>Assuming the User model has a list of roles, update the
+identity with the roles that the user provides</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-62'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-62'>#</a>
+      </div>
+      <p>This processor is added to only the register view
+@security.register_context_processor
+def security_register_processor():
+    app.logger.debug("security_register_processor")</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-63'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-63'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-64'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-64'>#</a>
+      </div>
+      <p>Flask-Login token_loader callback.
+The token_loader function asks this function to take the token that was
+stored on the users computer process it to check if its valid and then
+return a User Object if its valid or None if its not valid.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-65'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-65'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-66'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-66'>#</a>
+      </div>
+      <p>The Token itself was generated by User.get_auth_token.  So it is up to
+us to known the format of the token data itself.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-67'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-67'>#</a>
       </div>
       <p>The Token was encrypted using itsdangerous.URLSafeTimedSerializer which
 allows us to have a max_age on the token itself.  When the cookie is stored
@@ -1282,10 +1499,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-59'>
+  <div class='section' id='section-68'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-59'>#</a>
+        <a class='octothorpe' href='#section-68'>#</a>
       </div>
       <p>Decrypt the Security Token, data = [username, hashpass]</p>
     </div>
@@ -1294,10 +1511,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-60'>
+  <div class='section' id='section-69'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-60'>#</a>
+        <a class='octothorpe' href='#section-69'>#</a>
       </div>
       <p>Find the User</p>
     </div>
@@ -1306,10 +1523,10 @@ server side and not rely on the users cookie to exipre.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-61'>
+  <div class='section' id='section-70'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-61'>#</a>
+        <a class='octothorpe' href='#section-70'>#</a>
       </div>
       <p>Check Password and return user or None</p>
     </div>

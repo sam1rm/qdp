@@ -1,4 +1,7 @@
+classid=78
+created=2014-02-28 15:21:55.099767
+modified=2014-02-28 15:21:55.099773
 tags=Advanced Matrices
-instructions=You find the following piece of code scrawled on your dorm whiteboard with the word &ldquo;Aha!&rdquo; next to it. 
-question=In English, briefly explain what it computes:<br /><b>find(randperm(45)&lt;=11)</b>
-answer=Generate a row vector of 11 integers chosen (without replacement) from the set [1-45]. This could be useful for the Niners head football coach in choosing a starting lineup, since football needs 11 men on the field and there are always 45 players on an NFL roster.
+instructions=You collected (latitude, longitude) temperature data into a 2D matrix T, and where you weren&rsquo;t able to collect any data you have the value NaN.
+question=Produce a 2-column array of the (r,c) location of every NaN.
+answer=% We recall that Matlab counts rows first, so it is COLUMN<br />% major (row minor). This differs from ROW major C arrays.<br />% This is the standard r=i%ROWS; c=i/ROWS; but we have to <br />% subtract 1 and put it back because that only works when<br />% we start counting from 0, but we count from 1 in Matlab<br /><br />i=find(isnan(T)) % index of all the NaNs<br />[rem((i-1),size(T,1))+1 fix((i-1)/size(T,1))+1]
