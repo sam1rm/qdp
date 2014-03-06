@@ -1,3 +1,0 @@
-description=C++
-startID=6000
-currentID=6000

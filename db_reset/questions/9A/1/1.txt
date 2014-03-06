@@ -1,7 +1,0 @@
-classid=61
-created=2014-02-28 15:21:54.925721
-modified=2014-02-28 15:21:54.925727
-tags=Matrix Basics, Vectors
-instructions=Suppose that A is a vector.
-question=Give two ways to define a vector that is as long as A and whose elements are all 1.
-answer=ones(size(A))<br />ones(1,length(A))<br />A./A<br />zeros(1,length(A))+1<br />zeros(size(A))+1

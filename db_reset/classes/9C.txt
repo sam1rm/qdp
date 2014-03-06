@@ -1,3 +1,0 @@
-description=C
-startID=2000
-currentID=2000

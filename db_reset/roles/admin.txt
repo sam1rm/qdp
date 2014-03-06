@@ -1,1 +1,0 @@
-description=Generic administrator role

@@ -1,7 +1,0 @@
-classid=64
-created=2014-02-28 15:21:54.955967
-modified=2014-02-28 15:21:54.955976
-tags=Matrix Basics, Vectors
-question=Construct a matrix whose first column contains the integers from 1 to N, and whose second column contains the odd integers as shown below.
-examples=1&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;&nbsp;3<br />3&nbsp;&nbsp;&nbsp;&nbsp;5<br /> ...
-answer=[1:N; 1:2:N]'

@@ -1,3 +1,0 @@
-description=Python
-startID=10000
-currentID=10000

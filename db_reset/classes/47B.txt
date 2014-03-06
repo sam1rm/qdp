@@ -1,3 +1,0 @@
-description=Data Structures (Java)
-startID=12000
-currentID=12000

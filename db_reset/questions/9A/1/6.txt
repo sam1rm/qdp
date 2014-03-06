@@ -1,7 +1,0 @@
-classid=66
-created=2014-02-28 15:21:54.975342
-modified=2014-02-28 15:21:54.975351
-tags=Matrix Basics
-question=We wish to summarize all of the values in the rows and columns of 2D matrix A. That is, you are to define a matrix Asummary which has an extra column on the left and row below which are the sums of the values of the rows and columns, respectively. The lowerleft value should be the sum of all the values of A. Here are two examples:
-examples=A =<br />     8     1     6<br />     3     5     7<br />     4     9     2<br /><br />&hellip;then Asummary would be&hellip;<br /><br />Asummary =<br /><br />    15     8     1     6<br />    15     3     5     7<br />    15     4     9     2<br />    45    15    15    15<br /><br />A =<br />     1    10<br />    -3     2<br /><br />&hellip;then Asummary would be&hellip;<br /><br />Asummary =<br /><br />    11     1    10<br />    -1    -3     2<br />    10    -2    12
-answer=tmp=[A;sum(A)];<br />Asummary=[sum(tmp’)’ tmp];

@@ -1,8 +1,0 @@
-classid=90
-created=2014-02-28 15:21:55.226192
-modified=2014-02-28 15:21:55.226198
-tags=Advanced Matrices
-instructions=We are given three variables, set (a set of integers in any order), setMin (the smallest possible integer value of the set) and setMax (the largest possible integer value of the set).
-question=Without explicit loop constructs or if, define a new matrix missing which should contain all the integers from setMin to setMax that are not in the set in any order.
-examples=setMin = 10<br /><br />setMax = 15<br /><br />set = [ 12  13 ]<br /><br />&hellip;then missing would be&hellip;<br /><br />missing = [ 10  11  14  15 ]
-answer=missing = setMin:setMax;<br />missing(set-setMin+1)=[];<br /><br />&hellip;or&hellip;<br /><br />missing = setMin:setMax;<br />[x,y] = meshgrid(missing,set);<br />missing = missing(find(prod(x-y)));

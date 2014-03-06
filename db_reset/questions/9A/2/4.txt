@@ -1,6 +1,0 @@
-classid=74
-created=2014-02-28 15:21:55.058339
-modified=2014-02-28 15:21:55.058343
-tags=Advanced Matrices
-question=Given that the scalar constants R and C have been defined already, create a 2D logical matrix A (size R x C) where the chance of any A(r,c) element being true is p, a scalar in the range [0,1]. Then, set all of the edges of A (leftmost and rightmost columns and uppermost and bottommost rows) to be false.
-answer=A=rand(R,C)&lt;p; % A = RxC logical array; each elt 1 w/prob p<br />A(1,:)=0;      % Clear top row<br />A(:,1)=0;      % Clear left column<br />A(R,:)=0;      % Clear bottom row<br />A(:,C)=0;      % Clear right column

@@ -1,8 +1,0 @@
-classid=77
-created=2014-02-28 15:21:55.089842
-modified=2014-02-28 15:21:55.089849
-tags=Advanced Matrices
-instructions=You find the following piece of code scrawled on your dorm whiteboard with the word &ldquo;Vegas, baby!&rdquo; next to it.
-question=In English, briefly explain what it computes:
-examples=<b>fix(6*rand(100,2))+1</b>
-answer=This produces a 100x2 matrix with 100 different simulations of a pair of dice.

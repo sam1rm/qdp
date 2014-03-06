@@ -1,7 +1,0 @@
-classid=88
-created=2014-02-28 15:21:55.205900
-modified=2014-02-28 15:21:55.205907
-tags=Advanced Matrices
-instructions=Suppose that A contains the following values.<br /><br />A = [0 1 0 1];<br /><br />
-question=&hellip;what is the value of B, C, D and E?<br /><br /><br />B = ~A;<br /><br /><br /><br /><br /><br />C = A&rsquo;*A;<br /><br /><br /><br /><br /><br />D = double(B)&rsquo;*double(B);<br /><br /><br /><br /><br /><br />E = ~(C | D);
-answer=B = [1     0     1     0]<br />C = 0     0     0     0<br />0     1     0     1<br />0     0     0     0<br />0     1     0     1<br />D = 1     0     1     0<br />0     0     0     0<br />1     0     1     0<br />0     0     0     0<br />E = 0     1     0     1<br />1     0     1     0<br />0     1     0     1<br />1     0     1     0

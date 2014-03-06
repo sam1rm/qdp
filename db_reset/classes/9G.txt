@@ -1,3 +1,0 @@
-description=Java
-startID=8000
-currentID=8000

@@ -1,3 +1,0 @@
-description=Unix (Bash)
-startID=4000
-currentID=4000

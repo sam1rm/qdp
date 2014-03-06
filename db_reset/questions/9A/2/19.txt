@@ -1,8 +1,0 @@
-classid=89
-created=2014-02-28 15:21:55.216358
-modified=2014-02-28 15:21:55.216364
-tags=Advanced Matrices
-question=Without using explicit loop constructs or if, construct a 1,000 x 1,000 matrix containing a NE/SW diagonal up-down ramp as shown below &ndash; note every NE/SW diagonal stripe has the same value.
-examples=0   1   2   &hellip; 997 998 999<br />  1   2   3   &hellip; 998 999 998<br />  2   3   4   &hellip; 999 998 997<br />  &hellip;   &hellip;   &hellip;   &hellip;   &hellip;   &hellip;   &hellip;<br />997 998 999   &hellip;   4   3   2<br />998 999 998   &hellip;   3   2   1 <br />999 998 997   &hellip;   2   1   0
-hints=You might find meshgrid handy.
-answer=[x,y]=meshgrid(0:999,0:999);<br />min(x+y,rot90(rot90(x+y)))<br /><br />&hellip;or&hellip;<br /><br />[xup,yup] = meshgrid([0:999],[0:999]);<br />[xdown,ydown] = meshgrid([999:-1:0],[999:-1:0]);<br />min(xup+yup, xdown+ydown)
